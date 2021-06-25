@@ -13,6 +13,12 @@ const fetch = require('node-fetch');
 const fetchRetry = require('fetch-retry')(fetch);
 
 /**
+ * Get the path from the a media source url
+ * @param {string} source_url 
+ */
+const pathFromMediaSourceUrl = source_url => source_url.split('/wp-content/uploads/')[1];
+
+/**
  * @param {{WordPressUrl: string, GitHubTarget: {Owner: string, Repo: string, Branch: string}}} endpoint 
  * @returns 
  */
@@ -88,7 +94,7 @@ const getWpCommonJsonData = (wpRow,userlist) =>
     {...wpRow,
       title: wpRow.title.rendered,
       author: userlist[wpRow.author],
-      wordpress_url: wpRow.link,
+      wordpress_url: wpRow.source_url || wpRow.link,
       excerpt: wpRow.excerpt ? wpRow.excerpt.rendered : null
     },
     [
@@ -102,9 +108,9 @@ const getWpCommonJsonData = (wpRow,userlist) =>
       'modified_gmt',
       'meta',
       'template',
+      'media_type',
+      'mime_type',
       'wordpress_url',
-      'file_path_html',
-      'file_path_json',
       'excerpt'
     ]);
 
@@ -134,6 +140,48 @@ const wrapInFileMeta = (endpoint,data) => ({
   data
 });
 
+/**
+ * callback function got GitHub API that ignores 404 errors.
+ * @param {*} [Error] 
+ * @param {*} [Data] 
+ * @param {*} [Response]
+ * @example
+ * const exists = await gitRepo._request('HEAD', `/repos/${gitRepo.__fullname}/git/blobs/${sha}`,null, ok404);
+ * @returns
+ */
+const ok404 = (Error,Data,Response) => {
+  if(Error) {
+    if(Error.response.status!==404) throw Error;
+  }
+};
+
+/**
+ * Syncs a binary file with Github, by adding the blob if its not already there and then updating the sha in the tree
+ * @param {string} source_url 
+ * @param {{}} treeNode 
+ */
+const syncBinaryFile = async (source_url, gitRepo, mediaTree, endpoint) => {
+  console.log(`Downloading...${source_url}`);
+  const fetchResponse = await fetchRetry(source_url,{method:"Get",retries:3,retryDelay:2000});
+  const blob = await fetchResponse.arrayBuffer();
+  const buffer = Buffer.from(blob);
+
+  let sha = gitHubBlobPredictShaFromBuffer(buffer); //sha = '38ec6101bdd299856ad13a05a61013872c3e70a8';
+
+  const exists = await gitRepo._request('HEAD', `/repos/${gitRepo.__fullname}/git/blobs/${sha}`,null, ok404);
+  if(!exists) {
+    console.log('adding new file');
+    
+    const blobResult = await gitRepo.createBlob(buffer);
+    sha = blobResult.data.sha; //should be the same, but just in case
+  }
+
+  //swap in the new blob sha here.  If the sha matches something already there it will be determined on server.
+  const treeNode = mediaTree.find(x=>x.path===`${endpoint.GitHubTarget.MediaPath}/${pathFromMediaSourceUrl(source_url)}`);
+  delete treeNode.content;
+  treeNode.sha = sha;
+};
+
 module.exports = async () => {
   const gitModule = new GitHub({ token: process.env["GITHUB_TOKEN"] });
 
@@ -156,59 +204,49 @@ module.exports = async () => {
     const mediaContentPlaceholder = 'TBD : Binary file to be updated in a later step';
     if(endpoint.GitHubTarget.SyncMedia) {
       const allMedia = await WpApi_GetPagedData(wordPressApiUrl,'media');
-      const mediaSplitUrl = '/wp-content/uploads/';
 
       allMedia.forEach(x=>{
         const jsonData = getWpCommonJsonData(x,userlist);
         delete jsonData.excerpt;
   
-        jsonData.sizes = Object.keys(x.media_details.sizes).map(s=>({
-          type:s,
-          path:x.media_details.sizes[s].source_url.split(mediaSplitUrl)[1],
-          ...x.media_details.sizes[s]}));
-        // {...x.media_details.sizes};
+        if(x.media_details.sizes) {
+          jsonData.sizes = Object.keys(x.media_details.sizes).map(s=>({
+            type:s,
+            path:pathFromMediaSourceUrl(x.media_details.sizes[s].source_url),
+            ...x.media_details.sizes[s]}));
 
-        jsonData.sizes.sort((a,b)=>b.width-a.width); //Big first
+          jsonData.sizes.sort((a,b)=>b.width-a.width); //Big first
 
-        mediaMap.set(x.media_details.file.replace('.png','.json'),wrapInFileMeta(endpoint,jsonData));
-        //TODO: make replace use other image types, consider PDF
-        //put binary placeholders so they aren't deleted.  Will search for these if an update happens.
-        for (const s of jsonData.sizes) {
-          mediaMap.set(s.path, mediaContentPlaceholder);
+          //put binary placeholders so they aren't deleted.  Will search for these if an update happens.
+          for (const s of jsonData.sizes) {
+            mediaMap.set(s.path, mediaContentPlaceholder);
+          }
+        } else {
+          //PDF
+          jsonData.path = pathFromMediaSourceUrl(x.source_url);
+          mediaMap.set(jsonData.path, mediaContentPlaceholder);
         }
+
+        mediaMap.set(`${pathFromMediaSourceUrl(x.source_url).split('.')[0]}.json`,wrapInFileMeta(endpoint,jsonData));
       });
 
       let mediaTree = await createTreeFromFileMap(gitRepo,endpoint.GitHubTarget.Branch,mediaMap,endpoint.GitHubTarget.MediaPath);
    
       //Pull in binaries for any media meta changes
-      for (const mediaTreeSizes of mediaTree
+      for (const mediaTreeItem of mediaTree
         .filter(x=>x.content && x.content!==mediaContentPlaceholder)
-        .map(mt=>JSON.parse(mt.content).data.sizes)) {
-        for (const sizeJson of mediaTreeSizes) {
-          console.log(`Downloading...${sizeJson.source_url}`);
-          const fetchResponse = await fetchRetry(sizeJson.source_url,{method:"Get",retries:3,retryDelay:2000});
-          const blob = await fetchResponse.arrayBuffer();
-          const buffer = Buffer.from(blob);
+        .map(mt=>JSON.parse(mt.content).data)) {
 
-          let sha = gitHubBlobPredictShaFromBuffer(buffer);
-          const ok404 = (Error,Data) => {
-            if(Error) {
-              if(Error.response.status!==404) throw Error;
-            }
-            return Data;
-          };
-          const exists = await gitRepo._request('HEAD', `/repos/${gitRepo.__fullname}/git/blobs/${sha}`,null, ok404);
-          if(!exists) {
-            console.log('adding new file');
-            const blobResult = await gitRepo.createBlob(buffer);
-            sha = blobResult.data.sha; //should be the same, but just in case
+        if (mediaTreeItem.sizes) {
+          //Sized images
+          for (const sizeJson of mediaTreeItem.sizes) {
+            await syncBinaryFile(sizeJson.source_url,gitRepo, mediaTree, endpoint);
           }
-
-          //swap in the new blob sha here.  If the sha matches something already there it will be determined on server.
-          const treeNode = mediaTree.find(x=>x.path===`${endpoint.GitHubTarget.MediaPath}/${sizeJson.path}`);
-          delete treeNode.content;
-          treeNode.sha = sha ;
+        } else {
+          //not sized media (PDF or non-image)
+          await syncBinaryFile(mediaTreeItem.wordpress_url,gitRepo, mediaTree, endpoint);
         }
+
       }
       //Remove any leftover binary placeholders...
       mediaTree = mediaTree.filter(x=>x.content !== mediaContentPlaceholder);
