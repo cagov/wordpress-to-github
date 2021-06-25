@@ -1,0 +1,42 @@
+{
+    "env": {
+        "browser": false,
+        "commonjs": true,
+        "es2021": true,
+        "node": true
+    },
+    "extends": [
+        "eslint:recommended"
+    ],
+    "parserOptions": {
+        "ecmaVersion": 12,
+        "sourceType": "module"
+    },
+    "rules": {
+        "arrow-parens": [
+          "warn",
+          "as-needed"
+        ],
+        "block-scoped-var": "warn",
+        "class-methods-use-this": "warn",
+        "indent": ["off", 2],
+        "no-extra-bind": "warn",
+        "no-extra-parens": "warn",
+        "no-lonely-if": "warn",
+        "no-multiple-empty-lines": "warn",
+        "no-shadow": "warn",
+        "no-tabs": "warn",
+        "no-template-curly-in-string": "warn",
+        "no-trailing-spaces": "off",
+        "no-undef": "warn",
+        "no-useless-computed-key": "warn",
+        "no-useless-concat": "warn",
+        "no-useless-return": "warn",
+        "no-var": "warn",
+        "operator-assignment": "warn",
+        "prefer-arrow-callback": "warn",
+        "prefer-template": "warn",
+        "semi": "warn",
+        "yoda": "warn"
+      }
+}

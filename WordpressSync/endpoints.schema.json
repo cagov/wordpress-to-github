@@ -1,0 +1,113 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Schema for endpoints.json",
+  "definitions": {
+    "URL": {
+      "type": "string",
+      "pattern": "^(https?|wss?|ftp)://"
+    }
+  },
+  "type": "object",
+  "additionalProperties": true,
+  "required": [
+    "meta",
+    "data"
+  ],
+  "properties": {
+    "meta": {},
+    "data": {
+      "type": "object",
+      "required": [
+        "projects"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "projects": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "type": "object",
+            "required": [
+              "name",
+              "enabled",
+              "WordPressUrl",
+              "GitHubTarget"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "name": {
+                "type": "string"
+              },
+              "enabled": {
+                "type": "boolean",
+                "description": "Should we process this endpoint?"
+              },
+              "WordPressUrl": {
+                "$ref": "#/definitions/URL",
+                "description": "URL of the Wordpress instance to read from",
+                "examples": ["https://mywpinstance.azurewebsites.net"]
+              },
+              "GitHubTarget": {
+                "type": "object",
+                "description": "The endpoint target to deploy changes",
+                "required": [
+                  "Owner",
+                  "Repo",
+                  "Branch",
+                  "PostPath",
+                  "PagePath"
+                ],
+                "properties": {
+                  "Owner": {
+                    "type": "string",
+                    "description": "GitHub Owner",
+                    "examples": [
+                      "cagov"
+                    ]
+                  },
+                  "Repo": {
+                    "type": "string",
+                    "description": "GitHub Repo"
+                  },
+                  "Branch": {
+                    "type": "string",
+                    "description": "GitHub Target Branch",
+                    "examples": [
+                      "master",
+                      "main"
+                    ]
+                  },
+                  "PostPath": {
+                    "type": "string",
+                    "description": "Where should the posts go?",
+                    "examples": [
+                      "wordpress/posts"
+                    ]
+                  },
+                  "PagePath": {
+                    "type": "string",
+                    "description": "Where should the pages go?",
+                    "examples": [
+                      "wordpress/pages"
+                    ]
+                  },
+                  "SyncMedia": {
+                    "type": "boolean",
+                    "description": "Should we sync image media?"
+                  },
+                  "MediaPath": {
+                    "type": "string",
+                    "description": "where should image media go?",
+                    "examples": [
+                      "wordpress/media"
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
