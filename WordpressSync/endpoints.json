@@ -34,11 +34,23 @@
       },
       {
         "name": "Cannabis",
-        "enabled": false,
-        "WordPressUrl": "https://dev-cagov-dcc.pantheonsite.io",
+        "enabled": true,
+        "WordPressUrl": "https://staginginye.prod3.sites.ca.gov",
         "GitHubTarget": {
           "Owner": "cagov",
           "Repo": "cannabis.ca.gov",
+          "Branch": "main",
+          "PostPath": "wordpress/posts",
+          "PagePath": "wordpress/pages"
+        }
+      },
+      {
+        "name": "Drought",
+        "enabled": true,
+        "WordPressUrl": "https://live-drought-ca-gov.pantheonsite.io",
+        "GitHubTarget": {
+          "Owner": "cagov",
+          "Repo": "drought.ca.gov",
           "Branch": "main",
           "PostPath": "wordpress/posts",
           "PagePath": "wordpress/pages"
