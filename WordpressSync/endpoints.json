@@ -67,7 +67,7 @@
         "GitHubTarget": {
           "Owner": "cagov",
           "Repo": "drought.ca.gov",
-          "Branch": "media_test",
+          "Branch": "main",
           "PostPath": "wordpress/posts",
           "PagePath": "wordpress/pages",
           "SyncMedia": true,

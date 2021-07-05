@@ -275,23 +275,23 @@ module.exports = async () => {
       return output;
     }
 
-    // /**
-    //  * Point specific WP media files to static file hosting
-    //  * @param {*} jsonData 
-    //  * @param {*} WpRow 
-    //  * @param {*} HTML 
-    //  */
-    // const staticWpUploads = (jsonData,WpRow,HTML) => {
-    //   // // @TODO Same as convertWpEndpointsToStatic, but specific to media hosting & possibly different new URL.
-    //   // let apiSearchString = wordPressApiUrl; // @TODO change here if we need to.
-    //   // if (apiSearchString.charAt(apiSearchString.length - 1) === "/") {
-    //   //   apiSearchString = apiSearchString.substring(0, apiSearchString.length - 1);
-    //   // }
-    //   // let output = HTML;
-    //   // let apiString = new RegExp('\\' + apiSearchString, 'g');
-    //   // output  = output.replace(apiString, hostUrl.Production + type);
-    //   // return output;
-    // }
+    /**
+     * Point specific WP media files to static file hosting
+     * @param {*} jsonData 
+     * @param {*} WpRow 
+     * @param {*} HTML 
+     */
+    const staticWpUploads = (jsonData,WpRow,HTML) => {
+      // @TODO Same as convertWpEndpointsToStatic, but specific to media hosting & possibly different new URL.
+      let apiSearchString = wordPressApiUrl;
+      if (apiSearchString.charAt(apiSearchString.length - 1) === "/") {
+        apiSearchString = apiSearchString.substring(0, apiSearchString.length - 1);
+      }
+      let output = HTML;
+      let apiString = new RegExp('\\' + apiSearchString, 'g');
+      output  = output.replace(apiString, hostUrl.Production + "wp-content/uploads/");
+      return output;
+    }
 
     /**
      * Places the media section if SyncMedia is on
@@ -382,19 +382,20 @@ module.exports = async () => {
       // Get field based media items
       addMediaSection(jsonData,x,HTML);
       // Convert hosted WP content endpoints to static versions
-      HTML = convertWpEndpointsToStatic(jsonData,x,HTML,"pages");
+      HTML = convertWpEndpointsToStatic(jsonData,x,HTML,"posts");
       // Convert WP upload paths to use path to media library
-      // HTML = staticWpUploads(jsonData,x,HTML);
+      HTML = staticWpUploads(jsonData,x,HTML);
 
       // og_meta is set in custom rest field, using data from autodescription plugin.
       // Clean it up so that media links and endpoints point to the static site.
-      // if (jsonData.og_meta !== undefined && jsonData.og_meta.og_rendered !== undefined) {
-      //   var OG_META = cleanupContent(x.og_meta.og_rendered);
-      //   OG_META = addMediaSection(jsonData,x,OG_META);
-      //   OG_META = convertWpEndpointsToStatic(jsonData,x,OG_META);
-      //   OG_META = staticWpUploads(jsonData,x,OG_META);
-      //   jsonData.og_meta.og_rendered = OG_META;
-      // }
+      if (jsonData.og_meta !== undefined && jsonData.og_meta.og_rendered !== undefined) {
+        var OG_META = cleanupContent(x.og_meta.og_rendered);
+        addMediaSection(jsonData,x,OG_META);
+        OG_META = convertWpEndpointsToStatic(jsonData,x,OG_META);
+        OG_META = staticWpUploads(jsonData,x,OG_META);
+        // Fix cleaned up og_meta tag with static links.
+        jsonData.og_meta.og_rendered = OG_META;
+      }
 
       pagesMap.set(`${x.slug}.json`,wrapInFileMeta(endpoint,jsonData));
       pagesMap.set(`${x.slug}.html`,HTML);
