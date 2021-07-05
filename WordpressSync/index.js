@@ -114,46 +114,11 @@ const getWpCommonJsonData = (wpRow,userlist) =>
       'excerpt',
       'format',
       'type',
-      'design_system_fields', // is object
-      'og_meta', // is object
-      'site_settings' // is object
+      'design_system_fields',
+      'og_meta',
+      'site_settings',
+      'content',
     ]);
-
-    // site_settings.site_name string
-    // site_settings.site_description string
-    // site_settings.url string
-    // site_settings.wpurl string
-
-    // og.renderered string goes in page meta, don't really need the other fields but needs string replacement with static files like content rendered
-
-    // design_system_fields {
-      // template: "post",
-      // post: {
-      // post_link: "https://example.com",
-      // post_date: "",
-      // locale: "en_US",
-      // gmt_offset: -7,
-      // timezone: "America/Los_Angeles",
-      // post_published_date_display: {
-        // i18n_locale_date: "July 4, 2021",
-        // i18n_locale_date_gmt: "July 4, 2021",
-        // i18n_locale_date_time: "July 4, 2021 12:42 pm",
-        // i18n_locale_date_time_gmt: "July 4, 2021 7:42 pm"
-      // },
-      // post_modified_date_display: {
-        // i18n_locale_date: "July 4, 2021",
-        // i18n_locale_date_gmt: "July 4, 2021",
-        // i18n_locale_date_time: "July 4, 2021 4:23 pm",
-        // i18n_locale_date_time_gmt: "July 4, 2021 11:23 pm"
-      // },
-      // post_location: "",
-      // event_date: "",
-      // event_end_date: "",
-      // event_start_time: "",
-      // event_end_time: ""
-    // }
-
-
 /**
  * returns an object filled with the non null keys of another object
  * @param {{}} fromObject the object to get things out of
@@ -201,6 +166,7 @@ const ok404 = (Error,Data,Response) => {
  * @param {{}} treeNode 
  */
 const syncBinaryFile = async (source_url, gitRepo, mediaTree, endpoint) => {
+  console.log("source_url", source_url);
   console.log(`Downloading...${source_url}`);
   const fetchResponse = await fetchRetry(source_url,{method:"Get",retries:3,retryDelay:2000});
   const blob = await fetchResponse.arrayBuffer();
@@ -217,7 +183,9 @@ const syncBinaryFile = async (source_url, gitRepo, mediaTree, endpoint) => {
   }
 
   //swap in the new blob sha here.  If the sha matches something already there it will be determined on server.
+  // console.log(treeNode);
   const treeNode = mediaTree.find(x=>x.path===`${endpoint.GitHubTarget.MediaPath}/${pathFromMediaSourceUrl(source_url)}`);
+  // console.log(treeNode);
   delete treeNode.content;
   treeNode.sha = sha;
 };
@@ -241,10 +209,10 @@ module.exports = async () => {
     const mediaMap = endpoint.GitHubTarget.SyncMedia ? new Map() : null;
     
     // MEDIA
-    const mediaContentPlaceholder = 'TBD : Binary file to be updated in a later step';
+    const mediaContentPlaceholder = 'TBD : Binary file to be updated in a later step'; 
+
     if(endpoint.GitHubTarget.SyncMedia) {
       const allMedia = await WpApi_GetPagedData(wordPressApiUrl,'media');
-
       allMedia.forEach(x=>{
         const jsonData = getWpCommonJsonData(x,userlist);
         delete jsonData.excerpt;
@@ -280,10 +248,12 @@ module.exports = async () => {
         if (mediaTreeItem.sizes) {
           //Sized images
           for (const sizeJson of mediaTreeItem.sizes) {
+            console.log("sizeJson", sizeJson);
             await syncBinaryFile(sizeJson.source_url,gitRepo, mediaTree, endpoint);
           }
         } else {
           //not sized media (PDF or non-image)
+          console.log("(mediaTreeItem.wordpress_url",mediaTreeItem.wordpress_url);
           await syncBinaryFile(mediaTreeItem.wordpress_url,gitRepo, mediaTree, endpoint);
         }
 
@@ -293,7 +263,30 @@ module.exports = async () => {
       
       await PrIfChanged(gitRepo, endpoint.GitHubTarget.Branch, mediaTree, `${commitTitleMedia} (${mediaTree.length} updates)`, committer, true);
     }
-    
+
+    /**
+     * Point specific WP content to static file hosint
+     * @param {*} jsonData 
+     * @param {*} WpRow 
+     * @param {*} HTML 
+     */
+    const convertWpEndpointsToStatic = (jsonData,WpRow,HTML) => {
+      // data-endpoint="https://live-drought-ca-gov.pantheonsite.io/wp-json/wp/v2"
+      // needs to change to relative path - first to github, then to file server when set up
+      // 
+      // 
+    }
+
+    /**
+     * Point specific WP content to static file hosint
+     * @param {*} jsonData 
+     * @param {*} WpRow 
+     * @param {*} HTML 
+     */
+    const staticWpUploads = (jsonData,WpRow,HTML) => {
+      
+    }
+
     /**
      * Places the media section if SyncMedia is on
      * @param {{}} jsonData 
@@ -302,6 +295,7 @@ module.exports = async () => {
      */
     const addMediaSection = (jsonData,WpRow,HTML) => {
       if(endpoint.GitHubTarget.SyncMedia) {
+
         if(WpRow.featured_media) {
           jsonData.featured_media = WpRow.featured_media;
         }
@@ -337,12 +331,28 @@ module.exports = async () => {
     const allPosts = await WpApi_GetPagedData(wordPressApiUrl,'posts');
     allPosts.forEach(x=>{
       const jsonData = getWpCommonJsonData(x,userlist);
+      jsonData.headless = true;
       jsonData.categories = x.categories.map(t=>categorylist[t]);
       jsonData.tags = x.tags.map(t=>taglist[t]);
 
-      const HTML = cleanupContent(x.content.rendered);
-    
-      addMediaSection(jsonData,x,HTML);
+      // HTML markup character cleanup
+      var HTML = cleanupContent(x.content.rendered);
+      // // Get field based media items
+      // HTML = addMediaSection(jsonData,x,HTML);
+      // // Convert hosted WP content endpoints to static versions
+      // HTML = convertWpEndpointsToStatic(jsonData,x,HTML);
+      // // Convert WP upload paths to use path to media library
+      // HTML = staticWpUploads(jsonData,x,HTML);
+
+      // // og_meta is set in custom rest field, using data from autodescription plugin.
+      // // Clean it up so that media links and endpoints point to the static site.
+      // if (jsonData.og_meta !== undefined && jsonData.og_meta.og_rendered !== undefined) {
+      //   var OG_META = cleanupContent(x.og_meta.og_rendered);
+      //   OG_META = addMediaSection(jsonData,x,OG_META);
+      //   OG_META = convertWpEndpointsToStatic(jsonData,x,OG_META);
+      //   OG_META = staticWpUploads(jsonData,x,OG_META);
+      //   jsonData.og_meta.og_rendered = OG_META;
+      // }
 
       postMap.set(`${x.slug}.json`,wrapInFileMeta(endpoint,jsonData));
       postMap.set(`${x.slug}.html`,HTML);
@@ -356,12 +366,28 @@ module.exports = async () => {
     const allPages = await WpApi_GetPagedData(wordPressApiUrl,'pages');
     allPages.forEach(x=>{
       const jsonData = getWpCommonJsonData(x,userlist);
+      jsonData.headless = true;
       jsonData.parent = x.parent;
       jsonData.menu_order = x.menu_order;
 
+      // HTML markup character cleanup
       const HTML = cleanupContent(x.content.rendered);
-
+      // Get field based media items
       addMediaSection(jsonData,x,HTML);
+      // Convert hosted WP content endpoints to static versions
+      // HTML = convertWpEndpointsToStatic(jsonData,x,HTML);
+      // Convert WP upload paths to use path to media library
+      // HTML = staticWpUploads(jsonData,x,HTML);
+
+      // og_meta is set in custom rest field, using data from autodescription plugin.
+      // Clean it up so that media links and endpoints point to the static site.
+      // if (jsonData.og_meta !== undefined && jsonData.og_meta.og_rendered !== undefined) {
+      //   var OG_META = cleanupContent(x.og_meta.og_rendered);
+      //   OG_META = addMediaSection(jsonData,x,OG_META);
+      //   OG_META = convertWpEndpointsToStatic(jsonData,x,OG_META);
+      //   OG_META = staticWpUploads(jsonData,x,OG_META);
+      //   jsonData.og_meta.og_rendered = OG_META;
+      // }
 
       pagesMap.set(`${x.slug}.json`,wrapInFileMeta(endpoint,jsonData));
       pagesMap.set(`${x.slug}.html`,HTML);
