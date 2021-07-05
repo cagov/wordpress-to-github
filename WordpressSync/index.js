@@ -282,14 +282,14 @@ module.exports = async () => {
      * @param {*} HTML 
      */
     const staticWpUploads = (jsonData,WpRow,HTML) => {
-      // @TODO Same as convertWpEndpointsToStatic, but specific to media hosting & possibly different new URL.
-      let apiSearchString = wordPressApiUrl;
+      let apiSearchString = endpoint.WordPressUrl + "/wp-content/uploads/";
+      
       if (apiSearchString.charAt(apiSearchString.length - 1) === "/") {
         apiSearchString = apiSearchString.substring(0, apiSearchString.length - 1);
       }
       let output = HTML;
       let apiString = new RegExp('\\' + apiSearchString, 'g');
-      output  = output.replace(apiString, hostUrl.Production + "wp-content/uploads/");
+      output  = output.replace(apiString, hostUrl.Production + "files");
       return output;
     }
 
@@ -348,7 +348,9 @@ module.exports = async () => {
       // Convert hosted WP content endpoints to static versions
       HTML = convertWpEndpointsToStatic(jsonData,x,HTML,"posts");
       // Convert WP upload paths to use path to media library
-      HTML = staticWpUploads(jsonData,x,HTML);
+      if(endpoint.GitHubTarget.SyncMedia) {
+        HTML = staticWpUploads(jsonData,x,HTML);
+      }
 
       // og_meta is set in custom rest field, using data from autodescription plugin.
       // Clean it up so that media links and endpoints point to the static site.
@@ -356,7 +358,9 @@ module.exports = async () => {
         var OG_META = cleanupContent(x.og_meta.og_rendered);
         addMediaSection(jsonData,x,OG_META);
         OG_META = convertWpEndpointsToStatic(jsonData,x,OG_META);
-        OG_META = staticWpUploads(jsonData,x,OG_META);
+        if(endpoint.GitHubTarget.SyncMedia) {
+          OG_META = staticWpUploads(jsonData,x,OG_META);
+        }
         // Fix cleaned up og_meta tag with static links.
         jsonData.og_meta.og_rendered = OG_META;
       }
@@ -384,7 +388,9 @@ module.exports = async () => {
       // Convert hosted WP content endpoints to static versions
       HTML = convertWpEndpointsToStatic(jsonData,x,HTML,"posts");
       // Convert WP upload paths to use path to media library
-      HTML = staticWpUploads(jsonData,x,HTML);
+      if(endpoint.GitHubTarget.SyncMedia) {
+        HTML = staticWpUploads(jsonData,x,HTML);
+      }
 
       // og_meta is set in custom rest field, using data from autodescription plugin.
       // Clean it up so that media links and endpoints point to the static site.
@@ -392,7 +398,9 @@ module.exports = async () => {
         var OG_META = cleanupContent(x.og_meta.og_rendered);
         addMediaSection(jsonData,x,OG_META);
         OG_META = convertWpEndpointsToStatic(jsonData,x,OG_META);
-        OG_META = staticWpUploads(jsonData,x,OG_META);
+        if(endpoint.GitHubTarget.SyncMedia) {
+          OG_META = staticWpUploads(jsonData,x,OG_META);
+        }
         // Fix cleaned up og_meta tag with static links.
         jsonData.og_meta.og_rendered = OG_META;
       }
