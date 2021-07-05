@@ -166,7 +166,6 @@ const ok404 = (Error,Data,Response) => {
  * @param {{}} treeNode 
  */
 const syncBinaryFile = async (source_url, gitRepo, mediaTree, endpoint) => {
-  console.log("source_url", source_url);
   console.log(`Downloading...${source_url}`);
   const fetchResponse = await fetchRetry(source_url,{method:"Get",retries:3,retryDelay:2000});
   const blob = await fetchResponse.arrayBuffer();
@@ -176,8 +175,6 @@ const syncBinaryFile = async (source_url, gitRepo, mediaTree, endpoint) => {
 
   const exists = await gitRepo._request('HEAD', `/repos/${gitRepo.__fullname}/git/blobs/${sha}`,null, ok404);
   if(!exists) {
-    console.log('adding new file');
-    
     const blobResult = await gitRepo.createBlob(buffer);
     sha = blobResult.data.sha; //should be the same, but just in case
   }
@@ -248,12 +245,10 @@ module.exports = async () => {
         if (mediaTreeItem.sizes) {
           //Sized images
           for (const sizeJson of mediaTreeItem.sizes) {
-            console.log("sizeJson", sizeJson);
             await syncBinaryFile(sizeJson.source_url,gitRepo, mediaTree, endpoint);
           }
         } else {
           //not sized media (PDF or non-image)
-          console.log("(mediaTreeItem.wordpress_url",mediaTreeItem.wordpress_url);
           await syncBinaryFile(mediaTreeItem.wordpress_url,gitRepo, mediaTree, endpoint);
         }
 
