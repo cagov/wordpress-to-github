@@ -50,6 +50,10 @@
               "HostUrl": {
                 "type": "object",
                 "description": "Urls for host",
+                "required": [
+                  "Production"
+                ],
+                "additionalProperties": true,
                 "properties": {
                   "Production": {
                     "type": "string",
@@ -65,6 +69,7 @@
                       "https://cagov.github.io/drought.ca.gov/"
                     ]
                   }
+                }
               },
               "GitHubTarget": {
                 "type": "object",

@@ -1,5 +1,5 @@
 const GitHub = require('github-api');
-const endpoints = require('./endpoints.json').data;
+const endpoints = require('./endpoints.debug.json').data;
 const committer = {
   name: process.env["GITHUB_NAME"],
   email: process.env["GITHUB_EMAIL"]
