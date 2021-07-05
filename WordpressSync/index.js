@@ -111,8 +111,48 @@ const getWpCommonJsonData = (wpRow,userlist) =>
       'media_type',
       'mime_type',
       'wordpress_url',
-      'excerpt'
+      'excerpt',
+      'format',
+      'type',
+      'design_system_fields', // is object
+      'og_meta', // is object
+      'site_settings' // is object
     ]);
+
+    // site_settings.site_name string
+    // site_settings.site_description string
+    // site_settings.url string
+    // site_settings.wpurl string
+
+    // og.renderered string goes in page meta, don't really need the other fields but needs string replacement with static files like content rendered
+
+    // design_system_fields {
+      // template: "post",
+      // post: {
+      // post_link: "https://example.com",
+      // post_date: "",
+      // locale: "en_US",
+      // gmt_offset: -7,
+      // timezone: "America/Los_Angeles",
+      // post_published_date_display: {
+        // i18n_locale_date: "July 4, 2021",
+        // i18n_locale_date_gmt: "July 4, 2021",
+        // i18n_locale_date_time: "July 4, 2021 12:42 pm",
+        // i18n_locale_date_time_gmt: "July 4, 2021 7:42 pm"
+      // },
+      // post_modified_date_display: {
+        // i18n_locale_date: "July 4, 2021",
+        // i18n_locale_date_gmt: "July 4, 2021",
+        // i18n_locale_date_time: "July 4, 2021 4:23 pm",
+        // i18n_locale_date_time_gmt: "July 4, 2021 11:23 pm"
+      // },
+      // post_location: "",
+      // event_date: "",
+      // event_end_date: "",
+      // event_start_time: "",
+      // event_end_time: ""
+    // }
+
 
 /**
  * returns an object filled with the non null keys of another object
