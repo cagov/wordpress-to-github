@@ -19,7 +19,8 @@
           "Repo": "automation-development-target",
           "Branch": "main",
           "PostPath": "wordpress_output/posts",
-          "PagePath": "wordpress_output/pages"
+          "PagePath": "wordpress_output/pages",
+          "RelativePaths": false
         }
       },
       {
@@ -36,6 +37,7 @@
           "Branch": "main",
           "PostPath": "wordpress/posts",
           "PagePath": "wordpress/pages",
+          "RelativePaths": false,
           "SyncMedia": true,
           "MediaPath": "wordpress/media"
         }
@@ -53,7 +55,8 @@
           "Repo": "cannabis.ca.gov",
           "Branch": "main",
           "PostPath": "wordpress/posts",
-          "PagePath": "wordpress/pages"
+          "PagePath": "wordpress/pages",
+          "RelativePaths": false
         }
       },    
       {
@@ -71,6 +74,7 @@
           "PostPath": "wordpress/posts",
           "PagePath": "wordpress/pages",
           "SyncMedia": true,
+          "RelativePaths": true,
           "MediaPath": "wordpress/media"
         }
       }

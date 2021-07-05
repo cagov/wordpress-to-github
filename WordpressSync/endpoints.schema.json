@@ -115,6 +115,10 @@
                       "wordpress/pages"
                     ]
                   },
+                  "RelativePaths": {
+                    "type": "boolean",
+                    "description": "Should we replace urls with the host domain?"
+                  },
                   "SyncMedia": {
                     "type": "boolean",
                     "description": "Should we sync image media?"

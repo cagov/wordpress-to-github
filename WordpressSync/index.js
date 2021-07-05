@@ -346,9 +346,11 @@ module.exports = async () => {
       // Get field based media items
       addMediaSection(jsonData,x,HTML);
       // Convert hosted WP content endpoints to static versions
+      if(endpoint.GitHubTarget.RelativePaths) {
       HTML = convertWpEndpointsToStatic(jsonData,x,HTML,"posts");
+      }
       // Convert WP upload paths to use path to media library
-      if(endpoint.GitHubTarget.SyncMedia) {
+      if(endpoint.GitHubTarget.SyncMedia && endpoint.GitHubTarget.RelativePaths) {
         HTML = staticWpUploads(jsonData,x,HTML);
       }
 
@@ -357,8 +359,10 @@ module.exports = async () => {
       if (jsonData.og_meta !== undefined && jsonData.og_meta.og_rendered !== undefined) {
         var OG_META = cleanupContent(x.og_meta.og_rendered);
         addMediaSection(jsonData,x,OG_META);
-        OG_META = convertWpEndpointsToStatic(jsonData,x,OG_META);
-        if(endpoint.GitHubTarget.SyncMedia) {
+        if(endpoint.GitHubTarget.RelativePaths) {
+          OG_META = convertWpEndpointsToStatic(jsonData,x,OG_META);
+        }
+        if(endpoint.GitHubTarget.SyncMedia && endpoint.GitHubTarget.RelativePaths) {
           OG_META = staticWpUploads(jsonData,x,OG_META);
         }
         // Fix cleaned up og_meta tag with static links.
@@ -386,9 +390,11 @@ module.exports = async () => {
       // Get field based media items
       addMediaSection(jsonData,x,HTML);
       // Convert hosted WP content endpoints to static versions
+      if(endpoint.GitHubTarget.RelativePaths) {
       HTML = convertWpEndpointsToStatic(jsonData,x,HTML,"posts");
+      }
       // Convert WP upload paths to use path to media library
-      if(endpoint.GitHubTarget.SyncMedia) {
+      if(endpoint.GitHubTarget.SyncMedia && endpoint.GitHubTarget.RelativePaths) {
         HTML = staticWpUploads(jsonData,x,HTML);
       }
 
@@ -397,8 +403,10 @@ module.exports = async () => {
       if (jsonData.og_meta !== undefined && jsonData.og_meta.og_rendered !== undefined) {
         var OG_META = cleanupContent(x.og_meta.og_rendered);
         addMediaSection(jsonData,x,OG_META);
-        OG_META = convertWpEndpointsToStatic(jsonData,x,OG_META);
-        if(endpoint.GitHubTarget.SyncMedia) {
+        if(endpoint.GitHubTarget.RelativePaths) {
+          OG_META = convertWpEndpointsToStatic(jsonData,x,OG_META);
+        }
+        if(endpoint.GitHubTarget.SyncMedia && endpoint.GitHubTarget.RelativePaths) {
           OG_META = staticWpUploads(jsonData,x,OG_META);
         }
         // Fix cleaned up og_meta tag with static links.
