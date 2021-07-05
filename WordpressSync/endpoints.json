@@ -47,7 +47,7 @@
       {
         "name": "Drought",
         "enabled": true,
-        "WordPressUrl": "https://dev-drought-ca-gov.pantheonsite.io",
+        "WordPressUrl": "https://live-drought-ca-gov.pantheonsite.io",
         "GitHubTarget": {
           "Owner": "cagov",
           "Repo": "drought.ca.gov",
