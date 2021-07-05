@@ -7,55 +7,19 @@
   "data": {
     "projects": [
       {
-        "name": "Covid 19 website",
-        "enabled": false,
-        "WordPressUrl": "https://as-go-covid19-d-001.azurewebsites.net",
-        "GitHubTarget": {
-          "Owner": "cagov",
-          "Repo": "automation-development-target",
-          "Branch": "main",
-          "PostPath": "wordpress_output/posts",
-          "PagePath": "wordpress_output/pages"
-        }
-      },
-      {
-        "name": "digital.ca.gov website",
-        "enabled": true,
-        "WordPressUrl": "https://live-odi-content-api.pantheonsite.io",
-        "GitHubTarget": {
-          "Owner": "cagov",
-          "Repo": "digital.ca.gov",
-          "Branch": "main",
-          "PostPath": "wordpress/posts",
-          "PagePath": "wordpress/pages",
-          "SyncMedia": true,
-          "MediaPath": "wordpress/media"
-        }
-      },
-      {
-        "name": "Cannabis",
-        "enabled": true,
-        "WordPressUrl": "https://staginginye.prod3.sites.ca.gov",
-        "GitHubTarget": {
-          "Owner": "cagov",
-          "Repo": "cannabis.ca.gov",
-          "Branch": "main",
-          "PostPath": "wordpress/posts",
-          "PagePath": "wordpress/pages"
-        }
-      },
-      {
         "name": "Drought",
         "enabled": true,
-        "WordPressUrl": "https://dev-drought-ca-gov.pantheonsite.io",
+        "WordPressUrl": "https://live-drought-ca-gov.pantheonsite.io",
+        "HostUrl": {
+          "Production": "https://cagov.github.io/drought.ca.gov/",
+          "Development": "https://cagov.github.io/drought.ca.gov/"
+        },
         "GitHubTarget": {
           "Owner": "cagov",
           "Repo": "drought.ca.gov",
-          "Branch": "main",
+          "Branch": "media_test",
           "PostPath": "wordpress/posts",
-          "PagePath": "wordpress/pages",
-          "SyncMedia": true,
-          "MediaPath": "wordpress/media"
+          "PagePath": "wordpress/pages"
         }
       }
     ]

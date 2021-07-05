@@ -47,6 +47,25 @@
                 "description": "URL of the Wordpress instance to read from",
                 "examples": ["https://mywpinstance.azurewebsites.net"]
               },
+              "HostUrl": {
+                "type": "object",
+                "description": "Urls for host",
+                "properties": {
+                  "Production": {
+                    "type": "string",
+                    "description": "Production url",
+                    "examples": [
+                      "https://drought.ca.gov"
+                    ]
+                  },
+                  "Development": {
+                    "type": "string",
+                    "description": "Development url, usually a static github site",
+                    "examples": [
+                      "https://cagov.github.io/drought.ca.gov/"
+                    ]
+                  }
+              },
               "GitHubTarget": {
                 "type": "object",
                 "description": "The endpoint target to deploy changes",

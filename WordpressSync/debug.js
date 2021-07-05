@@ -1,5 +1,5 @@
 //Loading environment variables
-const { Values } = require('../../wordpress-to-github-local.settings.json');
+const { Values } = require('../../local-wordpress-to-github.settings.json');
 Object.keys(Values).forEach(x=>process.env[x]=Values[x]); //Load local settings file for testing
 
 //run the indexpage async

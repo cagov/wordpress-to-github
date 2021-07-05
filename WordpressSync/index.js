@@ -193,6 +193,7 @@ module.exports = async () => {
   for(const endpoint of endpoints.projects.filter(x=>x.enabled)) {
     console.log(`*** Checking endpoint for ${endpoint.name} ***`);
     const wordPressApiUrl = endpoint.WordPressUrl+apiPath;
+    const hostUrl = endpoint.HostUrl;
     const gitRepo = await gitModule.getRepo(endpoint.GitHubTarget.Owner,endpoint.GitHubTarget.Repo);
     //const gitIssues = await gitModule.getIssues(githubUser,githubRepo);
 
@@ -265,11 +266,21 @@ module.exports = async () => {
      * @param {*} WpRow 
      * @param {*} HTML 
      */
-    const convertWpEndpointsToStatic = (jsonData,WpRow,HTML) => {
-      // data-endpoint="https://live-drought-ca-gov.pantheonsite.io/wp-json/wp/v2"
+    const convertWpEndpointsToStatic = (jsonData,WpRow,HTML,type) => {
+      // e.g. data-endpoint="https://live-drought-ca-gov.pantheonsite.io/wp-json/wp/v2"
       // needs to change to relative path - first to github, then to file server when set up
-      // 
-      // 
+        
+        let apiSearchString = wordPressApiUrl;
+        console.log(apiSearchString.charAt(apiSearchString.length));
+        if (apiSearchString.charAt(apiSearchString.length) === "/") {
+          apiSearchString = apiSearchString.substring(0, str.length - 1);
+        }
+      let output = HTML;
+      console.log(new RegExp(apiSearchString, 'gi'));
+      console.log("matches", output.match(new RegExp(apiSearchString, 'gi')));
+      output.replace(new RegExp(apiSearchString, 'gi'), hostUrl.Production + type);
+      // console.log(output);
+      return output;
     }
 
     /**
@@ -332,10 +343,10 @@ module.exports = async () => {
 
       // HTML markup character cleanup
       var HTML = cleanupContent(x.content.rendered);
-      // // Get field based media items
-      // HTML = addMediaSection(jsonData,x,HTML);
-      // // Convert hosted WP content endpoints to static versions
-      // HTML = convertWpEndpointsToStatic(jsonData,x,HTML);
+      // Get field based media items
+      addMediaSection(jsonData,x,HTML);
+      // Convert hosted WP content endpoints to static versions
+      HTML = convertWpEndpointsToStatic(jsonData,x,HTML,"posts");
       // // Convert WP upload paths to use path to media library
       // HTML = staticWpUploads(jsonData,x,HTML);
 
@@ -366,11 +377,11 @@ module.exports = async () => {
       jsonData.menu_order = x.menu_order;
 
       // HTML markup character cleanup
-      const HTML = cleanupContent(x.content.rendered);
+      var HTML = cleanupContent(x.content.rendered);
       // Get field based media items
       addMediaSection(jsonData,x,HTML);
       // Convert hosted WP content endpoints to static versions
-      // HTML = convertWpEndpointsToStatic(jsonData,x,HTML);
+      HTML = convertWpEndpointsToStatic(jsonData,x,HTML,"pages");
       // Convert WP upload paths to use path to media library
       // HTML = staticWpUploads(jsonData,x,HTML);
 
