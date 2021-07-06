@@ -289,7 +289,7 @@ module.exports = async () => {
       }
       let output = HTML;
       let apiString = new RegExp('\\' + apiSearchString, 'g');
-      output  = output.replace(apiString, hostUrl.Production + "files");
+      output  = output.replace(apiString, hostUrl.Production + "media");
       return output;
     }
 

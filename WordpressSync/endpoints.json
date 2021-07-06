@@ -74,7 +74,7 @@
           "PostPath": "wordpress/posts",
           "PagePath": "wordpress/pages",
           "SyncMedia": true,
-          "RelativePaths": true,
+          "RelativePaths": false,
           "MediaPath": "wordpress/media"
         }
       }
