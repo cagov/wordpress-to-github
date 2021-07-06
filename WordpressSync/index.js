@@ -223,9 +223,10 @@ const syncBinaryFile = async (source_url, gitRepo, mediaTree, endpoint) => {
 };
 
 module.exports = async () => {
+  const debugMode = process.env.debug?.toLowerCase()==='true';
   const gitModule = new GitHub({ token: process.env["GITHUB_TOKEN"] });
 
-  for(const endpoint of endpoints.projects.filter(x=>x.enabled)) {
+  for(const endpoint of endpoints.projects.filter(x=>debugMode && x.enabledLocal || !debugMode && x.enabled)) {
     console.log(`*** Checking endpoint for ${endpoint.name} ***`);
     const wordPressApiUrl = endpoint.WordPressUrl+apiPath;
     const gitRepo = await gitModule.getRepo(endpoint.GitHubTarget.Owner,endpoint.GitHubTarget.Repo);

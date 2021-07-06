@@ -42,6 +42,11 @@
                 "type": "boolean",
                 "description": "Should we process this endpoint?"
               },
+              "enabledLocal": {
+                "type": "boolean",
+                "default": false,
+                "description": "Should we process this endpoint when running in local development?"
+              },
               "WordPressUrl": {
                 "$ref": "#/definitions/URL",
                 "description": "URL of the Wordpress instance to read from",
