@@ -9,6 +9,7 @@
       {
         "name": "Drought",
         "enabled": true,
+        "enabledLocal": false,
         "WordPressUrl": "https://live-drought-ca-gov.pantheonsite.io",
         "GitHubTarget": {
           "Owner": "cagov",
@@ -21,6 +22,7 @@
       {
         "name": "Covid 19 website",
         "enabled": false,
+        "enabledLocal": true,
         "WordPressUrl": "https://as-go-covid19-d-001.azurewebsites.net",
         "GitHubTarget": {
           "Owner": "cagov",
@@ -33,6 +35,7 @@
       {
         "name": "digital.ca.gov website",
         "enabled": true,
+        "enabledLocal": false,
         "WordPressUrl": "https://live-odi-content-api.pantheonsite.io",
         "GitHubTarget": {
           "Owner": "cagov",
@@ -47,6 +50,7 @@
       {
         "name": "Cannabis",
         "enabled": true,
+        "enabledLocal": false,
         "WordPressUrl": "https://staginginye.prod3.sites.ca.gov",
         "GitHubTarget": {
           "Owner": "cagov",
