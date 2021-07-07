@@ -9,14 +9,16 @@
       {
         "name": "Drought",
         "enabled": true,
-        "enabledLocal": false,
+        "enabledLocal": true,
         "WordPressUrl": "https://live-drought-ca-gov.pantheonsite.io",
         "GitHubTarget": {
           "Owner": "cagov",
           "Repo": "drought.ca.gov",
           "Branch": "main",
           "PostPath": "wordpress/posts",
-          "PagePath": "wordpress/pages"
+          "PagePath": "wordpress/pages",
+          "SyncMedia": true,
+          "MediaPath": "wordpress/media"
         }
       },
       {
