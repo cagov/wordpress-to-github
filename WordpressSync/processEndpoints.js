@@ -88,7 +88,7 @@ const fetchDictionary = async (wordPressApiUrl,listname) => Object.assign({}, ..
 
 /**
  * Gets a JSON starting point common to many WP items
- * @param {{}} wpRow row from API
+ * @param {{title:{rendered:string},author:number,source_url:string,link:string,excerpt:{rendered:string}}} wpRow row from API
  * @param {{}} userlist dictionary of users
  * @param {string} file_path_html
  * @param {string} file_path_json 
@@ -167,7 +167,9 @@ const ok404 = Error => {
 /**
  * Syncs a binary file with Github, by adding the blob if its not already there and then updating the sha in the tree
  * @param {string} source_url 
- * @param {{}} treeNode 
+ * @param {{__fullname:string}} gitRepo 
+ * @param {{content:string,path:string,sha:string}[]} mediaTree 
+ * @param {{WordPressUrl: string, GitHubTarget: {Owner: string, Repo: string, Path: string,Branch: string}}} endpoint 
  */
 const syncBinaryFile = async (source_url, gitRepo, mediaTree, endpoint) => {
   console.log(`Downloading...${source_url}`);
