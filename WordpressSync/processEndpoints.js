@@ -13,12 +13,14 @@ const fetch = require('node-fetch');
 const fetchRetry = require('fetch-retry')(fetch);
 
 /**
- * Get the path from the a media source url
- * @param {string} source_url 
+ * Get the path from the a media source url after the 'uploads' part
+ * @param {string} source_url
+ * @example "/wp-content/uploads/2020/07/myImage.jpg" => "2020/07/myImage.jpg"
  */
 const pathFromMediaSourceUrl = source_url => source_url.split('/wp-content/uploads/')[1];
 
 /**
+ * Creates the META section from an edpoint
  * @param {{WordPressUrl: string, GitHubTarget: {Owner: string, Repo: string, Branch: string}}} endpoint 
  * @returns 
  */
@@ -34,9 +36,12 @@ const commonMeta = endpoint => ({
 });
 
 /**
- * Call the paged wordpress api
+ * Call the paged wordpress api put all the paged data into a single return array
  * @param {string} wordPressApiUrl WP source URL
  * @param {string} objecttype page/posts/media etc
+ * @example 
+ * await WpApi_GetPagedData('https://as-go-covid19-d-001.azurewebsites.net/wp-json/wp/v2/','posts')
+ * //query https://as-go-covid19-d-001.azurewebsites.net/wp-json/wp/v2/posts?per_page=100&orderby=slug&order=asc
  * @returns {Promise<{
  *    id:number,
  *    date_gmt:string
@@ -46,16 +51,15 @@ const WpApi_GetPagedData = async (wordPressApiUrl,objecttype) => {
   const fetchquery = `${wordPressApiUrl}${objecttype}?per_page=100&orderby=slug&order=asc`;
   console.log(`querying Wordpress API - ${fetchquery}`);
 
-  let totalpages = 999;
+  let totalpages = 1; //Will update after the first query
 
   const rows = [];
   
   for(let currentpage = 1; currentpage<=totalpages; currentpage++) {
     const fetchResponse = await fetchRetry(`${fetchquery}&page=${currentpage}`,{method:"Get",retries:3,retryDelay:2000});
     totalpages = Number(fetchResponse.headers.get('x-wp-totalpages'));
-    const fetchResponseJson = await fetchResponse.json();
 
-    fetchResponseJson.forEach(x=>rows.push(x));
+    rows.push(...await fetchResponse.json());
   }
 
   return rows;
@@ -119,41 +123,6 @@ const getWpCommonJsonData = (wpRow,userlist) =>
       'site_settings' // is object
     ]);
 
-    // site_settings.site_name string
-    // site_settings.site_description string
-    // site_settings.url string
-    // site_settings.wpurl string
-
-    // og.renderered string goes in page meta, don't really need the other fields but needs string replacement with static files like content rendered
-
-    // design_system_fields {
-      // template: "post",
-      // post: {
-      // post_link: "https://example.com",
-      // post_date: "",
-      // locale: "en_US",
-      // gmt_offset: -7,
-      // timezone: "America/Los_Angeles",
-      // post_published_date_display: {
-        // i18n_locale_date: "July 4, 2021",
-        // i18n_locale_date_gmt: "July 4, 2021",
-        // i18n_locale_date_time: "July 4, 2021 12:42 pm",
-        // i18n_locale_date_time_gmt: "July 4, 2021 7:42 pm"
-      // },
-      // post_modified_date_display: {
-        // i18n_locale_date: "July 4, 2021",
-        // i18n_locale_date_gmt: "July 4, 2021",
-        // i18n_locale_date_time: "July 4, 2021 4:23 pm",
-        // i18n_locale_date_time_gmt: "July 4, 2021 11:23 pm"
-      // },
-      // post_location: "",
-      // event_date: "",
-      // event_end_date: "",
-      // event_start_time: "",
-      // event_end_time: ""
-    // }
-
-
 /**
  * returns an object filled with the non null keys of another object
  * @param {{}} fromObject the object to get things out of
@@ -189,7 +158,7 @@ const wrapInFileMeta = (endpoint,data) => ({
  * const exists = await gitRepo._request('HEAD', `/repos/${gitRepo.__fullname}/git/blobs/${sha}`,null, ok404);
  * @returns
  */
-const ok404 = (Error,Data,Response) => {
+const ok404 = Error => {
   if(Error) {
     if(Error.response.status!==404) throw Error;
   }
@@ -206,12 +175,10 @@ const syncBinaryFile = async (source_url, gitRepo, mediaTree, endpoint) => {
   const blob = await fetchResponse.arrayBuffer();
   const buffer = Buffer.from(blob);
 
-  let sha = gitHubBlobPredictShaFromBuffer(buffer); //sha = '38ec6101bdd299856ad13a05a61013872c3e70a8';
+  let sha = gitHubBlobPredictShaFromBuffer(buffer);
 
   const exists = await gitRepo._request('HEAD', `/repos/${gitRepo.__fullname}/git/blobs/${sha}`,null, ok404);
   if(!exists) {
-    console.log('adding new file');
-    
     const blobResult = await gitRepo.createBlob(buffer);
     sha = blobResult.data.sha; //should be the same, but just in case
   }
@@ -273,22 +240,27 @@ const doProcessEndpoints = async () => {
 
       let mediaTree = await createTreeFromFileMap(gitRepo,endpoint.GitHubTarget.Branch,mediaMap,endpoint.GitHubTarget.MediaPath);
    
-      //Pull in binaries for any media meta changes
-      for (const mediaTreeItem of mediaTree
+      const mediaChanges = mediaTree
         .filter(x=>x.content && x.content!==mediaContentPlaceholder)
-        .map(mt=>JSON.parse(mt.content).data)) {
+        .map(mt=>JSON.parse(mt.content).data);
 
-        if (mediaTreeItem.sizes) {
-          //Sized images
-          for (const sizeJson of mediaTreeItem.sizes) {
-            await syncBinaryFile(sizeJson.source_url,gitRepo, mediaTree, endpoint);
+      if(mediaChanges.length) {
+        console.log(`Checking ${mediaTree.length} media items`);
+
+        //Pull in binaries for any media meta changes
+        for (const mediaTreeItem of mediaChanges) {
+          if (mediaTreeItem.sizes) {
+            //Sized images
+            for (const sizeJson of mediaTreeItem.sizes) {
+              await syncBinaryFile(endpoint.WordPressUrl+ sizeJson.source_url,gitRepo, mediaTree, endpoint);
+            }
+          } else {
+            //not sized media (PDF or non-image)
+            await syncBinaryFile(mediaTreeItem.wordpress_url,gitRepo, mediaTree, endpoint);
           }
-        } else {
-          //not sized media (PDF or non-image)
-          await syncBinaryFile(mediaTreeItem.wordpress_url,gitRepo, mediaTree, endpoint);
         }
-
       }
+
       //Remove any leftover binary placeholders...
       mediaTree = mediaTree.filter(x=>x.content !== mediaContentPlaceholder);
       
