@@ -253,7 +253,7 @@ const doProcessEndpoints = async () => {
           if (mediaTreeItem.sizes) {
             //Sized images
             for (const sizeJson of mediaTreeItem.sizes) {
-              await syncBinaryFile(endpoint.WordPressUrl+ sizeJson.source_url,gitRepo, mediaTree, endpoint);
+              await syncBinaryFile((sizeJson.source_url.startsWith('http') ? '' : endpoint.WordPressUrl) + sizeJson.source_url,gitRepo, mediaTree, endpoint);
             }
           } else {
             //not sized media (PDF or non-image)
