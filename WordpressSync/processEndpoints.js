@@ -199,7 +199,6 @@ const doProcessEndpoints = async () => {
     console.log(`*** Checking endpoint for ${endpoint.name} ***`);
     const wordPressApiUrl = endpoint.WordPressUrl+apiPath;
     const gitRepo = await gitModule.getRepo(endpoint.GitHubTarget.Owner,endpoint.GitHubTarget.Repo);
-    //const gitIssues = await gitModule.getIssues(githubUser,githubRepo);
 
     //List of WP categories
     const categorylist = await fetchDictionary(wordPressApiUrl,'categories');
