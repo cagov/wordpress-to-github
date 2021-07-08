@@ -16,7 +16,9 @@
           "Repo": "drought.ca.gov",
           "Branch": "main",
           "PostPath": "wordpress/posts",
-          "PagePath": "wordpress/pages"
+          "PagePath": "wordpress/pages",
+          "MediaPath": "wordpress/media",
+          "SyncMedia": true
         }
       },
       {
