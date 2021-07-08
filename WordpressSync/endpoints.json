@@ -22,7 +22,7 @@
         }
       },
       {
-        "name": "Covid 19 website",
+        "name": "Covid 19 website (Using data to create test output)",
         "enabled": false,
         "enabledLocal": true,
         "WordPressUrl": "https://as-go-covid19-d-001.azurewebsites.net",
@@ -31,7 +31,9 @@
           "Repo": "automation-development-target",
           "Branch": "main",
           "PostPath": "wordpress_output/posts",
-          "PagePath": "wordpress_output/pages"
+          "PagePath": "wordpress_output/pages",
+          "SyncMedia": true,
+          "MediaPath": "wordpress_output/media"
         }
       },
       {
