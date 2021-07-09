@@ -1,3 +1,4 @@
+// @ts-check
 const GitHub = require('github-api');
 const commitTitlePosts = 'Wordpress Posts Update';
 const commitTitlePages = 'Wordpress Pages Update';
@@ -5,7 +6,34 @@ const commitTitleMedia = 'Wordpress Media Update';
 const apiPath = '/wp-json/wp/v2/';
 const { createTreeFromFileMap, PrIfChanged, gitHubBlobPredictShaFromBuffer } = require('../common/gitTreeCommon');
 const fetch = require('node-fetch');
+// @ts-ignore
 const fetchRetry = require('fetch-retry')(fetch);
+
+/**
+* @typedef {Object} Endpoint
+* @property {string} WordPressUrl The Wordpress starting point URL
+* @property {{Owner: string, Repo: string, Branch: string, SyncMedia:boolean, MediaPath: string, PostPath: string, PagePath: string}} GitHubTarget
+*/
+
+/**
+* @typedef {Object} WordpressObjectRow
+* @property {number} id
+* @property {string} slug
+* @property {string} date_gmt
+* @property {string} modified_gmt
+* @property {{rendered:string}} title
+* @property {number} author
+* @property {string} source_url
+* @property {string} link
+* @property {{rendered:string}} excerpt
+* @property {{sizes:[]}} media_details
+* @property {number} [featured_media]
+* @property {number[]} [categories]
+* @property {number[]} [tags]
+* @property {{rendered:string}} [content]
+* @property {number} [parent]
+* @property {number} [menu_order]
+*/
 
 /**
  * Get the path from the a media source url after the 'uploads' part
@@ -16,7 +44,7 @@ const pathFromMediaSourceUrl = source_url => source_url.split('/wp-content/uploa
 
 /**
  * Creates the META section from an edpoint
- * @param {{WordPressUrl: string, GitHubTarget: {Owner: string, Repo: string, Branch: string}}} endpoint 
+ * @param {Endpoint} endpoint 
  * @returns 
  */
 const commonMeta = endpoint => ({
@@ -37,10 +65,7 @@ const commonMeta = endpoint => ({
  * @example 
  * await WpApi_GetPagedData('https://as-go-covid19-d-001.azurewebsites.net/wp-json/wp/v2/','posts')
  * //query https://as-go-covid19-d-001.azurewebsites.net/wp-json/wp/v2/posts?per_page=100&orderby=slug&order=asc
- * @returns {Promise<{
- *    id:number,
- *    date_gmt:string
- * }[]]>}
+ * @returns {Promise<WordpressObjectRow[]>}
  */
 const WpApi_GetPagedData = async (wordPressApiUrl,objecttype) => {
   const fetchquery = `${wordPressApiUrl}${objecttype}?per_page=100&orderby=slug&order=asc`;
@@ -83,10 +108,9 @@ const fetchDictionary = async (wordPressApiUrl,listname) => Object.assign({}, ..
 
 /**
  * Gets a JSON starting point common to many WP items
- * @param {{title:{rendered:string},author:number,source_url:string,link:string,excerpt:{rendered:string}}} wpRow row from API
+ * @param {WordpressObjectRow} wpRow row from API
  * @param {{}} userlist dictionary of users
- * @param {string} file_path_html
- * @param {string} file_path_json 
+ * @returns {*}
  */
 const getWpCommonJsonData = (wpRow,userlist) => 
   getNonBlankValues(
@@ -120,8 +144,8 @@ const getWpCommonJsonData = (wpRow,userlist) =>
 
 /**
  * returns an object filled with the non null keys of another object
- * @param {{}} fromObject the object to get things out of
- * @param {[string]} keys what to pull in from the other object
+ * @param {*} fromObject the object to get things out of
+ * @param {string[]} keys what to pull in from the other object
  */
 const getNonBlankValues = (fromObject,keys) => {
   let result = {};
@@ -132,8 +156,8 @@ const getNonBlankValues = (fromObject,keys) => {
 };
 
 /**
- * @param {{WordPressUrl: string, GitHubTarget: {Owner: string, Repo: string, Path: string,Branch: string}}} endpoint 
- * @param {{ date_gmt: string, modified_gmt: string }} data 
+ * @param {Endpoint} endpoint 
+ * @param {WordpressObjectRow} data 
  */
 const wrapInFileMeta = (endpoint,data) => ({
   meta: {
@@ -146,9 +170,7 @@ const wrapInFileMeta = (endpoint,data) => ({
 
 /**
  * callback function got GitHub API that ignores 404 errors.
- * @param {*} [Error] 
- * @param {*} [Data] 
- * @param {*} [Response]
+ * @param {*} [Error]
  * @example
  * const exists = await gitRepo._request('HEAD', `/repos/${gitRepo.__fullname}/git/blobs/${sha}`,null, ok404);
  * @returns
@@ -162,9 +184,9 @@ const ok404 = Error => {
 /**
  * Syncs a binary file with Github, by adding the blob if its not already there and then updating the sha in the tree
  * @param {string} source_url 
- * @param {{__fullname:string}} gitRepo 
- * @param {{content:string,path:string,sha:string}[]} mediaTree 
- * @param {{WordPressUrl: string, GitHubTarget: {Owner: string, Repo: string, Path: string,Branch: string}}} endpoint 
+ * @param {*} gitRepo 
+ * @param {import('../common/gitTreeCommon').GithubTreeRow[]} mediaTree 
+ * @param {Endpoint} endpoint 
  */
 const syncBinaryFile = async (source_url, gitRepo, mediaTree, endpoint) => {
   console.log(`Downloading...${source_url}`);
@@ -188,13 +210,14 @@ const syncBinaryFile = async (source_url, gitRepo, mediaTree, endpoint) => {
 
 /**
  * process a Wordpress endpoint and place the data in GitHub
- * @param {{WordPressUrl: string, GitHubTarget: {Owner: string, Repo: string, Path: string,Branch: string}}} endpoint 
+ * @param {Endpoint} endpoint 
  * @param {{token:string}} gitHubCredentials 
  * @param {{name:string,email:string}} gitHubCommitter 
  */
 const SyncEndpoint = async (endpoint, gitHubCredentials, gitHubCommitter) => {
   const gitModule = new GitHub(gitHubCredentials);
   const wordPressApiUrl = endpoint.WordPressUrl+apiPath;
+  // @ts-ignore
   const gitRepo = await gitModule.getRepo(endpoint.GitHubTarget.Owner,endpoint.GitHubTarget.Repo);
 
   //List of WP categories
@@ -269,8 +292,8 @@ const SyncEndpoint = async (endpoint, gitHubCredentials, gitHubCommitter) => {
   
   /**
    * Places the media section if SyncMedia is on
-   * @param {{}} jsonData 
-   * @param {{}} WpRow 
+   * @param {*} jsonData 
+   * @param {WordpressObjectRow} WpRow 
    * @param {string} HTML 
    */
   const addMediaSection = (jsonData,WpRow,HTML) => {

@@ -27,7 +27,17 @@ const gitHubBlobPredictSha = content => sha1(`blob ${Buffer.byteLength(content)}
      Buffer.from(`blob ${buffer.byteLength}\0`, 'utf8'),
      buffer
     ]))
-  ;  
+  ;
+
+/**
+ * @typedef {Object} GithubTreeRow
+ * @property {string} path
+ * @property {string} mode usually '100644'
+ * @property {string} type usually 'blob'
+ * @property {string} [sha]
+ * @property {string} [content]
+ * @returns 
+ */
 
 /**
  * Creates a gitHub Tree array, skipping duplicates based on the outputpath
@@ -35,7 +45,7 @@ const gitHubBlobPredictSha = content => sha1(`blob ${Buffer.byteLength(content)}
  * @param {string} masterBranch usually "master" or "main"
  * @param {Map<string,any>} filesMap contains the data to push
  * @param {string} outputPath the root path for all files
- * @returns 
+ * @returns {GithubTreeRow[]}
  */
  const createTreeFromFileMap = async (gitRepo, masterBranch, filesMap, outputPath) => {
   const rootTree = await gitRepo.getSha(masterBranch,outputPath.includes('/') ? outputPath.split('/')[0] : '');
