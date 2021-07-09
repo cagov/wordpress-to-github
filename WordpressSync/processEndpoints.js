@@ -15,8 +15,14 @@ const fetchRetry = require('fetch-retry')(fetch);
 * @property {{Owner: string, Repo: string, Branch: string, SyncMedia:boolean, MediaPath: string, PostPath: string, PagePath: string}} GitHubTarget
 */
 
+/** 
+ * @typedef {Object} WordpressMediaSize
+ * @property {number} width
+ * @property {string} path
+ */
+
 /**
-* @typedef {Object} WordpressObjectRow
+* @typedef {Object} WordpressObjectRow Expected input when using the Wordpress API
 * @property {number} id
 * @property {string} slug
 * @property {string} date_gmt
@@ -26,13 +32,37 @@ const fetchRetry = require('fetch-retry')(fetch);
 * @property {string} source_url
 * @property {string} link
 * @property {{rendered:string}} excerpt
-* @property {{sizes:[]}} media_details
+* @property {{sizes:WordpressMediaSize[]}} media_details
 * @property {number} [featured_media]
 * @property {number[]} [categories]
 * @property {number[]} [tags]
 * @property {{rendered:string}} [content]
 * @property {number} [parent]
 * @property {number} [menu_order]
+*/
+
+/**
+* @typedef {Object} GithubOutputJson Expected output when pushing to github Json
+* @property {number} id
+* @property {string} slug
+* @property {string} title
+* @property {string} author
+* @property {string} date
+* @property {string} modified
+* @property {string} date_gmt
+* @property {string} modified_gmt
+* @property {string} wordpress_url
+* @property {string} excerpt
+* @property {string} format
+* @property {string} type
+* @property {string[]} [categories]
+* @property {string[]} [tags]
+* @property {number} [parent]
+* @property {number} [menu_order]
+* @property {string} path
+* @property {number} [featured_media]
+* @property {{}[]} [media]
+* @property {WordpressMediaSize[]} [sizes]
 */
 
 /**
@@ -110,9 +140,10 @@ const fetchDictionary = async (wordPressApiUrl,listname) => Object.assign({}, ..
  * Gets a JSON starting point common to many WP items
  * @param {WordpressObjectRow} wpRow row from API
  * @param {{}} userlist dictionary of users
- * @returns {*}
+ * @returns {GithubOutputJson}
  */
 const getWpCommonJsonData = (wpRow,userlist) => 
+  // @ts-ignore
   getNonBlankValues(
     {...wpRow,
       title: wpRow.title.rendered,
@@ -157,7 +188,7 @@ const getNonBlankValues = (fromObject,keys) => {
 
 /**
  * @param {Endpoint} endpoint 
- * @param {WordpressObjectRow} data 
+ * @param {GithubOutputJson} data 
  */
 const wrapInFileMeta = (endpoint,data) => ({
   meta: {
@@ -292,7 +323,7 @@ const SyncEndpoint = async (endpoint, gitHubCredentials, gitHubCommitter) => {
   
   /**
    * Places the media section if SyncMedia is on
-   * @param {*} jsonData 
+   * @param {GithubOutputJson} jsonData 
    * @param {WordpressObjectRow} WpRow 
    * @param {string} HTML 
    */
