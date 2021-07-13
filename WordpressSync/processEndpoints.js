@@ -3,6 +3,11 @@ const GitHub = require('github-api');
 const commitTitlePosts = 'Wordpress Posts Update';
 const commitTitlePages = 'Wordpress Pages Update';
 const commitTitleMedia = 'Wordpress Media Update';
+const fieldMetaReference = {
+  posts: "https://developer.wordpress.org/rest-api/reference/posts/",
+  pages: "https://developer.wordpress.org/rest-api/reference/pages/",
+  media: "https://developer.wordpress.org/rest-api/reference/pages/"
+};
 const apiPath = '/wp-json/wp/v2/';
 const { createTreeFromFileMap, PrIfChanged, gitHubBlobPredictShaFromBuffer } = require('../common/gitTreeCommon');
 const fetch = require('node-fetch');
@@ -12,6 +17,7 @@ const fetchRetry = require('fetch-retry')(fetch);
 /**
 * @typedef {Object} Endpoint
 * @property {string} WordPressUrl The Wordpress starting point URL
+* @property {string[]} [ExcludeProperties] list of properties to exclude
 * @property {{Owner: string, Repo: string, Branch: string, SyncMedia:boolean, MediaPath: string, PostPath: string, PagePath: string}} GitHubTarget
 */
 
@@ -22,17 +28,17 @@ const fetchRetry = require('fetch-retry')(fetch);
  */
 
 /**
-* @typedef {Object} WordpressPostRow Expected POST input when using the Wordpress API
+* @typedef {Object} WordpressPostRow Expected POST input when using the Wordpress API - https://developer.wordpress.org/rest-api/reference/posts/
 * @property {number} author
 * @property {number[]} categories
 * @property {string} comment_status "closed"
-* @property {{rendered:string}} content
+* @property {string} content
 * @property {string} date
 * @property {string} date_gmt
-* @property {{rendered:string}} excerpt
+* @property {string} excerpt
 * @property {number} featured_media
 * @property {string} format
-* @property {{rendered:string}} guid
+* @property {string} guid
 * @property {number} id
 * @property {string} link
 * @property {[]} meta
@@ -44,18 +50,18 @@ const fetchRetry = require('fetch-retry')(fetch);
 * @property {boolean} sticky
 * @property {number[]} tags
 * @property {string} template
-* @property {{rendered:string}} title
+* @property {string} title
 * @property {string} type "post"
 
-* @typedef {Object} WordpressPageRow Expected PAGE input when using the Wordpress API
+* @typedef {Object} WordpressPageRow Expected PAGE input when using the Wordpress API - https://developer.wordpress.org/rest-api/reference/pages/
 * @property {number} author
 * @property {string} comment_status "closed"
-* @property {{rendered:string}} content
+* @property {string} content
 * @property {string} date
 * @property {string} date_gmt
-* @property {{rendered:string}} excerpt
+* @property {string} excerpt
 * @property {number} featured_media
-* @property {{rendered:string}} guid
+* @property {string} guid
 * @property {number} id
 * @property {string} link
 * @property {number} menu_order
@@ -67,17 +73,17 @@ const fetchRetry = require('fetch-retry')(fetch);
 * @property {string} slug
 * @property {string} status "publish"
 * @property {string} template
-* @property {{rendered:string}} title
+* @property {string} title
 * @property {string} type "page"
 
-* @typedef {Object} WordpressMediaRow Expected MEDIA input when using the Wordpress API
+* @typedef {Object} WordpressMediaRow Expected MEDIA input when using the Wordpress API - https://developer.wordpress.org/rest-api/reference/media/
 * @property {number} author
-* @property {{rendered:string}} caption
+* @property {string} caption
 * @property {string} comment_status "closed"
 * @property {string} date
 * @property {string} date_gmt
-* @property {{rendered:string}} description
-* @property {{rendered:string}} guid
+* @property {string} description
+* @property {string} guid
 * @property {number} id
 * @property {string} link
 * @property {{sizes:WordpressMediaSize[]}} media_details
@@ -92,7 +98,7 @@ const fetchRetry = require('fetch-retry')(fetch);
 * @property {string} source_url
 * @property {string} status "inherit"
 * @property {string} template
-* @property {{rendered:string}} title
+* @property {string} title
 * @property {string} type "attachment"
 
 * @typedef {Object} GithubOutputJson Expected output when pushing to github Json
@@ -100,19 +106,21 @@ const fetchRetry = require('fetch-retry')(fetch);
 * @property {string} slug
 * @property {string} title
 * @property {string} author
+* @property {string} guid
 * @property {string} date
 * @property {string} modified
 * @property {string} date_gmt
 * @property {string} modified_gmt
 * @property {string} wordpress_url
-* @property {string} excerpt
-* @property {string} format
+* @property {string} [excerpt]
+* @property {string} [content]
+* @property {string} [format]
 * @property {string} type
 * @property {string[]} [categories]
 * @property {string[]} [tags]
 * @property {number} [parent]
 * @property {number} [menu_order]
-* @property {string} path
+* @property {string} [path]
 * @property {number} [featured_media]
 * @property {{}[]} [media]
 * @property {WordpressMediaSize[]} [sizes]
@@ -134,12 +142,25 @@ const commonMeta = endpoint => ({
   api_version: "v2",
   api_url: endpoint.WordPressUrl+apiPath,
   process: {
-    source_code: "https://github.com/cagov/cron",
+    source_code: "https://github.com/cagov/wordpress-to-github",
     source_data: endpoint.WordPressUrl,
     deployment_target: `https://github.com/${endpoint.GitHubTarget.Owner}/${endpoint.GitHubTarget.Repo}/tree/${endpoint.GitHubTarget.Branch}`
   },
   refresh_frequency: "as needed"
 });
+
+/**
+ * Replaces all strings with "rendered" properties with the value of "rendered"
+ * @param {{}} json
+ */
+ const wpRenderRenderFields = json => {
+  for(let key of Object.keys(json)) {
+    if(json[key] && (json[key]['rendered']==="" || json[key]['rendered'])) {
+      json[key] = json[key]['rendered'];
+    }
+  }
+};
+
 
 /**
  * Call the paged wordpress api put all the paged data into a single return array
@@ -164,6 +185,9 @@ const WpApi_GetPagedData = async (wordPressApiUrl,objecttype) => {
     rows.push(...await fetchResponse.json());
   }
 
+  //turn all "{rendered:string}"" to just "string"
+  rows.forEach(r=>wpRenderRenderFields(r));
+
   return rows;
 };
 
@@ -186,66 +210,18 @@ const fetchDictionary = async (wordPressApiUrl,listname) => Object.assign({}, ..
   (await fetchRetry(`${wordPressApiUrl}${listname}?context=embed&hide_empty=true&per_page=100`,
     {method:"Get",retries:3,retryDelay:2000})
     .then(res => res.json()))
-    .map(x=>({[x.id]:x.name})));
-
-/**
- * Gets a JSON starting point common to many WP items
- * @param {WordpressPostRow | WordpressMediaRow | WordpressPageRow} wpRow row from API
- * @param {{}} userlist dictionary of users
- * @returns {GithubOutputJson}
- */
-const getWpCommonJsonData = (wpRow,userlist) => 
-  // @ts-ignore
-  getNonBlankValues(
-    {...wpRow,
-      title: wpRow.title.rendered,
-      author: userlist[wpRow.author],
-      wordpress_url: wpRow['source_url'] || wpRow.link,
-      excerpt: wpRow['excerpt'] ? wpRow['excerpt'].rendered : null
-    },
-    [
-      'id',
-      'slug',
-      'title',
-      'author',
-      'date',
-      'modified',
-      'date_gmt',
-      'modified_gmt',
-      'meta',
-      'template',
-      'media_type',
-      'mime_type',
-      'wordpress_url',
-      'excerpt',
-      'format',
-      'type',
-      'design_system_fields', // is object
-      'og_meta', // is object
-      'site_settings' // is object
-    ]);
-
-/**
- * returns an object filled with the non null keys of another object
- * @param {*} fromObject the object to get things out of
- * @param {string[]} keys what to pull in from the other object
- */
-const getNonBlankValues = (fromObject,keys) => {
-  let result = {};
-  keys.filter(k=>fromObject[k] && (!Array.isArray(fromObject[k]) || fromObject[k].length)).forEach(k=> {
-      result[k] = fromObject[k];
-  });
-  return result;
-};
+    .map((/** @type {{ id: string; name: string; }} */ x)=>({[x.id]:x.name})));
 
 /**
  * @param {Endpoint} endpoint 
+ * @param {string} field_reference //url for field refernce
  * @param {GithubOutputJson} data 
  */
-const wrapInFileMeta = (endpoint,data) => ({
+const wrapInFileMeta = (endpoint,field_reference,data) => ({
   meta: {
     created_date: data.date_gmt,
     updated_date: data.modified_gmt,
+    field_reference,
     ...commonMeta(endpoint)
   },
   data
@@ -292,6 +268,19 @@ const syncBinaryFile = async (source_url, gitRepo, mediaTree, endpoint) => {
 };
 
 /**
+ * deletes properties in the list
+ * @param {{}} json 
+ * @param {string[]} excludeList 
+ */
+const removeExcludedProperties = (json,excludeList) => {
+  if(excludeList) {
+    excludeList.forEach(x=>{
+      delete json[x];
+    });
+  }
+};
+
+/**
  * process a Wordpress endpoint and place the data in GitHub
  * @param {Endpoint} endpoint 
  * @param {{token:string}} gitHubCredentials 
@@ -321,7 +310,13 @@ const SyncEndpoint = async (endpoint, gitHubCredentials, gitHubCommitter) => {
     const allMedia = await WpApi_GetPagedData(wordPressApiUrl,'media');
 
     allMedia.forEach(x=>{
-      const jsonData = getWpCommonJsonData(x,userlist);
+      /** @type {GithubOutputJson} */
+      const jsonData = {...x,
+        author: userlist[x.author],
+        wordpress_url: x.source_url
+      };
+
+      removeExcludedProperties(jsonData,endpoint.ExcludeProperties);
 
       if(x.media_details.sizes) {
         jsonData.sizes = Object.keys(x.media_details.sizes).map(s=>({
@@ -341,7 +336,7 @@ const SyncEndpoint = async (endpoint, gitHubCredentials, gitHubCommitter) => {
         mediaMap.set(jsonData.path, mediaContentPlaceholder);
       }
 
-      mediaMap.set(`${pathFromMediaSourceUrl(x.source_url).split('.')[0]}.json`,wrapInFileMeta(endpoint,jsonData));
+      mediaMap.set(`${pathFromMediaSourceUrl(x.source_url).split('.')[0]}.json`,wrapInFileMeta(endpoint,fieldMetaReference.media,jsonData));
     });
 
     let mediaTree = await createTreeFromFileMap(gitRepo,endpoint.GitHubTarget.Branch,mediaMap,endpoint.GitHubTarget.MediaPath);
@@ -418,15 +413,21 @@ const SyncEndpoint = async (endpoint, gitHubCredentials, gitHubCommitter) => {
   /** @type {WordpressPostRow[]} */
   const allPosts = await WpApi_GetPagedData(wordPressApiUrl,'posts');
   allPosts.forEach(x=>{
-    const jsonData = getWpCommonJsonData(x,userlist);
-    jsonData.categories = x.categories.map(t=>categorylist[t]);
-    jsonData.tags = x.tags.map(t=>taglist[t]);
+    /** @type {GithubOutputJson} */
+    const jsonData = {...x,
+      author: userlist[x.author],
+      wordpress_url: x.link,
+      categories: x.categories.map(t=>categorylist[t]),
+      tags: x.tags.map(t=>taglist[t]),
+    };
 
-    const HTML = cleanupContent(x.content.rendered);
+    const HTML = cleanupContent(x.content);
   
     addMediaSection(jsonData,x,HTML);
 
-    postMap.set(`${x.slug}.json`,wrapInFileMeta(endpoint,jsonData));
+    removeExcludedProperties(jsonData,endpoint.ExcludeProperties);
+
+    postMap.set(`${x.slug}.json`,wrapInFileMeta(endpoint,fieldMetaReference.posts,jsonData));
     postMap.set(`${x.slug}.html`,HTML);
   });
 
@@ -438,15 +439,19 @@ const SyncEndpoint = async (endpoint, gitHubCredentials, gitHubCommitter) => {
   /** @type {WordpressPageRow[]} */
   const allPages = await WpApi_GetPagedData(wordPressApiUrl,'pages');
   allPages.forEach(x=>{
-    const jsonData = getWpCommonJsonData(x,userlist);
-    jsonData.parent = x.parent;
-    jsonData.menu_order = x.menu_order;
+    /** @type {GithubOutputJson} */
+    const jsonData = {...x,
+      author: userlist[x.author],
+      wordpress_url: x.link
+    };
 
-    const HTML = cleanupContent(x.content.rendered);
+    const HTML = cleanupContent(x.content);
 
     addMediaSection(jsonData,x,HTML);
 
-    pagesMap.set(`${x.slug}.json`,wrapInFileMeta(endpoint,jsonData));
+    removeExcludedProperties(jsonData,endpoint.ExcludeProperties);
+
+    pagesMap.set(`${x.slug}.json`,wrapInFileMeta(endpoint,fieldMetaReference.media,jsonData));
     pagesMap.set(`${x.slug}.html`,HTML);
   });
 

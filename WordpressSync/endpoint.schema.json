@@ -28,6 +28,12 @@
       "default": false,
       "description": "Should we process this endpoint when running in local development?"
     },
+    "ExcludeProperties": {
+      "type": "array",
+      "default": [],
+      "description": "Which properties should we suppress in output?",
+      "examples": [["content", "_links"]]
+    },
     "WordPressUrl": {
       "$ref": "#/definitions/URL",
       "description": "URL of the Wordpress instance to read from",
