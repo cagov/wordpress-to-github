@@ -22,26 +22,79 @@ const fetchRetry = require('fetch-retry')(fetch);
  */
 
 /**
-* @typedef {Object} WordpressObjectRow Expected input when using the Wordpress API
-* @property {number} id
-* @property {string} slug
-* @property {string} date_gmt
-* @property {string} modified_gmt
-* @property {{rendered:string}} title
+* @typedef {Object} WordpressPostRow Expected POST input when using the Wordpress API
 * @property {number} author
-* @property {string} source_url
-* @property {string} link
+* @property {number[]} categories
+* @property {string} comment_status "closed"
+* @property {{rendered:string}} content
+* @property {string} date
+* @property {string} date_gmt
 * @property {{rendered:string}} excerpt
-* @property {{sizes:WordpressMediaSize[]}} media_details
-* @property {number} [featured_media]
-* @property {number[]} [categories]
-* @property {number[]} [tags]
-* @property {{rendered:string}} [content]
-* @property {number} [parent]
-* @property {number} [menu_order]
-*/
+* @property {number} featured_media
+* @property {string} format
+* @property {{rendered:string}} guid
+* @property {number} id
+* @property {string} link
+* @property {[]} meta
+* @property {string} modified
+* @property {string} modified_gmt
+* @property {string} ping_status "closed"
+* @property {string} slug
+* @property {string} status "publish"
+* @property {boolean} sticky
+* @property {number[]} tags
+* @property {string} template
+* @property {{rendered:string}} title
+* @property {string} type "post"
 
-/**
+* @typedef {Object} WordpressPageRow Expected POST input when using the Wordpress API
+* @property {number} author
+* @property {string} comment_status "closed"
+* @property {{rendered:string}} content
+* @property {string} date
+* @property {string} date_gmt
+* @property {{rendered:string}} excerpt
+* @property {number} featured_media
+* @property {{rendered:string}} guid
+* @property {number} id
+* @property {string} link
+* @property {number} menu_order
+* @property {[]} meta
+* @property {string} modified
+* @property {string} modified_gmt
+* @property {number} parent
+* @property {string} ping_status "closed"
+* @property {string} slug
+* @property {string} status "publish"
+* @property {string} template
+* @property {{rendered:string}} title
+* @property {string} type "page"
+
+* @typedef {Object} WordpressMediaRow Expected POST input when using the Wordpress API
+* @property {number} author
+* @property {{rendered:string}} caption
+* @property {string} comment_status "closed"
+* @property {string} date
+* @property {string} date_gmt
+* @property {{rendered:string}} description
+* @property {{rendered:string}} guid
+* @property {number} id
+* @property {string} link
+* @property {{sizes:WordpressMediaSize[]}} media_details
+* @property {string} media_type "image"
+* @property {[]} meta
+* @property {string} mime_type "image/jpeg"
+* @property {string} modified
+* @property {string} modified_gmt
+* @property {string} ping_status "closed"
+* @property {number} post
+* @property {string} slug
+* @property {string} source_url
+* @property {string} status "inherit"
+* @property {string} template
+* @property {{rendered:string}} title
+* @property {string} type "attachment"
+
 * @typedef {Object} GithubOutputJson Expected output when pushing to github Json
 * @property {number} id
 * @property {string} slug
@@ -95,7 +148,6 @@ const commonMeta = endpoint => ({
  * @example 
  * await WpApi_GetPagedData('https://as-go-covid19-d-001.azurewebsites.net/wp-json/wp/v2/','posts')
  * //query https://as-go-covid19-d-001.azurewebsites.net/wp-json/wp/v2/posts?per_page=100&orderby=slug&order=asc
- * @returns {Promise<WordpressObjectRow[]>}
  */
 const WpApi_GetPagedData = async (wordPressApiUrl,objecttype) => {
   const fetchquery = `${wordPressApiUrl}${objecttype}?per_page=100&orderby=slug&order=asc`;
@@ -138,7 +190,7 @@ const fetchDictionary = async (wordPressApiUrl,listname) => Object.assign({}, ..
 
 /**
  * Gets a JSON starting point common to many WP items
- * @param {WordpressObjectRow} wpRow row from API
+ * @param {WordpressPostRow | WordpressMediaRow | WordpressPageRow} wpRow row from API
  * @param {{}} userlist dictionary of users
  * @returns {GithubOutputJson}
  */
@@ -148,8 +200,8 @@ const getWpCommonJsonData = (wpRow,userlist) =>
     {...wpRow,
       title: wpRow.title.rendered,
       author: userlist[wpRow.author],
-      wordpress_url: wpRow.source_url || wpRow.link,
-      excerpt: wpRow.excerpt ? wpRow.excerpt.rendered : null
+      wordpress_url: wpRow['source_url'] || wpRow.link,
+      excerpt: wpRow['excerpt'] ? wpRow['excerpt'].rendered : null
     },
     [
       'id',
@@ -255,14 +307,17 @@ const SyncEndpoint = async (endpoint, gitHubCredentials, gitHubCommitter) => {
   const categorylist = await fetchDictionary(wordPressApiUrl,'categories');
   const taglist = await fetchDictionary(wordPressApiUrl,'tags');
   const userlist = await fetchDictionary(wordPressApiUrl,'users');
-
+  /** @type {Map <string>} */
   const postMap = new Map();
+  /** @type {Map <string>} */
   const pagesMap = new Map();
+  /** @type {Map <string>} */
   const mediaMap = endpoint.GitHubTarget.SyncMedia ? new Map() : null;
-  
+
   // MEDIA
   const mediaContentPlaceholder = 'TBD : Binary file to be updated in a later step';
   if(endpoint.GitHubTarget.SyncMedia) {
+    /** @type {WordpressMediaRow[]} */
     const allMedia = await WpApi_GetPagedData(wordPressApiUrl,'media');
 
     allMedia.forEach(x=>{
@@ -324,13 +379,13 @@ const SyncEndpoint = async (endpoint, gitHubCredentials, gitHubCommitter) => {
   /**
    * Places the media section if SyncMedia is on
    * @param {GithubOutputJson} jsonData 
-   * @param {WordpressObjectRow} WpRow 
+   * @param {WordpressPostRow | WordpressPageRow | WordpressMediaRow} WpRow 
    * @param {string} HTML 
    */
   const addMediaSection = (jsonData,WpRow,HTML) => {
     if(endpoint.GitHubTarget.SyncMedia) {
-      if(WpRow.featured_media) {
-        jsonData.featured_media = WpRow.featured_media;
+      if(WpRow['featured_media']) {
+        jsonData.featured_media = WpRow['featured_media'];
       }
 
       jsonData.media = [];
@@ -361,6 +416,7 @@ const SyncEndpoint = async (endpoint, gitHubCredentials, gitHubCommitter) => {
   };
   
   // POSTS
+  /** @type {WordpressPostRow[]} */
   const allPosts = await WpApi_GetPagedData(wordPressApiUrl,'posts');
   allPosts.forEach(x=>{
     const jsonData = getWpCommonJsonData(x,userlist);
@@ -380,6 +436,7 @@ const SyncEndpoint = async (endpoint, gitHubCredentials, gitHubCommitter) => {
 
 
   // PAGES
+  /** @type {WordpressPageRow[]} */
   const allPages = await WpApi_GetPagedData(wordPressApiUrl,'pages');
   allPages.forEach(x=>{
     const jsonData = getWpCommonJsonData(x,userlist);
