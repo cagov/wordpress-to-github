@@ -1,4 +1,5 @@
-const nowPacTime = options => new Date().toLocaleString("en-CA", {timeZone: "America/Los_Angeles", ...options});
+// @ts-check
+const nowPacTime = (/** @type {Intl.DateTimeFormatOptions} */ options) => new Date().toLocaleString("en-CA", {timeZone: "America/Los_Angeles", ...options});
 const todayDateString = () => nowPacTime({year: 'numeric',month: '2-digit',day: '2-digit'});
 const todayTimeString = () => nowPacTime({hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit'}).replace(/:/g,'-');
 /**
@@ -27,7 +28,17 @@ const gitHubBlobPredictSha = content => sha1(`blob ${Buffer.byteLength(content)}
      Buffer.from(`blob ${buffer.byteLength}\0`, 'utf8'),
      buffer
     ]))
-  ;  
+  ;
+
+/**
+ * @typedef {Object} GithubTreeRow
+ * @property {string} path
+ * @property {string} mode usually '100644'
+ * @property {string} type usually 'blob'
+ * @property {string} [sha]
+ * @property {string} [content]
+ * @returns 
+ */
 
 /**
  * Creates a gitHub Tree array, skipping duplicates based on the outputpath
@@ -35,13 +46,15 @@ const gitHubBlobPredictSha = content => sha1(`blob ${Buffer.byteLength(content)}
  * @param {string} masterBranch usually "master" or "main"
  * @param {Map<string,any>} filesMap contains the data to push
  * @param {string} outputPath the root path for all files
- * @returns 
  */
  const createTreeFromFileMap = async (gitRepo, masterBranch, filesMap, outputPath) => {
-  const rootTree = await gitRepo.getSha(masterBranch,outputPath.includes('/') ? outputPath.split('/')[0] : '');
-  const referenceTreeSha = rootTree.data.find(f=>f.path===outputPath).sha;
+   /** @type {GithubTreeRow[]} */
+  const rootTree = (await gitRepo.getSha(masterBranch,outputPath.includes('/') ? outputPath.split('/')[0] : '')).data;
+  const referenceTreeSha = rootTree.find(f=>f.path===outputPath).sha;
+  /** @type {GithubTreeRow[]} */
   const referenceTree = (await gitRepo.getTree(`${referenceTreeSha}?recursive=true`)).data.tree.filter(x=>x.type==='blob');
 
+  /** @type {GithubTreeRow[]} */
   const targetTree = [];
   //Tree parts...
   //https://docs.github.com/en/free-pro-team@latest/rest/reference/git#create-a-tree
@@ -52,7 +65,7 @@ const gitHubBlobPredictSha = content => sha1(`blob ${Buffer.byteLength(content)}
     let content = typeof value === 'string' ? value : JSON.stringify(value,null,2);
     let existingFile = referenceTree.find(x=>x.path===key);
     if(existingFile) {
-      existingFile.found=true;
+      existingFile['found']=true;
     }
     if(!existingFile || existingFile.sha !== gitHubBlobPredictSha(content)) {
       targetTree.push({
@@ -65,7 +78,7 @@ const gitHubBlobPredictSha = content => sha1(`blob ${Buffer.byteLength(content)}
   }
 
   //process deletes
-  for (const delme of referenceTree.filter(x=>!x.found)) {
+  for (const delme of referenceTree.filter(x=>!x['found'])) {
     targetTree.push({
       path: `${outputPath}/${delme.path}`,
       mode, 
