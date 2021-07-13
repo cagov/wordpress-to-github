@@ -322,7 +322,6 @@ const SyncEndpoint = async (endpoint, gitHubCredentials, gitHubCommitter) => {
 
     allMedia.forEach(x=>{
       const jsonData = getWpCommonJsonData(x,userlist);
-      delete jsonData.excerpt;
 
       if(x.media_details.sizes) {
         jsonData.sizes = Object.keys(x.media_details.sizes).map(s=>({
