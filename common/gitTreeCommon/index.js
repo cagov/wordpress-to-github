@@ -1,4 +1,5 @@
-const nowPacTime = options => new Date().toLocaleString("en-CA", {timeZone: "America/Los_Angeles", ...options});
+// @ts-check
+const nowPacTime = (/** @type {Intl.DateTimeFormatOptions} */ options) => new Date().toLocaleString("en-CA", {timeZone: "America/Los_Angeles", ...options});
 const todayDateString = () => nowPacTime({year: 'numeric',month: '2-digit',day: '2-digit'});
 const todayTimeString = () => nowPacTime({hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit'}).replace(/:/g,'-');
 /**
@@ -64,7 +65,7 @@ const gitHubBlobPredictSha = content => sha1(`blob ${Buffer.byteLength(content)}
     let content = typeof value === 'string' ? value : JSON.stringify(value,null,2);
     let existingFile = referenceTree.find(x=>x.path===key);
     if(existingFile) {
-      existingFile.found=true;
+      existingFile['found']=true;
     }
     if(!existingFile || existingFile.sha !== gitHubBlobPredictSha(content)) {
       targetTree.push({
@@ -77,7 +78,7 @@ const gitHubBlobPredictSha = content => sha1(`blob ${Buffer.byteLength(content)}
   }
 
   //process deletes
-  for (const delme of referenceTree.filter(x=>!x.found)) {
+  for (const delme of referenceTree.filter(x=>!x['found'])) {
     targetTree.push({
       path: `${outputPath}/${delme.path}`,
       mode, 
