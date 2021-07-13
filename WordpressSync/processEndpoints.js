@@ -47,7 +47,7 @@ const fetchRetry = require('fetch-retry')(fetch);
 * @property {{rendered:string}} title
 * @property {string} type "post"
 
-* @typedef {Object} WordpressPageRow Expected POST input when using the Wordpress API
+* @typedef {Object} WordpressPageRow Expected PAGE input when using the Wordpress API
 * @property {number} author
 * @property {string} comment_status "closed"
 * @property {{rendered:string}} content
@@ -70,7 +70,7 @@ const fetchRetry = require('fetch-retry')(fetch);
 * @property {{rendered:string}} title
 * @property {string} type "page"
 
-* @typedef {Object} WordpressMediaRow Expected POST input when using the Wordpress API
+* @typedef {Object} WordpressMediaRow Expected MEDIA input when using the Wordpress API
 * @property {number} author
 * @property {{rendered:string}} caption
 * @property {string} comment_status "closed"
