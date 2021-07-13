@@ -61,7 +61,9 @@
           "Repo": "cannabis.ca.gov",
           "Branch": "main",
           "PostPath": "wordpress/posts",
-          "PagePath": "wordpress/pages"
+          "PagePath": "wordpress/pages",
+          "SyncMedia": true,
+          "MediaPath": "wordpress/media"
         }
       }
     ]
