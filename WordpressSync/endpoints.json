@@ -53,7 +53,7 @@
       },
       {
         "name": "Cannabis",
-        "enabled": true,
+        "enabled": false,
         "enabledLocal": false,
         "WordPressUrl": "https://staginginye.prod3.sites.ca.gov",
         "GitHubTarget": {
