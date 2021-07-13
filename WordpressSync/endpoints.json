@@ -55,7 +55,7 @@
         "name": "Cannabis",
         "enabled": true,
         "enabledLocal": false,
-        "WordPressUrl": "https://staginginye.prod3.sites.ca.gov",
+        "WordPressUrl": "https://cannabis.ca.gov",
         "GitHubTarget": {
           "Owner": "cagov",
           "Repo": "cannabis.ca.gov",
