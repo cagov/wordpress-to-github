@@ -45,13 +45,15 @@ const gitHubBlobPredictSha = content => sha1(`blob ${Buffer.byteLength(content)}
  * @param {string} masterBranch usually "master" or "main"
  * @param {Map<string,any>} filesMap contains the data to push
  * @param {string} outputPath the root path for all files
- * @returns {GithubTreeRow[]}
  */
  const createTreeFromFileMap = async (gitRepo, masterBranch, filesMap, outputPath) => {
-  const rootTree = await gitRepo.getSha(masterBranch,outputPath.includes('/') ? outputPath.split('/')[0] : '');
-  const referenceTreeSha = rootTree.data.find(f=>f.path===outputPath).sha;
+   /** @type {GithubTreeRow[]} */
+  const rootTree = (await gitRepo.getSha(masterBranch,outputPath.includes('/') ? outputPath.split('/')[0] : '')).data;
+  const referenceTreeSha = rootTree.find(f=>f.path===outputPath).sha;
+  /** @type {GithubTreeRow[]} */
   const referenceTree = (await gitRepo.getTree(`${referenceTreeSha}?recursive=true`)).data.tree.filter(x=>x.type==='blob');
 
+  /** @type {GithubTreeRow[]} */
   const targetTree = [];
   //Tree parts...
   //https://docs.github.com/en/free-pro-team@latest/rest/reference/git#create-a-tree
