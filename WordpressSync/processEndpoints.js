@@ -102,24 +102,12 @@ const fetchRetry = require('fetch-retry')(fetch);
 * @property {string} type "attachment"
 
 * @typedef {Object} GithubOutputJson Expected output when pushing to github Json
-* @property {number} id
-* @property {string} slug
-* @property {string} title
 * @property {string} author
-* @property {string} guid
-* @property {string} date
-* @property {string} modified
 * @property {string} date_gmt
 * @property {string} modified_gmt
 * @property {string} wordpress_url
-* @property {string} [excerpt]
-* @property {string} [content]
-* @property {string} [format]
-* @property {string} type
 * @property {string[]} [categories]
 * @property {string[]} [tags]
-* @property {number} [parent]
-* @property {number} [menu_order]
 * @property {string} [path]
 * @property {number} [featured_media]
 * @property {{}[]} [media]
@@ -269,8 +257,8 @@ const syncBinaryFile = async (source_url, gitRepo, mediaTree, endpoint) => {
 
 /**
  * deletes properties in the list
- * @param {{}} json 
- * @param {string[]} excludeList 
+ * @param {{}} json
+ * @param {string[]} excludeList
  */
 const removeExcludedProperties = (json,excludeList) => {
   if(excludeList) {
@@ -282,9 +270,9 @@ const removeExcludedProperties = (json,excludeList) => {
 
 /**
  * process a Wordpress endpoint and place the data in GitHub
- * @param {Endpoint} endpoint 
- * @param {{token:string}} gitHubCredentials 
- * @param {{name:string,email:string}} gitHubCommitter 
+ * @param {Endpoint} endpoint
+ * @param {{token:string}} gitHubCredentials
+ * @param {{name:string,email:string}} gitHubCommitter
  */
 const SyncEndpoint = async (endpoint, gitHubCredentials, gitHubCommitter) => {
   const gitModule = new GitHub(gitHubCredentials);
