@@ -44,25 +44,26 @@
           "MediaPath": "wordpress_output/media"
         }
       },
-      {
-        "name": "digital.ca.gov website",
-        "enabled": true,
-        "enabledLocal": false,
-        "WordPressUrl": "https://live-odi-content-api.pantheonsite.io",
-        "ExcludeProperties":[
-          "content",
-          "_links"
-        ],
-        "GitHubTarget": {
-          "Owner": "cagov",
-          "Repo": "digital.ca.gov",
-          "Branch": "main",
-          "PostPath": "wordpress/posts",
-          "PagePath": "wordpress/pages",
-          "SyncMedia": true,
-          "MediaPath": "wordpress/media"
-        }
-      },
+      // this is generating errors when accessing github api at the moment - jbum
+      // {
+      //   "name": "digital.ca.gov website",
+      //   "enabled": true,
+      //   "enabledLocal": false,
+      //   "WordPressUrl": "https://live-odi-content-api.pantheonsite.io",
+      //   "ExcludeProperties":[
+      //     "content",
+      //     "_links"
+      //   ],
+      //   "GitHubTarget": {
+      //     "Owner": "cagov",
+      //     "Repo": "digital.ca.gov",
+      //     "Branch": "main",
+      //     "PostPath": "wordpress/posts",
+      //     "PagePath": "wordpress/pages",
+      //     "SyncMedia": true,
+      //     "MediaPath": "wordpress/media"
+      //   }
+      // },
       {
         "name": "Cannabis",
         "enabled": true,
