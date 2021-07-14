@@ -11,6 +11,10 @@
         "enabled": true,
         "enabledLocal": false,
         "WordPressUrl": "https://live-drought-ca-gov.pantheonsite.io",
+        "ExcludeProperties":[
+          "content",
+          "_links"
+        ],
         "GitHubTarget": {
           "Owner": "cagov",
           "Repo": "drought.ca.gov",
@@ -26,6 +30,10 @@
         "enabled": false,
         "enabledLocal": true,
         "WordPressUrl": "https://as-go-covid19-d-001.azurewebsites.net",
+        "ExcludeProperties":[
+          "content",
+          "_links"
+        ],
         "GitHubTarget": {
           "Owner": "cagov",
           "Repo": "automation-development-target",
@@ -41,6 +49,10 @@
         "enabled": true,
         "enabledLocal": false,
         "WordPressUrl": "https://live-odi-content-api.pantheonsite.io",
+        "ExcludeProperties":[
+          "content",
+          "_links"
+        ],
         "GitHubTarget": {
           "Owner": "cagov",
           "Repo": "digital.ca.gov",
@@ -56,6 +68,10 @@
         "enabled": true,
         "enabledLocal": false,
         "WordPressUrl": "https://cannabis.ca.gov",
+        "ExcludeProperties":[
+          "content",
+          "_links"
+        ],
         "GitHubTarget": {
           "Owner": "cagov",
           "Repo": "cannabis.ca.gov",
