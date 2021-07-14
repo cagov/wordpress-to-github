@@ -2,7 +2,7 @@ const { SyncEndpoint } = require('./processEndpoints');
 const { slackBotReportError } = require('../common/slackBot');
 const debugChannel = 'C01DBP67MSQ'; // #testingbot
 //const debugChannel = 'C01H6RB99E2'; //Carter debug
-const endpoints = require('./endpoints.json').data;
+const endpoints = require('./v2endpoints.json').data;
 const gitHubCommitter = {
   name: process.env["GITHUB_NAME"],
   email: process.env["GITHUB_EMAIL"]

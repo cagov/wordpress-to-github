@@ -1,0 +1,20 @@
+{
+  "$schema": "./wordpress-to-github.config.schema.json",
+  "meta": {
+    "title": "wordpress-to-github endpoints config file",
+    "description": "wordpress-to-github endpoints config file"
+  },
+  "data": {
+    "config": {
+      "WordPressUrl": "https://as-go-covid19-d-001.azurewebsites.net",
+      "PostPath": "wordpress_output/posts",
+      "PagePath": "wordpress_output/pages",
+      "SyncMedia": true,
+      "MediaPath": "wordpress_output/media",
+      "ExcludeProperties": [
+        "content",
+        "_links"
+      ]
+    }
+  }
+}

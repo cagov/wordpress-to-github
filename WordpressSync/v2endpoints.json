@@ -1,0 +1,22 @@
+{
+  "$schema": "./v2endpoints.schema.json",
+  "meta": {
+    "title": "endpoints config file",
+    "description": "endpoints config file"
+  },
+  "data": {
+    "projects": [
+      {
+        "name": "Covid 19 website (Using data to create test output)",
+        "enabled": false,
+        "enabledLocal": true,
+        "GitHubTarget": {
+          "Owner": "cagov",
+          "Repo": "automation-development-target",
+          "Branch": "main",
+          "ConfigPath": "wordpress_output/wordpress-to-github.config.json"
+        }
+      }
+    ]
+  }
+}
