@@ -22,11 +22,11 @@
     "data": {
       "type": "object",
       "required": [
-        "config"
+        "wordpress-to-github-config"
       ],
       "additionalProperties": false,
       "properties": {
-        "config": {
+        "wordpress-to-github-config": {
           "type": "object",
           "required": [
             "PostPath",
@@ -34,6 +34,11 @@
           ],
           "additionalProperties": false,
           "properties": {
+            "disabled": {
+              "type": "boolean",
+              "description": "set to true to disable processing",
+              "default": false
+            },
             "WordPressUrl": {
               "$ref": "#/definitions/URL",
               "description": "URL of the Wordpress instance to read from",
