@@ -241,14 +241,14 @@ const ok404 = Error => {
 
 /**
  * Syncs a binary file with Github, by adding the blob if its not already there and then updating the sha in the tree
- * @param {string} source_url 
+ * @param {string} wordpress_url 
  * @param {*} gitRepo 
  * @param {import('../common/gitTreeCommon').GithubTreeRow[]} mediaTree 
  * @param {Endpoint} endpoint 
  */
-const syncBinaryFile = async (source_url, gitRepo, mediaTree, endpoint) => {
-  console.log(`Downloading...${source_url}`);
-  const fetchResponse = await fetchRetry(source_url,{method:"Get",retries:3,retryDelay:2000});
+const syncBinaryFile = async (wordpress_url, gitRepo, mediaTree, endpoint) => {
+  console.log(`Downloading...${wordpress_url}`);
+  const fetchResponse = await fetchRetry(wordpress_url,{method:"Get",retries:3,retryDelay:2000});
   const blob = await fetchResponse.arrayBuffer();
   const buffer = Buffer.from(blob);
 
@@ -261,7 +261,7 @@ const syncBinaryFile = async (source_url, gitRepo, mediaTree, endpoint) => {
   }
 
   //swap in the new blob sha here.  If the sha matches something already there it will be determined on server.
-  const treeNode = mediaTree.find(x=>x.path===`${endpoint.MediaPath}/${pathFromMediaSourceUrl(source_url)}`);
+  const treeNode = mediaTree.find(x=>x.path===`${endpoint.MediaPath}/${pathFromMediaSourceUrl(wordpress_url)}`);
   delete treeNode.content;
   treeNode.sha = sha;
 };
@@ -278,6 +278,13 @@ const removeExcludedProperties = (json,excludeList) => {
     });
   }
 };
+
+/**
+ * makes sure value starts with string, prepends if it doesnt'
+ * @param {string} value the text to look at
+ * @param {string} startText make sure this text appears in front
+ */
+const ensureStringStartsWith = (startText,value) => (value.startsWith(startText) ? '' : startText) + value;
 
 /**
  * process a Wordpress endpoint and place the data in GitHub
@@ -322,7 +329,7 @@ const SyncEndpoint = async (gitHubTarget, gitHubCredentials, gitHubCommitter) =>
       /** @type {GithubOutputJson} */
       const jsonData = {...x,
         author: userlist[x.author],
-        wordpress_url: x.source_url
+        wordpress_url:ensureStringStartsWith(endpoint.WordPressUrl,x.source_url)
       };
 
       removeExcludedProperties(jsonData,endpoint.ExcludeProperties);
@@ -331,6 +338,7 @@ const SyncEndpoint = async (gitHubTarget, gitHubCredentials, gitHubCommitter) =>
         jsonData.sizes = Object.keys(x.media_details.sizes).map(s=>({
           type:s,
           path:pathFromMediaSourceUrl(x.media_details.sizes[s].source_url),
+          wordpress_url:ensureStringStartsWith(endpoint.WordPressUrl,x.media_details.sizes[s].source_url),
           ...x.media_details.sizes[s]}));
 
         jsonData.sizes.sort((a,b)=>b.width-a.width); //Big first
@@ -362,13 +370,11 @@ const SyncEndpoint = async (gitHubTarget, gitHubCredentials, gitHubCommitter) =>
         if (mediaTreeItem.sizes) {
           //Sized images
           for (const sizeJson of mediaTreeItem.sizes) {
-            //sometimes the source_url is full and sometimes it is relative
-            const imageUrl = (sizeJson.source_url.startsWith('http') ? '' : endpoint.WordPressUrl) + sizeJson.source_url;
-            await syncBinaryFile(imageUrl, gitRepo, mediaTree, endpoint);
+            await syncBinaryFile(sizeJson.wordpress_url, gitRepo, mediaTree, endpoint);
           }
         } else {
           //not sized media (PDF or non-image)
-          await syncBinaryFile(mediaTreeItem.wordpress_url,gitRepo, mediaTree, endpoint);
+          await syncBinaryFile(mediaTreeItem.wordpress_url, gitRepo, mediaTree, endpoint);
         }
       }
     }
