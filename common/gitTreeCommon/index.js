@@ -133,6 +133,12 @@ const PrIfChanged = async (gitRepo, masterBranch, tree, PrTitle,committer,commit
   for(let treePart of treeParts) {
       rowCount += treePart.length;
       console.log(`Creating tree for ${PrTitle} - ${rowCount}/${totalRows} items`);
+
+      if(!createTreeResult || !createTreeResult.data || !createTreeResult.data.sha) {
+        //Working on troubleshooting an empty tree result issue
+        throw new Error(`here is the strange tree error data...\n\nbaseSha=${baseSha}\n\n${JSON.stringify(createTreeResult,null,2)}`);
+      }
+
       createTreeResult = await gitRepo.createTree(treePart,createTreeResult.data.sha);
   }
 
