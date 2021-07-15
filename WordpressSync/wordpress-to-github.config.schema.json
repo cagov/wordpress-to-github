@@ -1,0 +1,91 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Schema for a single wordpress-to-github endpoint",
+  "definitions": {
+    "URL": {
+      "type": "string",
+      "pattern": "^(https?|wss?|ftp)://"
+    }
+  },
+  "type": "object",
+  "required": [
+    "data"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "$schema": {
+      "type": "string"
+    },
+    "meta": {
+      "type": "object"
+    },
+    "data": {
+      "type": "object",
+      "required": [
+        "wordpress-to-github-config"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "wordpress-to-github-config": {
+          "type": "object",
+          "required": [
+            "PostPath",
+            "PagePath"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "disabled": {
+              "type": "boolean",
+              "description": "set to true to disable processing",
+              "default": false
+            },
+            "WordPressUrl": {
+              "$ref": "#/definitions/URL",
+              "description": "URL of the Wordpress instance to read from",
+              "examples": [
+                "https://mywpinstance.azurewebsites.net"
+              ]
+            },
+            "PostPath": {
+              "type": "string",
+              "description": "Where should the posts go?",
+              "examples": [
+                "wordpress/posts"
+              ]
+            },
+            "PagePath": {
+              "type": "string",
+              "description": "Where should the pages go?",
+              "examples": [
+                "wordpress/pages"
+              ]
+            },
+            "SyncMedia": {
+              "type": "boolean",
+              "description": "Should we sync image media?",
+              "default": false
+            },
+            "MediaPath": {
+              "type": "string",
+              "description": "where should image media go?",
+              "examples": [
+                "wordpress/media"
+              ]
+            },
+            "ExcludeProperties": {
+              "type": "array",
+              "default": [],
+              "description": "Which properties should we suppress in output?",
+              "examples": [
+                [
+                  "content",
+                  "_links"
+                ]
+              ]
+            }
+          }
+        }
+      }
+    }
+  }
+}

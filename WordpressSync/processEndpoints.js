@@ -16,18 +16,20 @@ const fetchRetry = require('fetch-retry')(fetch);
 
 /**
 * @typedef {Object} Endpoint
+* @property {boolean} [disabled] true to ignore processing
 * @property {string} WordPressUrl The Wordpress starting point URL
 * @property {string[]} [ExcludeProperties] list of properties to exclude
-* @property {{Owner: string, Repo: string, Branch: string, SyncMedia:boolean, MediaPath: string, PostPath: string, PagePath: string}} GitHubTarget
-*/
-
-/** 
- * @typedef {Object} WordpressMediaSize
- * @property {number} width
- * @property {string} path
- */
-
-/**
+* @property {boolean} [SyncMedia]
+* @property {string} PostPath
+* @property {string} PagePath
+* @property {string} [MediaPath]
+*
+* @typedef {{Owner:string, Repo:string, Branch:string, ConfigPath:string}} GitHubTarget
+* @typedef {{name:string, email:string}} GitHubCommitter
+* @typedef {{token:string}} GitHubCredentials
+*
+* @typedef {{width:number,path:string}} WordpressMediaSize
+*
 * @typedef {Object} WordpressPostRow Expected POST input when using the Wordpress API - https://developer.wordpress.org/rest-api/reference/posts/
 * @property {number} author
 * @property {number[]} categories
@@ -124,15 +126,16 @@ const pathFromMediaSourceUrl = source_url => source_url.split('/wp-content/uploa
 /**
  * Creates the META section from an edpoint
  * @param {Endpoint} endpoint 
+ * @param {GitHubTarget} gitHubTarget
  * @returns 
  */
-const commonMeta = endpoint => ({
+const commonMeta = (endpoint, gitHubTarget) => ({
   api_version: "v2",
   api_url: endpoint.WordPressUrl+apiPath,
   process: {
     source_code: "https://github.com/cagov/wordpress-to-github",
     source_data: endpoint.WordPressUrl,
-    deployment_target: `https://github.com/${endpoint.GitHubTarget.Owner}/${endpoint.GitHubTarget.Repo}/tree/${endpoint.GitHubTarget.Branch}`
+    deployment_target: `https://github.com/${gitHubTarget.Owner}/${gitHubTarget.Repo}/tree/${gitHubTarget.Branch}`
   },
   refresh_frequency: "as needed"
 });
@@ -149,19 +152,11 @@ const commonMeta = endpoint => ({
   }
 };
 
-
 /**
- * Call the paged wordpress api put all the paged data into a single return array
- * @param {string} wordPressApiUrl WP source URL
- * @param {string} objecttype page/posts/media etc
- * @example 
- * await WpApi_GetPagedData('https://as-go-covid19-d-001.azurewebsites.net/wp-json/wp/v2/','posts')
- * //query https://as-go-covid19-d-001.azurewebsites.net/wp-json/wp/v2/posts?per_page=100&orderby=slug&order=asc
+ * Call the paged wordpress api query, put all the paged data into a single return array
+ * @param {string} fetchquery full wordpress query ready to bring back page assets
  */
-const WpApi_GetPagedData = async (wordPressApiUrl,objecttype) => {
-  const fetchquery = `${wordPressApiUrl}${objecttype}?per_page=100&orderby=slug&order=asc`;
-  console.log(`querying Wordpress API - ${fetchquery}`);
-
+const WpApi_GetPagedData_ByQuery = async fetchquery => {
   let totalpages = 1; //Will update after the first query
 
   const rows = [];
@@ -172,6 +167,23 @@ const WpApi_GetPagedData = async (wordPressApiUrl,objecttype) => {
 
     rows.push(...await fetchResponse.json());
   }
+
+  return rows;
+};
+
+/**
+ * Call the paged wordpress api put all the paged data into a single return array
+ * @param {string} wordPressApiUrl WP source URL
+ * @param {string} objecttype page/posts/media etc
+ * @example 
+ * await WpApi_GetPagedData_ByObjectType('https://as-go-covid19-d-001.azurewebsites.net/wp-json/wp/v2/','posts')
+ * //query https://as-go-covid19-d-001.azurewebsites.net/wp-json/wp/v2/posts?per_page=100&orderby=slug&order=asc
+ */
+const WpApi_GetPagedData_ByObjectType = async (wordPressApiUrl,objecttype) => {
+  const fetchquery = `${wordPressApiUrl}${objecttype}?per_page=100&orderby=slug&order=asc`;
+  console.log(`querying Wordpress API - ${fetchquery}`);
+
+  const rows = await WpApi_GetPagedData_ByQuery(fetchquery);
 
   //turn all "{rendered:string}"" to just "string"
   rows.forEach(r=>wpRenderRenderFields(r));
@@ -195,22 +207,21 @@ const cleanupContent = html => html
  * @returns {Promise<{}>} the dictionary
  */
 const fetchDictionary = async (wordPressApiUrl,listname) => Object.assign({}, ...
-  (await fetchRetry(`${wordPressApiUrl}${listname}?context=embed&hide_empty=true&per_page=100`,
-    {method:"Get",retries:3,retryDelay:2000})
-    .then(res => res.json()))
+  (await WpApi_GetPagedData_ByQuery(`${wordPressApiUrl}${listname}?context=embed&hide_empty=true&per_page=100`))
     .map((/** @type {{ id: string; name: string; }} */ x)=>({[x.id]:x.name})));
 
 /**
  * @param {Endpoint} endpoint 
+ * @param {GitHubTarget} gitHubTarget 
  * @param {string} field_reference //url for field refernce
  * @param {GithubOutputJson} data 
  */
-const wrapInFileMeta = (endpoint,field_reference,data) => ({
+const wrapInFileMeta = (endpoint,gitHubTarget,field_reference,data) => ({
   meta: {
     created_date: data.date_gmt,
     updated_date: data.modified_gmt,
     field_reference,
-    ...commonMeta(endpoint)
+    ...commonMeta(endpoint,gitHubTarget)
   },
   data
 });
@@ -250,7 +261,7 @@ const syncBinaryFile = async (source_url, gitRepo, mediaTree, endpoint) => {
   }
 
   //swap in the new blob sha here.  If the sha matches something already there it will be determined on server.
-  const treeNode = mediaTree.find(x=>x.path===`${endpoint.GitHubTarget.MediaPath}/${pathFromMediaSourceUrl(source_url)}`);
+  const treeNode = mediaTree.find(x=>x.path===`${endpoint.MediaPath}/${pathFromMediaSourceUrl(source_url)}`);
   delete treeNode.content;
   treeNode.sha = sha;
 };
@@ -270,15 +281,25 @@ const removeExcludedProperties = (json,excludeList) => {
 
 /**
  * process a Wordpress endpoint and place the data in GitHub
- * @param {Endpoint} endpoint
- * @param {{token:string}} gitHubCredentials
- * @param {{name:string,email:string}} gitHubCommitter
+ * @param {GitHubTarget} gitHubTarget
+ * @param {GitHubCredentials} gitHubCredentials
+ * @param {GitHubCommitter} gitHubCommitter
  */
-const SyncEndpoint = async (endpoint, gitHubCredentials, gitHubCommitter) => {
+const SyncEndpoint = async (gitHubTarget, gitHubCredentials, gitHubCommitter) => {
   const gitModule = new GitHub(gitHubCredentials);
-  const wordPressApiUrl = endpoint.WordPressUrl+apiPath;
+
   // @ts-ignore
-  const gitRepo = await gitModule.getRepo(endpoint.GitHubTarget.Owner,endpoint.GitHubTarget.Repo);
+  const gitRepo = await gitModule.getRepo(gitHubTarget.Owner,gitHubTarget.Repo);
+
+  /** @type {Endpoint} */
+  const endpoint = (await gitRepo.getContents(gitHubTarget.Branch,gitHubTarget.ConfigPath,true)).data.data['wordpress-to-github-config'];
+
+  if(endpoint.disabled) {
+    console.log('Remote config is disabled.');
+    return;
+  }
+
+  const wordPressApiUrl = endpoint.WordPressUrl+apiPath;
 
   //List of WP categories
   const categorylist = await fetchDictionary(wordPressApiUrl,'categories');
@@ -289,13 +310,13 @@ const SyncEndpoint = async (endpoint, gitHubCredentials, gitHubCommitter) => {
   /** @type {Map <string>} */
   const pagesMap = new Map();
   /** @type {Map <string>} */
-  const mediaMap = endpoint.GitHubTarget.SyncMedia ? new Map() : null;
+  const mediaMap = endpoint.SyncMedia ? new Map() : null;
 
   // MEDIA
   const mediaContentPlaceholder = 'TBD : Binary file to be updated in a later step';
-  if(endpoint.GitHubTarget.SyncMedia) {
+  if(endpoint.SyncMedia) {
     /** @type {WordpressMediaRow[]} */
-    const allMedia = await WpApi_GetPagedData(wordPressApiUrl,'media');
+    const allMedia = await WpApi_GetPagedData_ByObjectType(wordPressApiUrl,'media');
 
     allMedia.forEach(x=>{
       /** @type {GithubOutputJson} */
@@ -324,10 +345,10 @@ const SyncEndpoint = async (endpoint, gitHubCredentials, gitHubCommitter) => {
         mediaMap.set(jsonData.path, mediaContentPlaceholder);
       }
 
-      mediaMap.set(`${pathFromMediaSourceUrl(x.source_url).split('.')[0]}.json`,wrapInFileMeta(endpoint,fieldMetaReference.media,jsonData));
+      mediaMap.set(`${pathFromMediaSourceUrl(x.source_url).split('.')[0]}.json`,wrapInFileMeta(endpoint,gitHubTarget,fieldMetaReference.media,jsonData));
     });
 
-    let mediaTree = await createTreeFromFileMap(gitRepo,endpoint.GitHubTarget.Branch,mediaMap,endpoint.GitHubTarget.MediaPath);
+    let mediaTree = await createTreeFromFileMap(gitRepo,gitHubTarget.Branch,mediaMap,endpoint.MediaPath);
  
     const mediaChanges = mediaTree
       .filter(x=>x.content && x.content!==mediaContentPlaceholder)
@@ -355,7 +376,7 @@ const SyncEndpoint = async (endpoint, gitHubCredentials, gitHubCommitter) => {
     //Remove any leftover binary placeholders...
     mediaTree = mediaTree.filter(x=>x.content !== mediaContentPlaceholder);
     
-    await PrIfChanged(gitRepo, endpoint.GitHubTarget.Branch, mediaTree, `${commitTitleMedia} (${mediaTree.length} updates)`, gitHubCommitter, true);
+    await PrIfChanged(gitRepo, gitHubTarget.Branch, mediaTree, `${commitTitleMedia} (${mediaTree.length} updates)`, gitHubCommitter, true);
   }
   
   /**
@@ -365,7 +386,7 @@ const SyncEndpoint = async (endpoint, gitHubCredentials, gitHubCommitter) => {
    * @param {string} HTML 
    */
   const addMediaSection = (jsonData,WpRow,HTML) => {
-    if(endpoint.GitHubTarget.SyncMedia) {
+    if(endpoint.SyncMedia) {
       if(WpRow['featured_media']) {
         jsonData.featured_media = WpRow['featured_media'];
       }
@@ -399,7 +420,7 @@ const SyncEndpoint = async (endpoint, gitHubCredentials, gitHubCommitter) => {
   
   // POSTS
   /** @type {WordpressPostRow[]} */
-  const allPosts = await WpApi_GetPagedData(wordPressApiUrl,'posts');
+  const allPosts = await WpApi_GetPagedData_ByObjectType(wordPressApiUrl,'posts');
   allPosts.forEach(x=>{
     /** @type {GithubOutputJson} */
     const jsonData = {...x,
@@ -415,17 +436,17 @@ const SyncEndpoint = async (endpoint, gitHubCredentials, gitHubCommitter) => {
 
     removeExcludedProperties(jsonData,endpoint.ExcludeProperties);
 
-    postMap.set(`${x.slug}.json`,wrapInFileMeta(endpoint,fieldMetaReference.posts,jsonData));
+    postMap.set(`${x.slug}.json`,wrapInFileMeta(endpoint,gitHubTarget,fieldMetaReference.posts,jsonData));
     postMap.set(`${x.slug}.html`,HTML);
   });
 
-  const postTree = await createTreeFromFileMap(gitRepo,endpoint.GitHubTarget.Branch,postMap,endpoint.GitHubTarget.PostPath);
-  await PrIfChanged(gitRepo, endpoint.GitHubTarget.Branch, postTree, `${commitTitlePosts} (${postTree.filter(x=>x.path.endsWith(".html")).length} updates)`, gitHubCommitter, true);
+  const postTree = await createTreeFromFileMap(gitRepo,gitHubTarget.Branch,postMap,endpoint.PostPath);
+  await PrIfChanged(gitRepo, gitHubTarget.Branch, postTree, `${commitTitlePosts} (${postTree.filter(x=>x.path.endsWith(".html")).length} updates)`, gitHubCommitter, true);
 
 
   // PAGES
   /** @type {WordpressPageRow[]} */
-  const allPages = await WpApi_GetPagedData(wordPressApiUrl,'pages');
+  const allPages = await WpApi_GetPagedData_ByObjectType(wordPressApiUrl,'pages');
   allPages.forEach(x=>{
     /** @type {GithubOutputJson} */
     const jsonData = {...x,
@@ -439,12 +460,12 @@ const SyncEndpoint = async (endpoint, gitHubCredentials, gitHubCommitter) => {
 
     removeExcludedProperties(jsonData,endpoint.ExcludeProperties);
 
-    pagesMap.set(`${x.slug}.json`,wrapInFileMeta(endpoint,fieldMetaReference.media,jsonData));
+    pagesMap.set(`${x.slug}.json`,wrapInFileMeta(endpoint,gitHubTarget,fieldMetaReference.media,jsonData));
     pagesMap.set(`${x.slug}.html`,HTML);
   });
 
-  const pagesTree = await createTreeFromFileMap(gitRepo,endpoint.GitHubTarget.Branch,pagesMap,endpoint.GitHubTarget.PagePath);
-  await PrIfChanged(gitRepo, endpoint.GitHubTarget.Branch, pagesTree, `${commitTitlePages} (${pagesTree.filter(x=>x.path.endsWith(".html")).length} updates)`, gitHubCommitter, true);
+  const pagesTree = await createTreeFromFileMap(gitRepo,gitHubTarget.Branch,pagesMap,endpoint.PagePath);
+  await PrIfChanged(gitRepo, gitHubTarget.Branch, pagesTree, `${commitTitlePages} (${pagesTree.filter(x=>x.path.endsWith(".html")).length} updates)`, gitHubCommitter, true);
 };
 
 module.exports = {

@@ -1,8 +1,10 @@
+// @ts-check
 const { SyncEndpoint } = require('./processEndpoints');
 const { slackBotReportError } = require('../common/slackBot');
 const debugChannel = 'C01DBP67MSQ'; // #testingbot
 //const debugChannel = 'C01H6RB99E2'; //Carter debug
-const endpoints = require('./endpoints.json').data;
+// @ts-ignore
+const endpoints = require('./endpoints.json').data.projects;
 const gitHubCommitter = {
   name: process.env["GITHUB_NAME"],
   email: process.env["GITHUB_EMAIL"]
@@ -35,8 +37,8 @@ module.exports = async function (context, myTimer) {
 const doProcessEndpoints = async () => {
   const debugMode = process.env.debug?.toLowerCase()==='true';
 
-  for(const endpoint of endpoints.projects.filter(x=>debugMode && x.enabledLocal || !debugMode && x.enabled)) {
+  for(const endpoint of endpoints.filter(x=>debugMode && x.enabledLocal || !debugMode && x.enabled)) {
     console.log(`*** Checking endpoint for ${endpoint.name} ***`);
-    await SyncEndpoint(endpoint, gitHubCredentials, gitHubCommitter);
+    await SyncEndpoint(endpoint.GitHubTarget, gitHubCredentials, gitHubCommitter);
   }
 };
