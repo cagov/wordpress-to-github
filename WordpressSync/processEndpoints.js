@@ -371,7 +371,7 @@ const SyncEndpoint = async (gitHubTarget, gitHubCredentials, gitHubCommitter) =>
 
       mediaMap.set(`${pathFromMediaSourceUrl(x.source_url).split('.')[0]}.json`,wrapInFileMeta(endpoint,gitHubTarget,fieldMetaReference.media,jsonData));
     });
-    if(mediaMap.size) {
+
     let mediaTree = await createTreeFromFileMap(gitRepo,gitHubTarget.Branch,mediaMap,endpoint.MediaPath);
  
     const mediaChanges = mediaTree
@@ -399,7 +399,7 @@ const SyncEndpoint = async (gitHubTarget, gitHubCredentials, gitHubCommitter) =>
     mediaTree = mediaTree.filter(x=>x.content !== mediaContentPlaceholder);
     
     await PrIfChanged(gitRepo, gitHubTarget.Branch, mediaTree, `${commitTitleMedia} (${mediaTree.length} updates)`, gitHubCommitter, true);
-    }
+    
   }
   
   /**
@@ -463,10 +463,8 @@ const SyncEndpoint = async (gitHubTarget, gitHubCredentials, gitHubCommitter) =>
     postMap.set(`${x.slug}.html`,HTML);
   });
 
-  if(postMap.size) {
-    const postTree = await createTreeFromFileMap(gitRepo,gitHubTarget.Branch,postMap,endpoint.PostPath);
-    await PrIfChanged(gitRepo, gitHubTarget.Branch, postTree, `${commitTitlePosts} (${postTree.filter(x=>x.path.endsWith(".html")).length} updates)`, gitHubCommitter, true);
-  }
+  const postTree = await createTreeFromFileMap(gitRepo,gitHubTarget.Branch,postMap,endpoint.PostPath);
+  await PrIfChanged(gitRepo, gitHubTarget.Branch, postTree, `${commitTitlePosts} (${postTree.filter(x=>x.path.endsWith(".html")).length} updates)`, gitHubCommitter, true);
 
   // PAGES
   /** @type {WordpressPageRow[]} */
@@ -487,10 +485,9 @@ const SyncEndpoint = async (gitHubTarget, gitHubCredentials, gitHubCommitter) =>
     pagesMap.set(`${x.slug}.json`,wrapInFileMeta(endpoint,gitHubTarget,fieldMetaReference.media,jsonData));
     pagesMap.set(`${x.slug}.html`,HTML);
   });
-  if(pagesMap.size) {
-    const pagesTree = await createTreeFromFileMap(gitRepo,gitHubTarget.Branch,pagesMap,endpoint.PagePath);
-    await PrIfChanged(gitRepo, gitHubTarget.Branch, pagesTree, `${commitTitlePages} (${pagesTree.filter(x=>x.path.endsWith(".html")).length} updates)`, gitHubCommitter, true);
-  }
+
+  const pagesTree = await createTreeFromFileMap(gitRepo,gitHubTarget.Branch,pagesMap,endpoint.PagePath);
+  await PrIfChanged(gitRepo, gitHubTarget.Branch, pagesTree, `${commitTitlePages} (${pagesTree.filter(x=>x.path.endsWith(".html")).length} updates)`, gitHubCommitter, true);
 };
 
 module.exports = {
