@@ -52,10 +52,12 @@ const gitHubBlobPredictSha = content => sha1(`blob ${Buffer.byteLength(content)}
 
   /** @type {GithubTreeRow[]} */
   const rootTree = (await gitRepo.getSha(masterBranch,pathRootTree)).data;
-  const referenceTreeSha = rootTree.find(f=>f.path===outputPath).sha;
+  const referenceTreeRow = rootTree.find(f=>f.path===outputPath);
 
   /** @type {GithubTreeRow[]} */
-  const referenceTree = (await gitRepo.getTree(`${referenceTreeSha}?recursive=true`)).data.tree.filter((/** @type { GithubTreeRow } */ x)=>x.type==='blob');
+  const referenceTree = referenceTreeRow 
+    ? (await gitRepo.getTree(`${referenceTreeRow.sha}?recursive=true`)).data.tree.filter((/** @type { GithubTreeRow } */ x)=>x.type==='blob')
+    : [];
 
   /** @type {GithubTreeRow[]} */
   const targetTree = [];
