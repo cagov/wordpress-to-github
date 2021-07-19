@@ -49,8 +49,12 @@ const gitHubBlobPredictSha = content => sha1(`blob ${Buffer.byteLength(content)}
  */
  const createTreeFromFileMap = async (gitRepo, masterBranch, filesMap, outputPath) => {
    /** @type {GithubTreeRow[]} */
-  const rootTree = (await gitRepo.getSha(masterBranch,outputPath.includes('/') ? outputPath.split('/')[0] : '')).data;
-  const referenceTreeSha = rootTree.find(f=>f.path===outputPath).sha;
+  const pathParts = outputPath.split('/');
+  const pathUpOne = pathParts.slice(0,pathParts.length-1).join('/');
+  const pathR = outputPath.includes('/') ? pathUpOne : '';
+  const rootTree = (await gitRepo.getSha(masterBranch,pathR)).data;
+  const lastPathPart = pathParts.slice(-2).join('/')
+  const referenceTreeSha = rootTree.find(f=>f.path===lastPathPart).sha;
   /** @type {GithubTreeRow[]} */
   const referenceTree = (await gitRepo.getTree(`${referenceTreeSha}?recursive=true`)).data.tree.filter(x=>x.type==='blob');
 

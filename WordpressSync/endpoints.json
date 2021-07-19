@@ -31,7 +31,7 @@
       {
         "name": "digital.ca.gov website",
         "enabled": true,
-        "enabledLocal": false,
+        "enabledLocal": true,
         "GitHubTarget": {
           "Owner": "cagov",
           "Repo": "digital.ca.gov",
