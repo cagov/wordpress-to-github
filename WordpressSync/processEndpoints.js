@@ -162,7 +162,7 @@ const WpApi_GetPagedData_ByQuery = async fetchquery => {
   const rows = [];
   
   for(let currentpage = 1; currentpage<=totalpages; currentpage++) {
-    const fetchResponse = await fetchRetry(`${fetchquery}&page=${currentpage}`,{method:"Get",retries:3,retryDelay:2000});
+    const fetchResponse = await fetchRetry(`${fetchquery}&page=${currentpage}&cachebust=${Math.random()}`,{method:"Get",retries:3,retryDelay:2000});
     totalpages = Number(fetchResponse.headers.get('x-wp-totalpages'));
 
     rows.push(...await fetchResponse.json());
@@ -180,7 +180,7 @@ const WpApi_GetPagedData_ByQuery = async fetchquery => {
  * //query https://as-go-covid19-d-001.azurewebsites.net/wp-json/wp/v2/posts?per_page=100&orderby=slug&order=asc
  */
 const WpApi_GetPagedData_ByObjectType = async (wordPressApiUrl,objecttype) => {
-  const fetchquery = `${wordPressApiUrl}${objecttype}?per_page=100&orderby=slug&order=asc&delme=1`;
+  const fetchquery = `${wordPressApiUrl}${objecttype}?per_page=100&orderby=slug&order=asc`;
   console.log(`querying Wordpress API - ${fetchquery}`);
 
   const rows = await WpApi_GetPagedData_ByQuery(fetchquery);
@@ -227,17 +227,33 @@ const wrapInFileMeta = (endpoint,gitHubTarget,field_reference,data) => ({
 });
 
 /**
- * callback function got GitHub API that ignores 404 errors.
- * @param {*} [Error]
- * @example
- * const exists = await gitRepo._request('HEAD', `/repos/${gitRepo.__fullname}/git/blobs/${sha}`,null, ok404);
- * @returns
+ * A custom Github function to check for file exists
+ * @param {{ _request: (arg0: string, arg1: any, arg2: any) => Promise<any>; }} myRepo
+ * @param {string} path
+ * @param {undefined} [data]
+ * @param {(arg0: any, arg1: boolean, arg2: any) => void} [cb]
  */
-const ok404 = Error => {
-  if(Error) {
-    if(Error.response.status!==404) throw Error;
-  }
-};
+function githubDoesFileExist(myRepo, path, data, cb) {
+  return myRepo._request('HEAD', path, data).then(function success(/** @type {any} */ response) {
+     if (cb) {
+        cb(null, true, response);
+     }
+     return true;
+  }, function failure(/** @type {{ response: { status: number; }; }} */ response) {
+     if (response.response.status === 404) {
+        if (cb) {
+           cb(null, false, response);
+        }
+        return false;
+     }
+
+     if (cb) {
+        // @ts-ignore
+        cb(response);
+     }
+     throw response;
+  });
+}
 
 /**
  * Syncs a binary file with Github, by adding the blob if its not already there and then updating the sha in the tree
@@ -254,12 +270,9 @@ const syncBinaryFile = async (wordpress_url, gitRepo, mediaTree, endpoint) => {
 
   let sha = gitHubBlobPredictShaFromBuffer(buffer);
 
-  const exists = await gitRepo._request('HEAD', `/repos/${gitRepo.__fullname}/git/blobs/${sha}`,null, ok404);
+  const exists = await githubDoesFileExist(gitRepo, `/repos/${gitRepo.__fullname}/git/blobs/${sha}`);
   if(!exists) {
-
-    var postBody = gitRepo._getContentObject(buffer);
-    const blobResult = await gitRepo._request('POST', '/repos/' + gitRepo.__fullname + '/git/blobs', postBody, undefined);
-    //const blobResult = await gitRepo.createBlob(buffer,null);
+    const blobResult = await gitRepo.createBlob(buffer);
     sha = blobResult.data.sha; //should be the same, but just in case
   }
 
