@@ -180,7 +180,7 @@ const WpApi_GetPagedData_ByQuery = async fetchquery => {
  * //query https://as-go-covid19-d-001.azurewebsites.net/wp-json/wp/v2/posts?per_page=100&orderby=slug&order=asc
  */
 const WpApi_GetPagedData_ByObjectType = async (wordPressApiUrl,objecttype) => {
-  const fetchquery = `${wordPressApiUrl}${objecttype}?per_page=100&orderby=slug&order=asc`;
+  const fetchquery = `${wordPressApiUrl}${objecttype}?per_page=100&orderby=slug&order=asc&delme=1`;
   console.log(`querying Wordpress API - ${fetchquery}`);
 
   const rows = await WpApi_GetPagedData_ByQuery(fetchquery);
@@ -256,7 +256,10 @@ const syncBinaryFile = async (wordpress_url, gitRepo, mediaTree, endpoint) => {
 
   const exists = await gitRepo._request('HEAD', `/repos/${gitRepo.__fullname}/git/blobs/${sha}`,null, ok404);
   if(!exists) {
-    const blobResult = await gitRepo.createBlob(buffer);
+
+    var postBody = gitRepo._getContentObject(buffer);
+    const blobResult = await gitRepo._request('POST', '/repos/' + gitRepo.__fullname + '/git/blobs', postBody, undefined);
+    //const blobResult = await gitRepo.createBlob(buffer,null);
     sha = blobResult.data.sha; //should be the same, but just in case
   }
 
