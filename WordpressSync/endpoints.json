@@ -30,7 +30,7 @@
       },
       {
         "name": "digital.ca.gov website",
-        "enabled": true,
+        "enabled": false,
         "enabledLocal": false,
         "GitHubTarget": {
           "Owner": "cagov",
