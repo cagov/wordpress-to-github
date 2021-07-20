@@ -8,8 +8,9 @@ const fieldMetaReference = {
   pages: "https://developer.wordpress.org/rest-api/reference/pages/",
   media: "https://developer.wordpress.org/rest-api/reference/pages/"
 };
-  /** @type {Map <string,WordpressApiDateCacheItem[]>} */
+  /** @type {Map <string,WordpressApiDateCacheItem>} */
 const updateCache = new Map();
+const cacheObjects = ['media','posts','pages'];
 const apiPath = '/wp-json/wp/v2/';
 const { createTreeFromFileMap, PrIfChanged, gitHubBlobPredictShaFromBuffer } = require('../common/gitTreeCommon');
 const fetch = require('node-fetch');
@@ -160,7 +161,7 @@ const commonMeta = (endpoint, gitHubTarget) => ({
 };
 
 /**
- * 
+ * returns a WordpressApiDateCacheItem for an object type
  * @param {string} wordPressApiUrl WP source URL
  * @param {string} objecttype page/posts/media etc
  */
@@ -180,24 +181,6 @@ const WpApi_GetCacheItem_ByObjectType = async (wordPressApiUrl,objecttype) => {
       })
     }
 };
-
-/**
- * Returns an object that contains the cache data for Wordpress
- * @param {string} wordPressApiUrl WP source URL
- */
-const WpApi_GetUpdateCacheData = async (wordPressApiUrl) => {
-  let out = [];
-  for(let type of ['media','posts','pages']) {
-    const cacheResult = await WpApi_GetCacheItem_ByObjectType(wordPressApiUrl,type);
-    if (!cacheResult) {
-      return null;
-    }
-    out.push(cacheResult)
-  }
-  return out;
-}
-
-
 
 /**
  * Call the paged wordpress api query, put all the paged data into a single return array
@@ -371,9 +354,20 @@ const SyncEndpoint = async (gitHubTarget, gitHubCredentials, gitHubCommitter) =>
 
   const wordPressApiUrl = endpoint.WordPressUrl+apiPath;
 
-  const updateCacheItem = updateCache.get(wordPressApiUrl);
+  //Check cache (and set cache for next time)
+  let cacheMatch = true;
+  for(let type of cacheObjects) {
+    const cacheKey = wordPressApiUrl+'+'+type;
 
-  if(updateCacheItem && JSON.stringify(updateCacheItem) === JSON.stringify(await WpApi_GetUpdateCacheData(wordPressApiUrl))) {
+    const currentStatus = await WpApi_GetCacheItem_ByObjectType(wordPressApiUrl,type);
+    const cacheItem = updateCache.get(cacheKey);
+    updateCache.set(cacheKey,currentStatus);
+
+    if(!cacheItem || JSON.stringify(cacheItem) !== JSON.stringify(currentStatus)) {
+      cacheMatch = false;
+    }
+  }
+  if(cacheMatch) {
     console.log('match cache for '+wordPressApiUrl);
     return;
   }
@@ -542,8 +536,6 @@ const SyncEndpoint = async (gitHubTarget, gitHubCredentials, gitHubCommitter) =>
 
   const pagesTree = await createTreeFromFileMap(gitRepo,gitHubTarget.Branch,pagesMap,endpoint.PagePath);
   await PrIfChanged(gitRepo, gitHubTarget.Branch, pagesTree, `${commitTitlePages} (${pagesTree.filter(x=>x.path.endsWith(".html")).length} updates)`, gitHubCommitter, true);
-
-  updateCache.set(wordPressApiUrl,await WpApi_GetUpdateCacheData(wordPressApiUrl));
 };
 
 module.exports = {
