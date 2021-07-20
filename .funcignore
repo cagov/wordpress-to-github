@@ -2,7 +2,4 @@
 *.ts
 .git*
 .vscode
-sandbox
 local.settings.json
-test
-tsconfig.json

@@ -1,5 +1,5 @@
 // @ts-check
-const { SyncEndpoint } = require('./processEndpoints');
+const { SyncEndpoint } = require('../wordpress-to-github');
 const { slackBotReportError } = require('../common/slackBot');
 const debugChannel = 'C01DBP67MSQ'; // #testingbot
 //const debugChannel = 'C01H6RB99E2'; //Carter debug
