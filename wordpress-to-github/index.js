@@ -164,21 +164,20 @@ const commonMeta = (endpoint, gitHubTarget) => ({
  * returns a WordpressApiDateCacheItem for an object type
  * @param {string} wordPressApiUrl WP source URL
  * @param {string} objecttype page/posts/media etc
+ * @returns {Promise<WordpressApiDateCacheItem>}
  */
 const WpApi_GetCacheItem_ByObjectType = async (wordPressApiUrl,objecttype) => {
     const fetchResponse = await fetchRetry(`${wordPressApiUrl}${objecttype}?per_page=1&orderby=modified&order=desc&_fields=modified&cachebust=${Math.random()}`,{method:"Get",retries:3,retryDelay:2000});
 
-    if(fetchResponse.status!==200) {
-      return null;
-    }
-
     const result = await fetchResponse.json();
-    if(result && result.length) {
-      return /** @type {WordpressApiDateCacheItem} */ ({
+    if(fetchResponse.status!==200 && result && result.length) {
+      return  ({
         modified:result[0].modified,
         type:objecttype,
         count:Number(fetchResponse.headers.get('X-WP-Total'))
       })
+    } else {
+      return ({modified:null,type:objecttype,count:0});
     }
 };
 
