@@ -4,7 +4,7 @@
       "name": "WordpressSync",
       "type": "timerTrigger",
       "direction": "in",
-      "schedule": "0 0/5 * * * *"
+      "schedule": "0 0/2 * * * *"
     }
   ]
 }
