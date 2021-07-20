@@ -3,6 +3,6 @@ module.exports = async function (context, req) {
 
     context.res = {
         // status: 200, /* Defaults to 200 */
-        body: JSON.stringify(req,null,2)
+        body: JSON.stringify({context,req},null,2)
     };
 }
