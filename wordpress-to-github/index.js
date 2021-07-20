@@ -8,6 +8,8 @@ const fieldMetaReference = {
   pages: "https://developer.wordpress.org/rest-api/reference/pages/",
   media: "https://developer.wordpress.org/rest-api/reference/pages/"
 };
+  /** @type {Map <string,WordpressApiDateCache>} */
+const updateCache = new Map();
 const apiPath = '/wp-json/wp/v2/';
 const { createTreeFromFileMap, PrIfChanged, gitHubBlobPredictShaFromBuffer } = require('../common/gitTreeCommon');
 const fetch = require('node-fetch');
@@ -114,6 +116,11 @@ const fetchRetry = require('fetch-retry')(fetch);
 * @property {number} [featured_media]
 * @property {{}[]} [media]
 * @property {WordpressMediaSize[]} [sizes]
+
+* @typedef {Object} WordpressApiDateCache List of most recent modifications for Wordpress objects
+* @property {string} media_modified
+* @property {string} posts_modified
+* @property {string} pages_modified
 */
 
 /**
@@ -151,6 +158,35 @@ const commonMeta = (endpoint, gitHubTarget) => ({
     }
   }
 };
+
+/**
+ * 
+ * @param {string} wordPressApiUrl WP source URL
+ * @param {string} objecttype page/posts/media etc
+ * @example 
+ * await WpApi_GetPagedData_ByObjectType('https://as-go-covid19-d-001.azurewebsites.net/wp-json/wp/v2/','posts')
+ * //query https://as-go-covid19-d-001.azurewebsites.net/wp-json/wp/v2/posts?per_page=100&orderby=slug&order=asc
+ */
+const WpApi_GetRecentUpdateDate_ByObjectType = async (wordPressApiUrl,objecttype) => {
+    const fetchResponse = await fetchRetry(`${wordPressApiUrl}${objecttype}?per_page=1&orderby=modified&order=desc&_fields=modified&cachebust=${Math.random()}`,{method:"Get",retries:3,retryDelay:2000});
+
+    const result = await fetchResponse.json();
+    if(result && result.length) {
+      return result[0].modified;
+    }
+};
+
+/**
+ * 
+ * @param {string} wordPressApiUrl WP source URL
+ */
+const WpApi_GetUpdateCacheData = async (wordPressApiUrl) => 
+/** @type {WordpressApiDateCache} */
+  ( {
+    media_modified: (await WpApi_GetRecentUpdateDate_ByObjectType(wordPressApiUrl,'media')),
+    posts_modified: (await WpApi_GetRecentUpdateDate_ByObjectType(wordPressApiUrl,'posts')),
+    pages_modified: (await WpApi_GetRecentUpdateDate_ByObjectType(wordPressApiUrl,'pages'))
+  });
 
 /**
  * Call the paged wordpress api query, put all the paged data into a single return array
@@ -207,7 +243,7 @@ const cleanupContent = html => html
  * @returns {Promise<{}>} the dictionary
  */
 const fetchDictionary = async (wordPressApiUrl,listname) => Object.assign({}, ...
-  (await WpApi_GetPagedData_ByQuery(`${wordPressApiUrl}${listname}?context=embed&hide_empty=true&per_page=100`))
+  (await WpApi_GetPagedData_ByQuery(`${wordPressApiUrl}${listname}?context=embed&hide_empty=true&per_page=100&order_by=name&_fields=id,name`))
     .map((/** @type {{ id: string; name: string; }} */ x)=>({[x.id]:x.name})));
 
 /**
@@ -323,6 +359,13 @@ const SyncEndpoint = async (gitHubTarget, gitHubCredentials, gitHubCommitter) =>
   }
 
   const wordPressApiUrl = endpoint.WordPressUrl+apiPath;
+
+  const updateCacheItem = updateCache.get(wordPressApiUrl);
+
+  if(updateCacheItem && JSON.stringify(await WpApi_GetUpdateCacheData(wordPressApiUrl))===JSON.stringify(updateCacheItem)) {
+    console.log('match cache for '+wordPressApiUrl);
+    return;
+  }
 
   //List of WP categories
   const categorylist = await fetchDictionary(wordPressApiUrl,'categories');
@@ -488,6 +531,8 @@ const SyncEndpoint = async (gitHubTarget, gitHubCredentials, gitHubCommitter) =>
 
   const pagesTree = await createTreeFromFileMap(gitRepo,gitHubTarget.Branch,pagesMap,endpoint.PagePath);
   await PrIfChanged(gitRepo, gitHubTarget.Branch, pagesTree, `${commitTitlePages} (${pagesTree.filter(x=>x.path.endsWith(".html")).length} updates)`, gitHubCommitter, true);
+
+  updateCache.set(wordPressApiUrl,await WpApi_GetUpdateCacheData(wordPressApiUrl));
 };
 
 module.exports = {
