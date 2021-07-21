@@ -10,9 +10,10 @@ const fieldMetaReference = {
 };
   /** @type {Map <string,WordpressApiDateCacheItem>} */
 const updateCache = new Map();
+const githubCredentialsCache = new Map();
 const cacheObjects = ['media','posts','pages'];
 const apiPath = '/wp-json/wp/v2/';
-const { createTreeFromFileMap, PrIfChanged, gitHubBlobPredictShaFromBuffer } = require('../common/gitTreeCommon');
+const { createTreeFromFileMap, PrIfChanged, gitHubBlobPredictShaFromBuffer } = require('./gitTreeCommon');
 const fetch = require('node-fetch');
 // @ts-ignore
 const fetchRetry = require('fetch-retry')(fetch);
@@ -288,7 +289,7 @@ function githubDoesFileExist(myRepo, path, data, cb) {
  * Syncs a binary file with Github, by adding the blob if its not already there and then updating the sha in the tree
  * @param {string} wordpress_url 
  * @param {*} gitRepo 
- * @param {import('../common/gitTreeCommon').GithubTreeRow[]} mediaTree 
+ * @param {import('./gitTreeCommon').GithubTreeRow[]} mediaTree 
  * @param {Endpoint} endpoint 
  */
 const syncBinaryFile = async (wordpress_url, gitRepo, mediaTree, endpoint) => {
