@@ -142,7 +142,7 @@ const PrIfChanged = async (gitRepo, masterBranch, tree, PrTitle,committer,commit
         //troubleshoot this
         createTreeResult = await gitRepo.createTree(treePart,createTreeResult.data.sha);
       } catch (error) {
-        throw new Error(`here is the strange tree error data...\n\nbaseSha=${baseSha}\n\n${JSON.stringify(createTreeResult,null,2)}`);
+        throw new Error(`here is the strange tree error data...\n\nbaseSha=${baseSha}\n\ntreePart=${JSON.stringify(treePart,null,2)}`);
       }
   }
 
