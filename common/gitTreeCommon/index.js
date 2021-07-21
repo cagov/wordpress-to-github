@@ -138,12 +138,7 @@ const PrIfChanged = async (gitRepo, masterBranch, tree, PrTitle,committer,commit
       rowCount += treePart.length;
       console.log(`Creating tree for ${PrTitle} - ${rowCount}/${totalRows} items`);
 
-      try {
-        //troubleshoot this
-        createTreeResult = await gitRepo.createTree(treePart,createTreeResult.data.sha);
-      } catch (error) {
-        throw new Error(`here is the strange tree error data...\n\nbaseSha=${baseSha}\n\ntreePart=${JSON.stringify(treePart,null,2)}`);
-      }
+      createTreeResult = await gitRepo.createTree(treePart,createTreeResult.data.sha);
   }
 
   //Create a commit the maps to all the tree changes

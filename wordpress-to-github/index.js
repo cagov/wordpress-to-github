@@ -371,6 +371,11 @@ const SyncEndpoint = async (gitHubTarget, gitHubCredentials, gitHubCommitter) =>
     return;
   }
 
+  const repoDetails = await gitRepo.getDetails();
+  if(!repoDetails.data.permissions.push) {
+    throw new Error('App user has no write permissions for '+gitHubTarget.Repo);
+  }
+
   //List of WP categories
   const categorylist = await fetchDictionary(wordPressApiUrl,'categories');
   const taglist = await fetchDictionary(wordPressApiUrl,'tags');
