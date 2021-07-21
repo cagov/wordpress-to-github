@@ -457,10 +457,6 @@ const SyncEndpoint = async (gitHubTarget, gitHubCredentials, gitHubCommitter) =>
    */
   const addMediaSection = (jsonData,WpRow,HTML) => {
     if(endpoint.SyncMedia) {
-      if(WpRow['featured_media']) {
-        jsonData.featured_media = WpRow['featured_media'];
-      }
-
       jsonData.media = [];
       mediaMap.forEach(m=>{
         //Look at media JSON only
