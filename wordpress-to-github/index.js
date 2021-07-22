@@ -11,7 +11,8 @@ const {
   fetchDictionary,
   cleanupContent,
   WpApi_GetPagedData_ByObjectType,
-  pathFromMediaSourceUrl
+  pathFromMediaSourceUrl,
+  addMediaSection
 } = require('./common');
 const commitTitlePosts = 'Wordpress Posts Update';
 const commitTitlePages = 'Wordpress Pages Update';
@@ -148,41 +149,6 @@ const SyncEndpoint = async (gitHubTarget, gitHubCredentials, gitHubCommitter) =>
     
   }
   
-  /**
-   * Places the media section if SyncMedia is on
-   * @param {import('./common').GithubOutputJson} jsonData 
-   * @param {import('./common').WordpressPostRow | import('./common').WordpressPageRow | import('./common').WordpressMediaRow} WpRow 
-   * @param {string} HTML 
-   */
-  const addMediaSection = (jsonData,WpRow,HTML) => {
-    if(endpoint.SyncMedia) {
-      jsonData.media = [];
-      mediaMap.forEach(m=>{
-        //Look at media JSON only
-        if(m.data && m.data.sizes) {
-          m.data.sizes.forEach(s=>{
-            const source_url_match = HTML.includes(s.source_url);
-            const featured = jsonData.featured_media===m.data.id;
-            
-            if(featured || source_url_match) {
-              jsonData.media.push({
-                id:m.data.id,
-                ...s,
-                source_url_match,
-                featured
-              });
-            }
-          });
-        }
-      });
-
-      //Remove empty media array
-      if (!jsonData.media.length) {
-        delete jsonData.media;
-      }
-    }
-  };
-  
   // POSTS
   /** @type {import('./common').WordpressPostRow[]} */
   const allPosts = await WpApi_GetPagedData_ByObjectType(wordPressApiUrl,'posts');
@@ -197,7 +163,7 @@ const SyncEndpoint = async (gitHubTarget, gitHubCredentials, gitHubCommitter) =>
 
     const HTML = cleanupContent(x.content);
   
-    addMediaSection(jsonData,x,HTML);
+    addMediaSection(endpoint,mediaMap,jsonData,HTML);
 
     removeExcludedProperties(jsonData,endpoint.ExcludeProperties);
 
@@ -220,7 +186,7 @@ const SyncEndpoint = async (gitHubTarget, gitHubCredentials, gitHubCommitter) =>
 
     const HTML = cleanupContent(x.content);
 
-    addMediaSection(jsonData,x,HTML);
+    addMediaSection(endpoint,mediaMap,jsonData,HTML);
 
     removeExcludedProperties(jsonData,endpoint.ExcludeProperties);
 

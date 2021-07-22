@@ -319,6 +319,42 @@ const removeExcludedProperties = (json,excludeList) => {
  */
 const ensureStringStartsWith = (startText,value) => (value.startsWith(startText) ? '' : startText) + value;
 
+  /**
+   * Places the media section if SyncMedia is on
+   * @param {Endpoint} endpoint
+   * @param {Map <string>} mediaMap
+   * @param {GithubOutputJson} jsonData 
+   * @param {string} HTML
+   */
+   const addMediaSection = (endpoint,mediaMap,jsonData,HTML) => {
+    if(endpoint.SyncMedia) {
+      jsonData.media = [];
+      mediaMap.forEach(m=>{
+        //Look at media JSON only
+        if(m.data && m.data.sizes) {
+          m.data.sizes.forEach(s=>{
+            const source_url_match = HTML.includes(s.source_url);
+            const featured = jsonData.featured_media===m.data.id;
+            
+            if(featured || source_url_match) {
+              jsonData.media.push({
+                id:m.data.id,
+                ...s,
+                source_url_match,
+                featured
+              });
+            }
+          });
+        }
+      });
+
+      //Remove empty media array
+      if (!jsonData.media.length) {
+        delete jsonData.media;
+      }
+    }
+  };
+
 module.exports = {
   ensureStringStartsWith,
   removeExcludedProperties,
@@ -329,5 +365,6 @@ module.exports = {
   fetchDictionary,
   cleanupContent,
   WpApi_GetPagedData_ByObjectType,
-  pathFromMediaSourceUrl
+  pathFromMediaSourceUrl,
+  addMediaSection
 };
