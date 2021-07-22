@@ -41,7 +41,7 @@ module.exports = async function (context, req) {
         await slackBotReplyPost(debugChannel, slackPostTS, 'Error!');
         context.res = {
             status: 500,
-            body: "Error - " + JSON.stringify(e,null,2)
+            body: "Error - " + e.message
         };
     }
 }
