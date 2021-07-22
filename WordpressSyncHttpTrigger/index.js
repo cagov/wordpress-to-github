@@ -1,7 +1,7 @@
 const log = [];
 
 module.exports = async function (context, req) {
-    log.push(req);
+    log.unshift(req);
 
     context.res = {
         // status: 200, /* Defaults to 200 */
