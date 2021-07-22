@@ -23,6 +23,14 @@ module.exports = async function (context, req) {
     try {
         slackPostTS = (await (await slackBotChatPost(debugChannel,`\n\n*Request Logged*\n\`\`\`${JSON.stringify(req,null,2)}\`\`\``)).json()).ts;
 
+        if(!req.body || !req.body.Branch || !req.body.Owner || !req.body.Repo || !req.body.ConfigPath) {
+            context.res = {
+                status: 400,
+                body: 'Bad Request - Expecting JSON - {Owner:string, Repo:string, Branch:string, ConfigPath:string}'
+            };
+            return;
+        }
+
         await SyncEndpoint(req.body, gitHubCredentials, gitHubCommitter);
         await slackBotReplyPost(debugChannel, slackPostTS, 'POST Success');
         context.res = {
