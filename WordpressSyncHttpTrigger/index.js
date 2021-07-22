@@ -22,19 +22,12 @@ module.exports = async function (context, req) {
     let slackPostTS = "";
     try {
         slackPostTS = (await (await slackBotChatPost(debugChannel,`\n\n*Request Logged*\n\`\`\`${JSON.stringify(req,null,2)}\`\`\``)).json()).ts;
-        if(req.method==='POST') {
-            await SyncEndpoint(req.body, gitHubCredentials, gitHubCommitter);
-            await slackBotReplyPost(debugChannel, slackPostTS, 'POST Success');
-            context.res = {
-                status: 204 //OK - No content
-            }; 
-        } else {
-            await slackBotReplyPost(debugChannel, slackPostTS, 'GET Complete');
-            context.res = {
-                status: 200,
-                body: "Only responds to POST"
-            };
-        }
+
+        await SyncEndpoint(req.body, gitHubCredentials, gitHubCommitter);
+        await slackBotReplyPost(debugChannel, slackPostTS, 'POST Success');
+        context.res = {
+            status: 204 //OK - No content
+        }; 
     } catch (e) {
         await slackBotReportError(debugChannel,`Error running ${appName}`,e,context,null);
         await slackBotReplyPost(debugChannel, slackPostTS, 'Error!');
