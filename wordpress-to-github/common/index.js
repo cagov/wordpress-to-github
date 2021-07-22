@@ -158,7 +158,7 @@ const WpApi_GetCacheItem_ByObjectType = async (wordPressApiUrl,objecttype) => {
     const fetchResponse = await fetchRetry(`${wordPressApiUrl}${objecttype}?per_page=1&orderby=modified&order=desc&_fields=modified&cachebust=${Math.random()}`,{method:"Get",retries:3,retryDelay:2000});
 
     const result = await fetchResponse.json();
-    if(fetchResponse.status!==200 && result && result.length) {
+    if(fetchResponse.status===200 && result && result.length) {
       return  ({
         modified:result[0].modified,
         type:objecttype,
