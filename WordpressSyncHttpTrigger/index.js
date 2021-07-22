@@ -1,6 +1,6 @@
 // @ts-check
 const { SyncEndpoint } = require('../wordpress-to-github');
-const { slackBotReportError,slackBotChatPost } = require('../common/slackBot');
+const { slackBotReportError,slackBotChatPost,slackBotReplyPost } = require('../common/slackBot');
 const log = [];
 //const debugChannel = 'C01DBP67MSQ'; // #testingbot
 const debugChannel = 'C01H6RB99E2'; //Carter debug
@@ -20,10 +20,11 @@ const gitHubCredentials = {
 module.exports = async function (context, req) {
     const appName = context.executionContext.functionName;
     try {
-        await slackBotChatPost(debugChannel,`\n\n*Request Logged*\n\`\`\`${JSON.stringify(req,null,2)}\`\`\``);
+        const slackPostTS = (await (await slackBotChatPost(debugChannel,`\n\n*Request Logged*\n\`\`\`${JSON.stringify(req,null,2)}\`\`\``)).json()).ts;
         if(req.method==='POST') {
             await SyncEndpoint(req.body, gitHubCredentials, gitHubCommitter);
         }
+        await slackBotReplyPost(debugChannel, slackPostTS, 'Done');
         
         log.unshift(req);
 
