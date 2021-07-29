@@ -48,6 +48,7 @@ const fetchRetry = require('fetch-retry')(fetch);
 
 * @typedef {Object} WordpressPageRow Expected PAGE input when using the Wordpress API - https://developer.wordpress.org/rest-api/reference/pages/
 * @property {number} author
+* @property {number[]} [categories]
 * @property {string} comment_status "closed"
 * @property {string} content
 * @property {string} date
@@ -65,6 +66,7 @@ const fetchRetry = require('fetch-retry')(fetch);
 * @property {string} ping_status "closed"
 * @property {string} slug
 * @property {string} status "publish"
+* @property {number[]} [tags]
 * @property {string} template
 * @property {string} title
 * @property {string} type "page"
