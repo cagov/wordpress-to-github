@@ -148,18 +148,51 @@ const SyncEndpoint = async (gitHubTarget, gitHubCredentials, gitHubCommitter) =>
     await PrIfChanged(gitRepo, gitHubTarget.Branch, mediaTree, `${commitTitleMedia} (${mediaTree.length} updates)`, gitHubCommitter, true);
     
   }
+
+  /**
+   * 
+   * @param {import('./common').WordpressPostRow | import('./common').WordpressPageRow} jsonData 
+   * @param {string} fieldName
+   * @param {{}} dictionary
+   * @returns {string[]}
+   */
+  const mapLookup = (jsonData,fieldName,dictionary) => {
+    if(jsonData[fieldName]) {
+      return jsonData[fieldName].map((/** @type {string | number} */ t)=>dictionary[t])
+    } else {
+      return null
+    }
+  }
+
+  /**
+   * 
+   * @param {import('./common').WordpressPostRow | import('./common').WordpressPageRow} wpRow 
+   * @returns {import('./common').GithubOutputJson}
+   */
+  const wordPressRowToGitHubOutput = wpRow => {
+    const jsonData = {...wpRow,
+      author: userlist[wpRow.author],
+      wordpress_url: wpRow.link,
+      categories: mapLookup(wpRow,'categories',categorylist),
+      tags: mapLookup(wpRow,'tags',taglist),
+    };
+
+    if(!wpRow.categories) {
+      delete jsonData.categories
+    }
+    if(!wpRow.tags) {
+      delete jsonData.tags
+    }
+
+    return jsonData;
+  }
+
   
   // POSTS
   /** @type {import('./common').WordpressPostRow[]} */
   const allPosts = await WpApi_GetPagedData_ByObjectType(wordPressApiUrl,'posts');
   allPosts.forEach(x=>{
-    /** @type {import('./common').GithubOutputJson} */
-    const jsonData = {...x,
-      author: userlist[x.author],
-      wordpress_url: x.link,
-      categories: x.categories.map(t=>categorylist[t]),
-      tags: x.tags.map(t=>taglist[t]),
-    };
+    const jsonData = wordPressRowToGitHubOutput(x);
 
     const HTML = cleanupContent(x.content);
   
@@ -178,11 +211,7 @@ const SyncEndpoint = async (gitHubTarget, gitHubCredentials, gitHubCommitter) =>
   /** @type {import('./common').WordpressPageRow[]} */
   const allPages = await WpApi_GetPagedData_ByObjectType(wordPressApiUrl,'pages');
   allPages.forEach(x=>{
-    /** @type {import('./common').GithubOutputJson} */
-    const jsonData = {...x,
-      author: userlist[x.author],
-      wordpress_url: x.link
-    };
+    const jsonData = wordPressRowToGitHubOutput(x);
 
     const HTML = cleanupContent(x.content);
 
