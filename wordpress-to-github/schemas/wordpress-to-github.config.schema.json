@@ -82,6 +82,17 @@
                   "_links"
                 ]
               ]
+            },
+            "IgnoreTags": {
+              "type": "array",
+              "default": [],
+              "description": "Ignore Pages/Posts with these tags.",
+              "examples": [
+                [
+                  "staging",
+                  "development"
+                ]
+              ]
             }
           }
         }
