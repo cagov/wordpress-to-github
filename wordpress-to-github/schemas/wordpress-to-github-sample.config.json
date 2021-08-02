@@ -5,21 +5,30 @@
     "description": "wordpress-to-github endpoints config file"
   },
   "data": {
-    "wordpress-to-github-config": {
+    "wordpress_to_github_config": {
+      "outputBranch": "main",
       "disabled": false,
       "WordPressUrl": "https://as-go-covid19-d-001.azurewebsites.net",
       "PostPath": "wordpress_output/posts",
       "PagePath": "wordpress_output/pages",
-      "SyncMedia": true,
       "MediaPath": "wordpress_output/media",
       "ExcludeProperties": [
         "content",
         "_links"
       ],
-      "IgnoreTags": [
+      "tags_exclude": [
         "staging",
         "development"
-      ]
-    }
+      ],
+      "tags": []
+    },
+    "supplemental_configs": [
+      {
+        "outputBranch": "staging",
+        "tags_exclude": [
+          "development"
+        ]
+      }
+    ]
   }
 }

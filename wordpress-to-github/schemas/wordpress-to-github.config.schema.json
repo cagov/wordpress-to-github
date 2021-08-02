@@ -5,6 +5,93 @@
     "URL": {
       "type": "string",
       "pattern": "^(https?|wss?|ftp)://"
+    },
+    "wordpress_to_github_config": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "outputBranch": {
+          "type": "string",
+          "description": "What branch to deploy to?",
+          "examples": [
+            "staging",
+            "master"
+          ],
+          "default": "main"
+        },
+        "disabled": {
+          "type": "boolean",
+          "description": "set to true to disable processing",
+          "default": false
+        },
+        "WordPressUrl": {
+          "$ref": "#/definitions/URL",
+          "description": "URL of the Wordpress instance to read from",
+          "examples": [
+            "https://mywpinstance.azurewebsites.net"
+          ]
+        },
+        "PostPath": {
+          "type": "string",
+          "description": "Where should the posts go?",
+          "examples": [
+            "wordpress/posts"
+          ]
+        },
+        "PagePath": {
+          "type": "string",
+          "description": "Where should the pages go?",
+          "examples": [
+            "wordpress/pages"
+          ]
+        },
+        "MediaPath": {
+          "type": "string",
+          "description": "where should image media go?",
+          "examples": [
+            "wordpress/media"
+          ]
+        },
+        "ExcludeProperties": {
+          "type": "array",
+          "default": [],
+          "description": "Which properties should we suppress in output?",
+          "examples": [
+            [
+              "content",
+              "_links"
+            ]
+          ]
+        },
+        "tags_exclude": {
+          "type": "array",
+          "default": [],
+          "description": "Ignore Pages/Posts with these tags.",
+          "examples": [
+            [
+              "staging",
+              "development"
+            ]
+          ],
+          "items": {
+            "type": "string"
+          }
+        },
+        "tags": {
+          "type": "array",
+          "default": [],
+          "description": "Only Include Pages/Posts with these tags.",
+          "examples": [
+            [
+              "staging",
+              "development"
+            ]
+          ],
+          "items": {
+            "type": "string"
+          }
+        }
+      }
     }
   },
   "type": "object",
@@ -22,78 +109,31 @@
     "data": {
       "type": "object",
       "required": [
-        "wordpress-to-github-config"
+        "wordpress_to_github_config"
       ],
       "additionalProperties": false,
       "properties": {
-        "wordpress-to-github-config": {
-          "type": "object",
-          "required": [
-            "PostPath",
-            "PagePath"
-          ],
-          "additionalProperties": false,
-          "properties": {
-            "disabled": {
-              "type": "boolean",
-              "description": "set to true to disable processing",
-              "default": false
-            },
-            "WordPressUrl": {
-              "$ref": "#/definitions/URL",
-              "description": "URL of the Wordpress instance to read from",
-              "examples": [
-                "https://mywpinstance.azurewebsites.net"
-              ]
-            },
-            "PostPath": {
-              "type": "string",
-              "description": "Where should the posts go?",
-              "examples": [
-                "wordpress/posts"
-              ]
-            },
-            "PagePath": {
-              "type": "string",
-              "description": "Where should the pages go?",
-              "examples": [
-                "wordpress/pages"
-              ]
-            },
-            "SyncMedia": {
-              "type": "boolean",
-              "description": "Should we sync image media?",
-              "default": false
-            },
-            "MediaPath": {
-              "type": "string",
-              "description": "where should image media go?",
-              "examples": [
-                "wordpress/media"
-              ]
-            },
-            "ExcludeProperties": {
-              "type": "array",
-              "default": [],
-              "description": "Which properties should we suppress in output?",
-              "examples": [
-                [
-                  "content",
-                  "_links"
-                ]
-              ]
-            },
-            "IgnoreTags": {
-              "type": "array",
-              "default": [],
-              "description": "Ignore Pages/Posts with these tags.",
-              "examples": [
-                [
-                  "staging",
+        "wordpress_to_github_config": {
+          "$ref": "#/definitions/wordpress_to_github_config"
+        },
+        "supplemental_configs": {
+          "description": "List any additional configs to override the main one and run (different branch output maybe).  Values will override values from `wordpress-to-github-config`",
+          "type": "array",
+          "default": [],
+          "uniqueItems": true,
+          "minItems": 0,
+          "examples": [
+            [
+              {
+                "outputBranch": "staging",
+                "IgnoreTags": [
                   "development"
                 ]
-              ]
-            }
+              }
+            ]
+          ],
+          "items": {
+            "$ref": "#/definitions/wordpress_to_github_config"
           }
         }
       }

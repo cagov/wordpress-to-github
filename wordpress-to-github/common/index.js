@@ -10,17 +10,22 @@ const fetchRetry = require('fetch-retry')(fetch);
 * @property {boolean} [disabled] true to ignore processing
 * @property {string} WordPressUrl The Wordpress starting point URL
 * @property {string[]} [ExcludeProperties] list of properties to exclude
-* @property {boolean} [SyncMedia]
-* @property {string} PostPath
-* @property {string} PagePath
+* @property {string[]} [tags] positive list of tags to limit sync to
+* @property {string[]} [tags_exclude] negative list of tags to signal ignoring an object
+* @property {string} [PostPath]
+* @property {string} [PagePath]
 * @property {string} [MediaPath]
-*
+
+* @typedef {Object} EndpointConfigData
+* @property {Endpoint} wordpress_to_github_config
+* @property {Endpoint[]} [supplemental_configs]
+
 * @typedef {{Owner:string, Repo:string, Branch:string, ConfigPath:string}} GitHubTarget
 * @typedef {{name:string, email:string}} GitHubCommitter
 * @typedef {{token:string}} GitHubCredentials
-*
+
 * @typedef {{width:number,path:string}} WordpressMediaSize
-*
+
 * @typedef {Object} WordpressPostRow Expected POST input when using the Wordpress API - https://developer.wordpress.org/rest-api/reference/posts/
 * @property {number} author
 * @property {number[]} categories
@@ -329,7 +334,7 @@ const ensureStringStartsWith = (startText,value) => (value.startsWith(startText)
    * @param {string} HTML
    */
    const addMediaSection = (endpoint,mediaMap,jsonData,HTML) => {
-    if(endpoint.SyncMedia) {
+    if(endpoint.MediaPath) {
       jsonData.media = [];
       mediaMap.forEach(m=>{
         //Look at media JSON only
