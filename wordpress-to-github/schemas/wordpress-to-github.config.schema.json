@@ -89,7 +89,7 @@
       "type": "object",
       "required": [
         "wordpress_source_url",
-        "github_target"
+        "github_targets"
       ],
       "additionalProperties": false,
       "properties": {
@@ -100,53 +100,46 @@
             "https://mywpinstance.azurewebsites.net"
           ]
         },
-        "github_target": {
-          "type": "object",
-          "properties": {
-            "template": {
-              "description": "Optional common fields to use as starting point for targets.",
-              "$ref": "#/definitions/wordpress_to_github_config",
-              "examples": [
-                {
-                  "disabled": false,
-                  "PostPath": "wordpress_output/posts",
-                  "PagePath": "wordpress_output/pages",
-                  "MediaPath": "wordpress_output/media",
-                  "ExcludeProperties": [
-                    "content",
-                    "_links"
-                  ]
-                }
+        "github_targets": {
+          "description": "List Github targets to override the template and run (different branch output maybe).",
+          "type": "array",
+          "default": [],
+          "uniqueItems": true,
+          "minItems": 1,
+          "items": {
+            "$ref": "#/definitions/wordpress_to_github_config"
+          },
+          "examples": [
+            {
+              "outputBranch": "main",
+              "disabled": false,
+              "PostPath": "wordpress_output/posts",
+              "PagePath": "wordpress_output/pages",
+              "MediaPath": "wordpress_output/media",
+              "ExcludeProperties": [
+                "content",
+                "_links"
+              ],
+              "tags_exclude": [
+                "staging",
+                "development"
               ]
             },
-            "targets": {
-              "description": "List Github targets to override the template and run (different branch output maybe).",
-              "type": "array",
-              "default": [],
-              "uniqueItems": true,
-              "minItems": 1,
-              "examples": [
-                [
-                  {
-                    "outputBranch": "main",
-                    "tags_exclude": [
-                      "staging",
-                      "development"
-                    ]
-                  },
-                  {
-                    "outputBranch": "staging",
-                    "tags_exclude": [
-                      "development"
-                    ]
-                  }
-                ]
+            {
+              "outputBranch": "staging",
+              "disabled": false,
+              "PostPath": "wordpress_output/posts",
+              "PagePath": "wordpress_output/pages",
+              "MediaPath": "wordpress_output/media",
+              "ExcludeProperties": [
+                "content",
+                "_links"
               ],
-              "items": {
-                "$ref": "#/definitions/wordpress_to_github_config"
-              }
+              "tags_exclude": [
+                "development"
+              ]
             }
-          }
+          ]
         }
       }
     }
