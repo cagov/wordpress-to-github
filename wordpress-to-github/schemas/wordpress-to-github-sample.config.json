@@ -5,21 +5,37 @@
     "description": "wordpress-to-github endpoints config file"
   },
   "data": {
-    "wordpress-to-github-config": {
-      "disabled": false,
-      "WordPressUrl": "https://as-go-covid19-d-001.azurewebsites.net",
-      "PostPath": "wordpress_output/posts",
-      "PagePath": "wordpress_output/pages",
-      "SyncMedia": true,
-      "MediaPath": "wordpress_output/media",
-      "ExcludeProperties": [
-        "content",
-        "_links"
-      ],
-      "IgnoreTags": [
-        "staging",
-        "development"
-      ]
-    }
+    "wordpress_source_url": "https://as-go-covid19-d-001.azurewebsites.net",
+    "github_targets": [
+      {
+        "outputBranch": "main",
+        "disabled": false,
+        "PostPath": "wordpress_output/posts",
+        "PagePath": "wordpress_output/pages",
+        "MediaPath": "wordpress_output/media",
+        "ExcludeProperties": [
+          "content",
+          "_links"
+        ],
+        "tags_exclude": [
+          "staging",
+          "development"
+        ]
+      },
+      {
+        "outputBranch": "staging",
+        "disabled": false,
+        "PostPath": "wordpress_output/posts",
+        "PagePath": "wordpress_output/pages",
+        "MediaPath": "wordpress_output/media",
+        "ExcludeProperties": [
+          "content",
+          "_links"
+        ],
+        "tags_exclude": [
+          "development"
+        ]
+      }
+    ]
   }
 }

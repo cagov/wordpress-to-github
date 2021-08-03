@@ -67,18 +67,22 @@ const gitHubBlobPredictSha = content => sha1(`blob ${Buffer.byteLength(content)}
   const type = 'blob';
 
   for (const [key,value] of filesMap) {
-    let content = typeof value === 'string' ? value : JSON.stringify(value,null,2);
     let existingFile = referenceTree.find(x=>x.path===key);
     if(existingFile) {
       existingFile['found']=true;
     }
-    if(!existingFile || existingFile.sha !== gitHubBlobPredictSha(content)) {
-      targetTree.push({
-        path: `${outputPath}/${key}`,
-        content,
-        mode,
-        type
-      });
+    if(value) {
+      //ignoring files with null value
+      let content = typeof value === 'string' ? value : JSON.stringify(value,null,2);
+
+      if(!existingFile || existingFile.sha !== gitHubBlobPredictSha(content)) {
+        targetTree.push({
+          path: `${outputPath}/${key}`,
+          content,
+          mode,
+          type
+        });
+      }
     }
   }
 

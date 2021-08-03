@@ -6,21 +6,25 @@ const fetch = require('node-fetch');
 const fetchRetry = require('fetch-retry')(fetch);
 
 /**
-* @typedef {Object} Endpoint
-* @property {boolean} [disabled] true to ignore processing
-* @property {string} WordPressUrl The Wordpress starting point URL
+* @typedef {Object} GithubTargetConfig
+* @property {string} outputBranch branch for this target
+* @property {boolean} disabled true to ignore processing
 * @property {string[]} [ExcludeProperties] list of properties to exclude
-* @property {boolean} [SyncMedia]
-* @property {string} PostPath
-* @property {string} PagePath
+* @property {string[]} [tags_exclude] negative list of tags to signal ignoring an object
+* @property {string} [PostPath]
+* @property {string} [PagePath]
 * @property {string} [MediaPath]
-*
+
+* @typedef {Object} EndpointConfigData
+* @property {string} wordpress_source_url
+* @property {GithubTargetConfig[]} github_targets
+
 * @typedef {{Owner:string, Repo:string, Branch:string, ConfigPath:string}} GitHubTarget
 * @typedef {{name:string, email:string}} GitHubCommitter
 * @typedef {{token:string}} GitHubCredentials
-*
+
 * @typedef {{width:number,path:string}} WordpressMediaSize
-*
+
 * @typedef {Object} WordpressPostRow Expected POST input when using the Wordpress API - https://developer.wordpress.org/rest-api/reference/posts/
 * @property {number} author
 * @property {number[]} categories
@@ -123,16 +127,16 @@ const pathFromMediaSourceUrl = source_url => source_url.split('/wp-content/uploa
 
 /**
  * Creates the META section from an edpoint
- * @param {Endpoint} endpoint 
+ * @param {string} wordpress_source_url
  * @param {GitHubTarget} gitHubTarget
  * @returns 
  */
-const commonMeta = (endpoint, gitHubTarget) => ({
+const commonMeta = (wordpress_source_url, gitHubTarget) => ({
   api_version: "v2",
-  api_url: endpoint.WordPressUrl+apiPath,
+  api_url: wordpress_source_url+apiPath,
   process: {
     source_code: "https://github.com/cagov/wordpress-to-github",
-    source_data: endpoint.WordPressUrl,
+    source_data: wordpress_source_url,
     deployment_target: `https://github.com/${gitHubTarget.Owner}/${gitHubTarget.Repo}/tree/${gitHubTarget.Branch}`
   },
   refresh_frequency: "as needed"
@@ -230,17 +234,17 @@ const fetchDictionary = async (wordPressApiUrl,listname) => Object.assign({}, ..
     .map((/** @type {{ id: string; name: string; }} */ x)=>({[x.id]:x.name})));
 
 /**
- * @param {Endpoint} endpoint 
+ * @param {string} wordpress_source_url 
  * @param {GitHubTarget} gitHubTarget 
  * @param {string} field_reference //url for field refernce
  * @param {GithubOutputJson} data 
  */
-const wrapInFileMeta = (endpoint,gitHubTarget,field_reference,data) => ({
+const wrapInFileMeta = (wordpress_source_url,gitHubTarget,field_reference,data) => ({
   meta: {
     created_date: data.date_gmt,
     updated_date: data.modified_gmt,
     field_reference,
-    ...commonMeta(endpoint,gitHubTarget)
+    ...commonMeta(wordpress_source_url,gitHubTarget)
   },
   data
 });
@@ -279,7 +283,7 @@ function githubDoesFileExist(myRepo, path, data, cb) {
  * @param {string} wordpress_url 
  * @param {*} gitRepo 
  * @param {import('../gitTreeCommon').GithubTreeRow[]} mediaTree 
- * @param {Endpoint} endpoint 
+ * @param {GithubTargetConfig} endpoint 
  */
 const syncBinaryFile = async (wordpress_url, gitRepo, mediaTree, endpoint) => {
   console.log(`Downloading...${wordpress_url}`);
@@ -323,13 +327,13 @@ const ensureStringStartsWith = (startText,value) => (value.startsWith(startText)
 
   /**
    * Places the media section if SyncMedia is on
-   * @param {Endpoint} endpoint
+   * @param {GithubTargetConfig} endpoint
    * @param {Map <string>} mediaMap
    * @param {GithubOutputJson} jsonData 
    * @param {string} HTML
    */
    const addMediaSection = (endpoint,mediaMap,jsonData,HTML) => {
-    if(endpoint.SyncMedia) {
+    if(endpoint.MediaPath) {
       jsonData.media = [];
       mediaMap.forEach(m=>{
         //Look at media JSON only

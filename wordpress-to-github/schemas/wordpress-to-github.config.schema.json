@@ -5,6 +5,72 @@
     "URL": {
       "type": "string",
       "pattern": "^(https?|wss?|ftp)://"
+    },
+    "wordpress_to_github_config": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "outputBranch": {
+          "type": "string",
+          "description": "What branch to deploy to?",
+          "examples": [
+            "staging",
+            "master"
+          ],
+          "default": "main"
+        },
+        "disabled": {
+          "type": "boolean",
+          "description": "set to true to disable processing",
+          "default": false
+        },
+        "PostPath": {
+          "type": "string",
+          "description": "Where should the posts go?",
+          "examples": [
+            "wordpress/posts"
+          ]
+        },
+        "PagePath": {
+          "type": "string",
+          "description": "Where should the pages go?",
+          "examples": [
+            "wordpress/pages"
+          ]
+        },
+        "MediaPath": {
+          "type": "string",
+          "description": "where should image media go?",
+          "examples": [
+            "wordpress/media"
+          ]
+        },
+        "ExcludeProperties": {
+          "type": "array",
+          "default": [],
+          "description": "Which properties should we suppress in output?",
+          "examples": [
+            [
+              "content",
+              "_links"
+            ]
+          ]
+        },
+        "tags_exclude": {
+          "type": "array",
+          "default": [],
+          "description": "Ignore Pages/Posts with these tags.",
+          "examples": [
+            [
+              "staging",
+              "development"
+            ]
+          ],
+          "items": {
+            "type": "string"
+          }
+        }
+      }
     }
   },
   "type": "object",
@@ -22,79 +88,58 @@
     "data": {
       "type": "object",
       "required": [
-        "wordpress-to-github-config"
+        "wordpress_source_url",
+        "github_targets"
       ],
       "additionalProperties": false,
       "properties": {
-        "wordpress-to-github-config": {
-          "type": "object",
-          "required": [
-            "PostPath",
-            "PagePath"
-          ],
-          "additionalProperties": false,
-          "properties": {
-            "disabled": {
-              "type": "boolean",
-              "description": "set to true to disable processing",
-              "default": false
-            },
-            "WordPressUrl": {
-              "$ref": "#/definitions/URL",
-              "description": "URL of the Wordpress instance to read from",
-              "examples": [
-                "https://mywpinstance.azurewebsites.net"
+        "wordpress_source_url": {
+          "$ref": "#/definitions/URL",
+          "description": "URL of the Wordpress instance to read from",
+          "examples": [
+            "https://mywpinstance.azurewebsites.net"
+          ]
+        },
+        "github_targets": {
+          "description": "List Github targets to override the template and run (different branch output maybe).",
+          "type": "array",
+          "default": [],
+          "uniqueItems": true,
+          "minItems": 1,
+          "items": {
+            "$ref": "#/definitions/wordpress_to_github_config"
+          },
+          "examples": [
+            {
+              "outputBranch": "main",
+              "disabled": false,
+              "PostPath": "wordpress_output/posts",
+              "PagePath": "wordpress_output/pages",
+              "MediaPath": "wordpress_output/media",
+              "ExcludeProperties": [
+                "content",
+                "_links"
+              ],
+              "tags_exclude": [
+                "staging",
+                "development"
               ]
             },
-            "PostPath": {
-              "type": "string",
-              "description": "Where should the posts go?",
-              "examples": [
-                "wordpress/posts"
-              ]
-            },
-            "PagePath": {
-              "type": "string",
-              "description": "Where should the pages go?",
-              "examples": [
-                "wordpress/pages"
-              ]
-            },
-            "SyncMedia": {
-              "type": "boolean",
-              "description": "Should we sync image media?",
-              "default": false
-            },
-            "MediaPath": {
-              "type": "string",
-              "description": "where should image media go?",
-              "examples": [
-                "wordpress/media"
-              ]
-            },
-            "ExcludeProperties": {
-              "type": "array",
-              "default": [],
-              "description": "Which properties should we suppress in output?",
-              "examples": [
-                [
-                  "content",
-                  "_links"
-                ]
-              ]
-            },
-            "IgnoreTags": {
-              "type": "array",
-              "default": [],
-              "description": "Ignore Pages/Posts with these tags.",
-              "examples": [
-                [
-                  "staging",
-                  "development"
-                ]
+            {
+              "outputBranch": "staging",
+              "disabled": false,
+              "PostPath": "wordpress_output/posts",
+              "PagePath": "wordpress_output/pages",
+              "MediaPath": "wordpress_output/media",
+              "ExcludeProperties": [
+                "content",
+                "_links"
+              ],
+              "tags_exclude": [
+                "development"
               ]
             }
-          }
+          ]
         }
       }
     }
