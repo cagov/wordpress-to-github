@@ -26,7 +26,7 @@
         },
         "WordPressUrl": {
           "$ref": "#/definitions/URL",
-          "description": "URL of the Wordpress instance to read from",
+          "description": "URL of the Wordpress instance to read from (ignored in supplemental_configs)",
           "examples": [
             "https://mywpinstance.azurewebsites.net"
           ]
