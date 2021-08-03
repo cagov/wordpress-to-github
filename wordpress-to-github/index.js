@@ -44,21 +44,12 @@ const getRemoteConfig = async (gitHubTarget, gitHubCredentials) => {
 }
 
 /**
- * 
- * @param {import('./gitTreeCommon').GithubTreeRow[]} tree 
- * @param {string[]} tags_exclude 
+ * returns true if there are any items that match in both arrays
+ * @param {any[]} array1
+ * @param {any[]} array2
  */
-const removeTreeItemsByTags = (tree, tags_exclude) => {
-  const newTree = tree.filter(row=>{
-
-    const json = JSON.parse(row.content);
-
-    const tags = json.tags;
-
-    return true;
-    
-  });
-}
+const anythingInArrayMatch = (array1,array2) => 
+  Array.isArray(array1) && Array.isArray(array2) && array1.some(s=>array2.includes(s));
 
 
 /**
@@ -106,6 +97,13 @@ const SyncEndpoint = async (gitHubTarget, gitHubCredentials, gitHubCommitter) =>
   const taglist = await fetchDictionary(wordPressApiUrl, 'tags');
   const userlist = await fetchDictionary(wordPressApiUrl, 'users');
 
+  /** @type {import('./common').WordpressMediaRow[]} */
+  const allMedia = endpointConfigs.some(x=>x.MediaPath) ? await WpApi_GetPagedData_ByObjectType(wordPressApiUrl, 'media') : null;
+  /** @type {import('./common').WordpressPostRow[]} */
+  const allPosts = endpointConfigs.some(x=>x.PostPath) ? await WpApi_GetPagedData_ByObjectType(wordPressApiUrl, 'posts') : null;
+  /** @type {import('./common').WordpressPageRow[]} */
+  const allPages = endpointConfigs.some(x=>x.PagePath) ? await WpApi_GetPagedData_ByObjectType(wordPressApiUrl, 'pages') : null;
+
   for (let endpointConfig of endpointConfigs) {
     if (endpointConfig.disabled) {
       console.log('Remote config is disabled.');
@@ -122,9 +120,6 @@ const SyncEndpoint = async (gitHubTarget, gitHubCredentials, gitHubCommitter) =>
     // MEDIA
     const mediaContentPlaceholder = 'TBD : Binary file to be updated in a later step';
     if (mediaMap) {
-      /** @type {import('./common').WordpressMediaRow[]} */
-      const allMedia = await WpApi_GetPagedData_ByObjectType(wordPressApiUrl, 'media');
-
       allMedia.forEach(x => {
         /** @type {import('./common').GithubOutputJson} */
         const jsonData = {
@@ -230,8 +225,6 @@ const SyncEndpoint = async (gitHubTarget, gitHubCredentials, gitHubCommitter) =>
 
     // POSTS
     if (endpointConfig.PostPath) {
-      /** @type {import('./common').WordpressPostRow[]} */
-      const allPosts = await WpApi_GetPagedData_ByObjectType(wordPressApiUrl, 'posts');
       allPosts.forEach(x => {
         const jsonData = wordPressRowToGitHubOutput(x);
 
@@ -241,18 +234,18 @@ const SyncEndpoint = async (gitHubTarget, gitHubCredentials, gitHubCommitter) =>
 
         removeExcludedProperties(jsonData, endpointConfig.ExcludeProperties);
 
-        postMap.set(`${x.slug}.json`, wrapInFileMeta(endpointConfigData.wordpress_source_url, gitHubTarget, fieldMetaReference.posts, jsonData));
-        postMap.set(`${x.slug}.html`, HTML);
+        const ignoreThisOne = anythingInArrayMatch(jsonData.tags,endpointConfig.tags_exclude);
+        
+        postMap.set(`${x.slug}.json`, ignoreThisOne ? null : wrapInFileMeta(endpointConfigData.wordpress_source_url, gitHubTarget, fieldMetaReference.posts, jsonData));
+        postMap.set(`${x.slug}.html`, ignoreThisOne ? null : HTML);
       });
 
-      const postTree = await createTreeFromFileMap(gitRepo, gitHubTarget.Branch, postMap, endpointConfig.PostPath);
-      removeTreeItemsByTags(postTree,endpointConfig.tags_exclude);
-      await PrIfChanged(gitRepo, gitHubTarget.Branch, postTree, `${commitTitlePosts} (${postTree.filter(x => x.path.endsWith(".html")).length} updates)`, gitHubCommitter, true);
+      const postTree = await createTreeFromFileMap(gitRepo, endpointConfig.outputBranch, postMap, endpointConfig.PostPath);
+
+      await PrIfChanged(gitRepo, endpointConfig.outputBranch, postTree, `${commitTitlePosts} (${postTree.filter(x => x.path.endsWith(".html")).length} updates)`, gitHubCommitter, true);
     }
     // PAGES
     if (endpointConfig.PagePath) {
-      /** @type {import('./common').WordpressPageRow[]} */
-      const allPages = await WpApi_GetPagedData_ByObjectType(wordPressApiUrl, 'pages');
       allPages.forEach(x => {
         const jsonData = wordPressRowToGitHubOutput(x);
 
@@ -262,13 +255,14 @@ const SyncEndpoint = async (gitHubTarget, gitHubCredentials, gitHubCommitter) =>
 
         removeExcludedProperties(jsonData, endpointConfig.ExcludeProperties);
 
-        pagesMap.set(`${x.slug}.json`, wrapInFileMeta(endpointConfigData.wordpress_source_url, gitHubTarget, fieldMetaReference.media, jsonData));
-        pagesMap.set(`${x.slug}.html`, HTML);
+        const ignoreThisOne = anythingInArrayMatch(jsonData.tags,endpointConfig.tags_exclude);
+
+        pagesMap.set(`${x.slug}.json`, ignoreThisOne ? null : wrapInFileMeta(endpointConfigData.wordpress_source_url, gitHubTarget, fieldMetaReference.media, jsonData));
+        pagesMap.set(`${x.slug}.html`, ignoreThisOne ? null : HTML);
       });
 
-      const pagesTree = await createTreeFromFileMap(gitRepo, gitHubTarget.Branch, pagesMap, endpointConfig.PagePath);
-      removeTreeItemsByTags(pagesTree,endpointConfig.tags_exclude);
-      await PrIfChanged(gitRepo, gitHubTarget.Branch, pagesTree, `${commitTitlePages} (${pagesTree.filter(x => x.path.endsWith(".html")).length} updates)`, gitHubCommitter, true);
+      const pagesTree = await createTreeFromFileMap(gitRepo, endpointConfig.outputBranch, pagesMap, endpointConfig.PagePath);
+      await PrIfChanged(gitRepo, endpointConfig.outputBranch, pagesTree, `${commitTitlePages} (${pagesTree.filter(x => x.path.endsWith(".html")).length} updates)`, gitHubCommitter, true);
     }
   }
 };
