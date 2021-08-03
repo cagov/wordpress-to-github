@@ -43,6 +43,23 @@ const getRemoteConfig = async (gitHubTarget, gitHubCredentials) => {
   return endpointConfig;
 }
 
+/**
+ * 
+ * @param {import('./gitTreeCommon').GithubTreeRow[]} tree 
+ * @param {string[]} tags_exclude 
+ */
+const removeTreeItemsByTags = (tree, tags_exclude) => {
+  const newTree = tree.filter(row=>{
+
+    const json = JSON.parse(row.content);
+
+    const tags = json.tags;
+
+    return true;
+    
+  });
+}
+
 
 /**
  * process a Wordpress endpoint and place the data in GitHub
@@ -229,6 +246,7 @@ const SyncEndpoint = async (gitHubTarget, gitHubCredentials, gitHubCommitter) =>
       });
 
       const postTree = await createTreeFromFileMap(gitRepo, gitHubTarget.Branch, postMap, endpointConfig.PostPath);
+      removeTreeItemsByTags(postTree,endpointConfig.tags_exclude);
       await PrIfChanged(gitRepo, gitHubTarget.Branch, postTree, `${commitTitlePosts} (${postTree.filter(x => x.path.endsWith(".html")).length} updates)`, gitHubCommitter, true);
     }
     // PAGES
@@ -249,6 +267,7 @@ const SyncEndpoint = async (gitHubTarget, gitHubCredentials, gitHubCommitter) =>
       });
 
       const pagesTree = await createTreeFromFileMap(gitRepo, gitHubTarget.Branch, pagesMap, endpointConfig.PagePath);
+      removeTreeItemsByTags(pagesTree,endpointConfig.tags_exclude);
       await PrIfChanged(gitRepo, gitHubTarget.Branch, pagesTree, `${commitTitlePages} (${pagesTree.filter(x => x.path.endsWith(".html")).length} updates)`, gitHubCommitter, true);
     }
   }
