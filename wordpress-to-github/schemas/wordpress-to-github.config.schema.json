@@ -24,13 +24,6 @@
           "description": "set to true to disable processing",
           "default": false
         },
-        "WordPressUrl": {
-          "$ref": "#/definitions/URL",
-          "description": "URL of the Wordpress instance to read from (ignored in supplemental_configs)",
-          "examples": [
-            "https://mywpinstance.azurewebsites.net"
-          ]
-        },
         "PostPath": {
           "type": "string",
           "description": "Where should the posts go?",
@@ -109,31 +102,64 @@
     "data": {
       "type": "object",
       "required": [
-        "wordpress_to_github_config"
+        "wordpress_source_url",
+        "github_target"
       ],
       "additionalProperties": false,
       "properties": {
-        "wordpress_to_github_config": {
-          "$ref": "#/definitions/wordpress_to_github_config"
-        },
-        "supplemental_configs": {
-          "description": "List any additional configs to override the main one and run (different branch output maybe).  Values will override values from `wordpress-to-github-config`",
-          "type": "array",
-          "default": [],
-          "uniqueItems": true,
-          "minItems": 0,
+        "wordpress_source_url": {
+          "$ref": "#/definitions/URL",
+          "description": "URL of the Wordpress instance to read from",
           "examples": [
-            [
-              {
-                "outputBranch": "staging",
-                "IgnoreTags": [
-                  "development"
+            "https://mywpinstance.azurewebsites.net"
+          ]
+        },
+        "github_target": {
+          "type": "object",
+          "properties": {
+            "template": {
+              "description": "Optional common fields to use as starting point for targets.",
+              "$ref": "#/definitions/wordpress_to_github_config",
+              "examples": [
+                {
+                  "disabled": false,
+                  "PostPath": "wordpress_output/posts",
+                  "PagePath": "wordpress_output/pages",
+                  "MediaPath": "wordpress_output/media",
+                  "ExcludeProperties": [
+                    "content",
+                    "_links"
+                  ]
+                }
+              ]
+            },
+            "targets": {
+              "description": "List Github targets to override the template and run (different branch output maybe).",
+              "type": "array",
+              "default": [],
+              "uniqueItems": true,
+              "minItems": 1,
+              "examples": [
+                [
+                  {
+                    "outputBranch": "main",
+                    "tags_exclude": [
+                      "staging",
+                      "development"
+                    ]
+                  },
+                  {
+                    "outputBranch": "staging",
+                    "tags_exclude": [
+                      "development"
+                    ]
+                  }
                 ]
+              ],
+              "items": {
+                "$ref": "#/definitions/wordpress_to_github_config"
               }
-            ]
-          ],
-          "items": {
-            "$ref": "#/definitions/wordpress_to_github_config"
+            }
           }
         }
       }
