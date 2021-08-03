@@ -41,7 +41,7 @@
       },
       {
         "name": "Covid 19 website (Using data to create test output)",
-        "enabled": true,
+        "enabled": false,
         "enabledLocal": true,
         "GitHubTarget": {
           "Owner": "cagov",
