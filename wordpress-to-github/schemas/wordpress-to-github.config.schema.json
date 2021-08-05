@@ -101,7 +101,7 @@
           ]
         },
         "github_targets": {
-          "description": "List Github targets to override the template and run (different branch output maybe).",
+          "description": "List of Github targets to run.",
           "type": "array",
           "default": [],
           "uniqueItems": true,
