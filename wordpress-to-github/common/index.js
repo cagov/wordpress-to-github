@@ -85,7 +85,7 @@ const fetchRetry = require('fetch-retry')(fetch);
 * @property {string} guid
 * @property {number} id
 * @property {string} link
-* @property {{sizes:WordpressMediaSize[]}} media_details
+* @property {{sizes:any}} media_details
 * @property {string} media_type "image"
 * @property {[]} meta
 * @property {string} mime_type "image/jpeg"
@@ -114,7 +114,7 @@ const fetchRetry = require('fetch-retry')(fetch);
 
 * @typedef {Object} WordpressApiDateCacheItem List of most recent modifications for Wordpress objects
 * @property {string} type
-* @property {string} modified
+* @property {string} [modified]
 * @property {number} count
 */
 
@@ -144,7 +144,7 @@ const commonMeta = (wordpress_source_url, gitHubTarget) => ({
 
 /**
  * Replaces all strings with "rendered" properties with the value of "rendered"
- * @param {{}} json
+ * @param {*} json
  */
  const wpRenderRenderFields = json => {
   for(let key of Object.keys(json)) {
@@ -171,7 +171,7 @@ const WpApi_GetCacheItem_ByObjectType = async (wordPressApiUrl,objecttype) => {
         count:Number(fetchResponse.headers.get('X-WP-Total'))
       })
     } else {
-      return ({modified:null,type:objecttype,count:0});
+      return ({type:objecttype,count:0});
     }
 };
 
@@ -227,7 +227,7 @@ const cleanupContent = html => html
  * fetches a dictionary object from WP
  * @param {string} wordPressApiUrl WP source URL
  * @param {string} listname the list to get
- * @returns {Promise<{}>} the dictionary
+ * @returns {Promise<any>} the dictionary
  */
 const fetchDictionary = async (wordPressApiUrl,listname) => Object.assign({}, ...
   (await WpApi_GetPagedData_ByQuery(`${wordPressApiUrl}${listname}?context=embed&hide_empty=true&per_page=100&order_by=name&_fields=id,name`))
@@ -301,14 +301,16 @@ const syncBinaryFile = async (wordpress_url, gitRepo, mediaTree, endpoint) => {
 
   //swap in the new blob sha here.  If the sha matches something already there it will be determined on server.
   const treeNode = mediaTree.find(x=>x.path===`${endpoint.MediaPath}/${pathFromMediaSourceUrl(wordpress_url)}`);
-  delete treeNode.content;
-  treeNode.sha = sha;
+  if(treeNode) {
+    delete treeNode.content;
+    treeNode.sha = sha;
+  }
 };
 
 /**
  * deletes properties in the list
- * @param {{}} json
- * @param {string[]} excludeList
+ * @param {*} json
+ * @param {string[]} [excludeList]
  */
 const removeExcludedProperties = (json,excludeList) => {
   if(excludeList) {
@@ -328,12 +330,12 @@ const ensureStringStartsWith = (startText,value) => (value.startsWith(startText)
   /**
    * Places the media section if SyncMedia is on
    * @param {GithubTargetConfig} endpoint
-   * @param {Map <string>} mediaMap
+   * @param {Map <string,any> | null} mediaMap
    * @param {GithubOutputJson} jsonData 
    * @param {string} HTML
    */
    const addMediaSection = (endpoint,mediaMap,jsonData,HTML) => {
-    if(endpoint.MediaPath) {
+    if(endpoint.MediaPath && mediaMap) {
       jsonData.media = [];
       mediaMap.forEach(m=>{
         //Look at media JSON only

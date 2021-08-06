@@ -1,4 +1,6 @@
-const fetch = require('node-fetch');
+// @ts-check
+// @ts-ignore
+const fetchRetry = require('fetch-retry')(require('node-fetch'), {retries:3,retryDelay:2000});
 const slackApiChatPost = 'https://slack.com/api/chat.postMessage';
 const slackApiChannelHistory = 'https://slack.com/api/conversations.history';
 const slackApiChannelReplies = 'https://slack.com/api/conversations.replies';
@@ -42,7 +44,7 @@ const slackApiGet = () =>
  * @param {string} channel - Slack channel to search in
  */
 const slackBotChannelHistory = async channel => 
-  fetch(`${slackApiChannelHistory}?channel=${channel}`,slackApiGet());
+  fetchRetry(`${slackApiChannelHistory}?channel=${channel}`,slackApiGet());
 
 /**
  * Get a list of replies for a post
@@ -52,7 +54,7 @@ const slackBotChannelHistory = async channel =>
  * @param {string} ts - Timestamp (TS) for root Slack post
  */
 const slackBotChannelReplies = async (channel,ts) => 
-   fetch(`${slackApiChannelReplies}?channel=${channel}&ts=${ts}`,slackApiGet());
+  fetchRetry(`${slackApiChannelReplies}?channel=${channel}&ts=${ts}`,slackApiGet());
 
 /**
 * Add a Slack post
@@ -70,8 +72,7 @@ const slackBotChatPost = async (channel,text,attachments) => {
     text,
     attachments
   };
-
-  return fetch(slackApiChatPost,slackApiPost(payload));
+  return fetchRetry(slackApiChatPost,slackApiPost(payload));
 };
 /**
  * Add a reply to a Slack post.
@@ -88,7 +89,7 @@ const slackBotReplyPost = async (channel,thread_ts,text,attachments) => {
     attachments
   };
 
-  return fetch(slackApiChatPost,slackApiPost(payload));
+  return fetchRetry(slackApiChatPost,slackApiPost(payload));
 };
 
 /**
@@ -106,7 +107,7 @@ const slackBotReactionAdd = async (channel,timestamp,name) => {
     name
   };
 
-  return fetch(slackApiReaction,slackApiPost(payload));
+  return fetchRetry(slackApiReaction,slackApiPost(payload));
 };
 
 const slackBotDelayedChatPost = async (channel,text,post_at) => {
@@ -116,7 +117,7 @@ const slackBotDelayedChatPost = async (channel,text,post_at) => {
     post_at
   };
 
-  const fetchResp = await fetch("https://slack.com/api/chat.scheduleMessage",slackApiPost(payload));
+  const fetchResp = await fetchRetry("https://slack.com/api/chat.scheduleMessage",slackApiPost(payload));
   const postInfo = await fetchResp.json();
   return postInfo;
 };
@@ -126,8 +127,7 @@ const slackBotDelayedChatPost = async (channel,text,post_at) => {
 * Report an error to a slack channel.
 * @param {string} channel - Slack channel to post in
 * @param {string} title - the post title
-* @param {*} errorObject - the error object to display
-* @param {*} errorObject.stack
+* @param {{stack:string}} errorObject - the error object to display
 * @param {*} [request] - optional request object to display
 * @param {*} [data] - optional data object to display
 */
@@ -147,6 +147,7 @@ const slackBotReportError = async (channel,title,errorObject,request,data) => {
   const history = await historyResponse.json();
   const lastHourHistory = history.messages.filter(c=> 
     c.text.startsWith(`${title}\n`) 
+    // @ts-ignore
     && (new Date - new Date(1000*Number(c.latest_reply || c.ts)))/1000/60/60 < 1); //last hour
   //check to see if the last post was the same title, if so make this a reply
 
