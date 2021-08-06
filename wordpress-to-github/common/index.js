@@ -3,7 +3,7 @@ const apiPath = '/wp-json/wp/v2/';
 const { gitHubBlobPredictShaFromBuffer } = require('../gitTreeCommon');
 const fetch = require('node-fetch');
 // @ts-ignore
-const fetchRetry = require('fetch-retry')(fetch);
+const fetchRetry = require('fetch-retry')(fetch,{retries:3,retryDelay:2000});
 
 /**
 * @typedef {Object} GithubTargetConfig
@@ -161,7 +161,7 @@ const commonMeta = (wordpress_source_url, gitHubTarget) => ({
  * @returns {Promise<WordpressApiDateCacheItem>}
  */
 const WpApi_GetCacheItem_ByObjectType = async (wordPressApiUrl,objecttype) => {
-    const fetchResponse = await fetchRetry(`${wordPressApiUrl}${objecttype}?per_page=1&orderby=modified&order=desc&_fields=modified&cachebust=${Math.random()}`,{method:"Get",retries:3,retryDelay:2000});
+    const fetchResponse = await fetchRetry(`${wordPressApiUrl}${objecttype}?per_page=1&orderby=modified&order=desc&_fields=modified&cachebust=${Math.random()}`,{method:"Get"});
 
     const result = await fetchResponse.json();
     if(fetchResponse.status===200 && result && result.length) {
@@ -185,7 +185,7 @@ const WpApi_GetPagedData_ByQuery = async fetchquery => {
   const rows = [];
   
   for(let currentpage = 1; currentpage<=totalpages; currentpage++) {
-    const fetchResponse = await fetchRetry(`${fetchquery}&page=${currentpage}&cachebust=${Math.random()}`,{method:"Get",retries:3,retryDelay:2000});
+    const fetchResponse = await fetchRetry(`${fetchquery}&page=${currentpage}&cachebust=${Math.random()}`,{method:"Get"});
     totalpages = Number(fetchResponse.headers.get('x-wp-totalpages'));
 
     rows.push(...await fetchResponse.json());
@@ -287,7 +287,7 @@ function githubDoesFileExist(myRepo, path, data, cb) {
  */
 const syncBinaryFile = async (wordpress_url, gitRepo, mediaTree, endpoint) => {
   console.log(`Downloading...${wordpress_url}`);
-  const fetchResponse = await fetchRetry(wordpress_url,{method:"Get",retries:3,retryDelay:2000});
+  const fetchResponse = await fetchRetry(wordpress_url,{method:"Get"});
   const blob = await fetchResponse.arrayBuffer();
   const buffer = Buffer.from(blob);
 
