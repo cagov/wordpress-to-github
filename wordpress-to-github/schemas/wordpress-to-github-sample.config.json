@@ -13,6 +13,7 @@
         "PostPath": "wordpress_output/posts",
         "PagePath": "wordpress_output/pages",
         "MediaPath": "wordpress_output/media",
+        "GeneralFilePath": "wordpress_output/general/general.json",
         "ExcludeProperties": [
           "content",
           "_links"
@@ -28,6 +29,7 @@
         "PostPath": "wordpress_output/posts",
         "PagePath": "wordpress_output/pages",
         "MediaPath": "wordpress_output/media",
+        "GeneralFilePath": "wordpress_output/general/general.json",
         "ExcludeProperties": [
           "content",
           "_links"
