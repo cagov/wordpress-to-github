@@ -3,14 +3,16 @@ const { SyncEndpoint } = require('../wordpress-to-github');
 const { slackBotReportError } = require('../common/slackBot');
 const debugChannel = 'C01DBP67MSQ'; // #testingbot
 //const debugChannel = 'C01H6RB99E2'; //Carter debug
-// @ts-ignore
-const endpoints = require('./endpoints.json').data.projects;
+const endPointsJson = require('./endpoints.json')
+const endpoints = endPointsJson.data.projects;
+/** @type {import('../wordpress-to-github/common').GitHubCommitter} **/
 const gitHubCommitter = {
-  name: process.env["GITHUB_NAME"],
-  email: process.env["GITHUB_EMAIL"]
+  name: `${process.env["GITHUB_NAME"]}`,
+  email: `${process.env["GITHUB_EMAIL"]}`
 };
+/** @type {import('../wordpress-to-github/common').GitHubCredentials} **/
 const gitHubCredentials = { 
-  token: process.env["GITHUB_TOKEN"] 
+  token: `${process.env["GITHUB_TOKEN"]}`
 };
 
 /**

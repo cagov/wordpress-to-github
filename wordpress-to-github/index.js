@@ -45,8 +45,8 @@ const getRemoteConfig = async (gitHubTarget, gitHubCredentials) => {
 
 /**
  * returns true if there are any items that match in both arrays
- * @param {any[]} array1
- * @param {any[]} array2
+ * @param {any[]} [array1]
+ * @param {any[]} [array2]
  */
 const anythingInArrayMatch = (array1,array2) => 
   Array.isArray(array1) && Array.isArray(array2) && array1.some(s=>array2.includes(s));
@@ -97,11 +97,11 @@ const SyncEndpoint = async (gitHubTarget, gitHubCredentials, gitHubCommitter) =>
   const taglist = await fetchDictionary(wordPressApiUrl, 'tags');
   const userlist = await fetchDictionary(wordPressApiUrl, 'users');
 
-  /** @type {import('./common').WordpressMediaRow[]} */
+  /** @type {import('./common').WordpressMediaRow[] | null} */
   const allMedia = endpointConfigs.some(x=>x.MediaPath) ? await WpApi_GetPagedData_ByObjectType(wordPressApiUrl, 'media') : null;
-  /** @type {import('./common').WordpressPostRow[]} */
+  /** @type {import('./common').WordpressPostRow[] | null} */
   const allPosts = endpointConfigs.some(x=>x.PostPath) ? await WpApi_GetPagedData_ByObjectType(wordPressApiUrl, 'posts') : null;
-  /** @type {import('./common').WordpressPageRow[]} */
+  /** @type {import('./common').WordpressPageRow[] | null} */
   const allPages = endpointConfigs.some(x=>x.PagePath) ? await WpApi_GetPagedData_ByObjectType(wordPressApiUrl, 'pages') : null;
 
   for (let endpointConfig of endpointConfigs) {
@@ -110,21 +110,21 @@ const SyncEndpoint = async (gitHubTarget, gitHubCredentials, gitHubCommitter) =>
       continue;
     }
 
-    /** @type {Map <string>} */
+    /** @type {Map <string,any> | null} */
     const postMap = endpointConfig.PostPath ? new Map() : null;
-    /** @type {Map <string>} */
+    /** @type {Map <string,any> | null} */
     const pagesMap = endpointConfig.PagePath ? new Map() : null;
-    /** @type {Map <string>} */
+    /** @type {Map <string,any> | null} */
     const mediaMap = endpointConfig.MediaPath ? new Map() : null;
 
     // MEDIA
     const mediaContentPlaceholder = 'TBD : Binary file to be updated in a later step';
-    if (mediaMap) {
+    if (endpointConfig.MediaPath && mediaMap && allMedia) {
       allMedia.forEach(x => {
         /** @type {import('./common').GithubOutputJson} */
         const jsonData = {
           ...x,
-          author: userlist[x.author],
+          author: userlist[x.author.toString()],
           wordpress_url: ensureStringStartsWith(endpointConfigData.wordpress_source_url, x.source_url)
         };
 
@@ -185,16 +185,16 @@ const SyncEndpoint = async (gitHubTarget, gitHubCredentials, gitHubCommitter) =>
 
     /**
      * 
-     * @param {import('./common').WordpressPostRow | import('./common').WordpressPageRow} jsonData 
+     * @param {*} jsonData 
      * @param {string} fieldName
-     * @param {{}} dictionary
-     * @returns {string[]}
+     * @param {any} dictionary
+     * @returns {string[] | undefined}
      */
     const mapLookup = (jsonData, fieldName, dictionary) => {
       if (jsonData[fieldName]) {
         return jsonData[fieldName].map((/** @type {string | number} */ t) => dictionary[t])
       } else {
-        return null
+        return undefined
       }
     }
 
@@ -203,7 +203,7 @@ const SyncEndpoint = async (gitHubTarget, gitHubCredentials, gitHubCommitter) =>
      * @param {import('./common').WordpressPostRow | import('./common').WordpressPageRow} wpRow 
      * @returns {import('./common').GithubOutputJson}
      */
-    const wordPressRowToGitHubOutput = wpRow => {
+     const wordPressRowToGitHubOutput = wpRow => {
       const jsonData = {
         ...wpRow,
         author: userlist[wpRow.author],
@@ -224,7 +224,7 @@ const SyncEndpoint = async (gitHubTarget, gitHubCredentials, gitHubCommitter) =>
 
 
     // POSTS
-    if (endpointConfig.PostPath) {
+    if (endpointConfig.PostPath && postMap && allPosts) {
       allPosts.forEach(x => {
         const jsonData = wordPressRowToGitHubOutput(x);
 
@@ -245,7 +245,7 @@ const SyncEndpoint = async (gitHubTarget, gitHubCredentials, gitHubCommitter) =>
       await PrIfChanged(gitRepo, endpointConfig.outputBranch, postTree, `${commitTitlePosts} (${postTree.filter(x => x.path.endsWith(".html")).length} updates)`, gitHubCommitter, true);
     }
     // PAGES
-    if (endpointConfig.PagePath) {
+    if (endpointConfig.PagePath && pagesMap && allPages) {
       allPages.forEach(x => {
         const jsonData = wordPressRowToGitHubOutput(x);
 
