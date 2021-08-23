@@ -6,17 +6,20 @@ const {
   removeExcludedProperties,
   syncBinaryFile,
   wrapInFileMeta,
+  commonMeta,
   WpApi_GetCacheItem_ByObjectType,
   apiPath,
   fetchDictionary,
   cleanupContent,
   WpApi_GetPagedData_ByObjectType,
+  WpApi_getSomething,
   pathFromMediaSourceUrl,
   addMediaSection
 } = require('./common');
 const commitTitlePosts = 'Wordpress Posts Update';
 const commitTitlePages = 'Wordpress Pages Update';
 const commitTitleMedia = 'Wordpress Media Update';
+const commitTitleGeneral = 'Wordpress General File Update';
 const fieldMetaReference = {
   posts: "https://developer.wordpress.org/rest-api/reference/posts/",
   pages: "https://developer.wordpress.org/rest-api/reference/pages/",
@@ -110,6 +113,26 @@ const SyncEndpoint = async (gitHubTarget, gitHubCredentials, gitHubCommitter) =>
       continue;
     }
 
+    if (endpointConfig.GeneralFilePath) {
+      const fetchResponse = await WpApi_getSomething(`${endpointConfigData.wordpress_source_url}/wp-json/?_fields=description,gmt_offset,name,namespaces,timezone_string,home,url&cachebust=${Math.random()}`);
+
+      const data = await fetchResponse.json();
+      delete data._links;
+
+      const jsonData = {meta: {
+        ...commonMeta(endpointConfigData.wordpress_source_url,gitHubTarget)
+      },
+      data}
+      const filePath = endpointConfig.GeneralFilePath.split('/').slice(0,-1).join('/');
+      const fileName = endpointConfig.GeneralFilePath.split('/').slice(-1)[0];
+
+      const fileMap = new Map();
+      fileMap.set(fileName,jsonData);
+      const newTree = await createTreeFromFileMap(gitRepo, endpointConfig.outputBranch, fileMap, filePath);
+
+      await PrIfChanged(gitRepo, endpointConfig.outputBranch, newTree, commitTitleGeneral, gitHubCommitter, true);
+    }
+    
     /** @type {Map <string,any> | null} */
     const postMap = endpointConfig.PostPath ? new Map() : null;
     /** @type {Map <string,any> | null} */

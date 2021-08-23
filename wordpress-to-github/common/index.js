@@ -14,6 +14,7 @@ const fetchRetry = require('fetch-retry')(fetch,{retries:3,retryDelay:2000});
 * @property {string} [PostPath]
 * @property {string} [PagePath]
 * @property {string} [MediaPath]
+* @property {string} [GeneralFilePath]
 
 * @typedef {Object} EndpointConfigData
 * @property {string} wordpress_source_url
@@ -195,6 +196,13 @@ const WpApi_GetPagedData_ByQuery = async fetchquery => {
 };
 
 /**
+ * GET something.
+ * @param {string} fetchquery 
+ * @returns 
+ */
+const WpApi_getSomething = async fetchquery => await fetchRetry(fetchquery,{method:"Get"});
+
+/**
  * Call the paged wordpress api put all the paged data into a single return array
  * @param {string} wordPressApiUrl WP source URL
  * @param {string} objecttype page/posts/media etc
@@ -368,11 +376,13 @@ module.exports = {
   removeExcludedProperties,
   syncBinaryFile,
   wrapInFileMeta,
+  commonMeta,
   WpApi_GetCacheItem_ByObjectType,
   apiPath,
   fetchDictionary,
   cleanupContent,
   WpApi_GetPagedData_ByObjectType,
+  WpApi_getSomething,
   pathFromMediaSourceUrl,
   addMediaSection
 };
