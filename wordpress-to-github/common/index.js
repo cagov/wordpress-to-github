@@ -164,7 +164,7 @@ const commonMeta = (wordpress_source_url, gitHubTarget) => ({
 const WpApi_GetCacheItem_ByObjectType = async (wordPressApiUrl,objecttype) => {
     const fetchResponse = await fetchRetry(`${wordPressApiUrl}${objecttype}?per_page=1&orderby=modified&order=desc&_fields=modified&cachebust=${Math.random()}`,{method:"Get"});
 
-    const result = fetchResponse.status===200 ? await fetchResponse.json() : [];
+    const result = fetchResponse.ok ? await fetchResponse.json() : [];
     if(result && result.length) {
       return  ({
         modified:result[0].modified,
@@ -187,8 +187,8 @@ const WpApi_GetPagedData_ByQuery = async fetchquery => {
   
   for(let currentpage = 1; currentpage<=totalpages; currentpage++) {
     const fetchResponse = await fetchRetry(`${fetchquery}&page=${currentpage}&cachebust=${Math.random()}`,{method:"Get"});
-    if(fetchResponse.status!==200) {
-      throw new Error(fetchResponse.statusText);
+    if(!fetchResponse.ok) {
+      throw new Error(`${fetchResponse.status} - ${fetchResponse.statusText}`);
     }
     totalpages = Number(fetchResponse.headers.get('x-wp-totalpages'));
 
