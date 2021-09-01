@@ -188,7 +188,7 @@ const WpApi_GetPagedData_ByQuery = async fetchquery => {
   for(let currentpage = 1; currentpage<=totalpages; currentpage++) {
     const fetchResponse = await fetchRetry(`${fetchquery}&page=${currentpage}&cachebust=${Math.random()}`,{method:"Get"});
     if(!fetchResponse.ok) {
-      throw new Error(`${fetchResponse.status} - ${fetchResponse.statusText}`);
+      throw new Error(`${fetchResponse.status} - ${fetchResponse.statusText} - ${fetchResponse.url}`);
     }
     totalpages = Number(fetchResponse.headers.get('x-wp-totalpages'));
 
