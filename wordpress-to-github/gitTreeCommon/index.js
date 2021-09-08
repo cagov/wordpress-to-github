@@ -46,8 +46,9 @@ const gitHubBlobPredictSha = content => sha1(`blob ${Buffer.byteLength(content)}
  * @param {string} masterBranch usually "master" or "main"
  * @param {Map<string,any>} filesMap contains the data to push
  * @param {string} outputPath the root path for all files
+ * @param {boolean} [cleanoutputPath] true to delete all unmatched files in outputPath
  */
- const createTreeFromFileMap = async (gitRepo, masterBranch, filesMap, outputPath) => {
+ const createTreeFromFileMap = async (gitRepo, masterBranch, filesMap, outputPath, cleanoutputPath) => {
   const pathRootTree = outputPath.split('/').slice(0,-1).join('/'); //gets the parent folder to the output path
 
   /** @type {GithubTreeRow[]} */
@@ -86,14 +87,16 @@ const gitHubBlobPredictSha = content => sha1(`blob ${Buffer.byteLength(content)}
     }
   }
 
-  //process deletes
-  for (const delme of referenceTree.filter(x=>!x['found'])) {
-    targetTree.push({
-      path: `${outputPath}/${delme.path}`,
-      mode, 
-      type,
-      sha : null //will trigger a delete
-    });
+  if(cleanoutputPath) {
+    //process deletes
+    for (const delme of referenceTree.filter(x=>!x['found'])) {
+      targetTree.push({
+        path: `${outputPath}/${delme.path}`,
+        mode, 
+        type,
+        sha : null //will trigger a delete
+      });
+    }
   }
 
   return targetTree;

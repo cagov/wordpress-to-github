@@ -128,7 +128,7 @@ const SyncEndpoint = async (gitHubTarget, gitHubCredentials, gitHubCommitter) =>
 
       const fileMap = new Map();
       fileMap.set(fileName,jsonData);
-      const newTree = await createTreeFromFileMap(gitRepo, endpointConfig.outputBranch, fileMap, filePath);
+      const newTree = await createTreeFromFileMap(gitRepo, endpointConfig.outputBranch, fileMap, filePath, true);
 
       await PrIfChanged(gitRepo, endpointConfig.outputBranch, newTree, commitTitleGeneral, gitHubCommitter, true);
     }
@@ -176,7 +176,7 @@ const SyncEndpoint = async (gitHubTarget, gitHubCredentials, gitHubCommitter) =>
         mediaMap.set(`${pathFromMediaSourceUrl(x.source_url).split('.')[0]}.json`, wrapInFileMeta(endpointConfigData.wordpress_source_url, gitHubTarget, fieldMetaReference.media, jsonData));
       });
 
-      let mediaTree = await createTreeFromFileMap(gitRepo, gitHubTarget.Branch, mediaMap, endpointConfig.MediaPath);
+      let mediaTree = await createTreeFromFileMap(gitRepo, gitHubTarget.Branch, mediaMap, endpointConfig.MediaPath, true);
 
       const mediaChanges = mediaTree
         .filter(x => x.content && x.content !== mediaContentPlaceholder)
@@ -263,7 +263,7 @@ const SyncEndpoint = async (gitHubTarget, gitHubCredentials, gitHubCommitter) =>
         postMap.set(`${x.slug}.html`, ignoreThisOne ? null : HTML);
       });
 
-      const postTree = await createTreeFromFileMap(gitRepo, endpointConfig.outputBranch, postMap, endpointConfig.PostPath);
+      const postTree = await createTreeFromFileMap(gitRepo, endpointConfig.outputBranch, postMap, endpointConfig.PostPath, true);
 
       await PrIfChanged(gitRepo, endpointConfig.outputBranch, postTree, `${commitTitlePosts} (${postTree.filter(x => x.path.endsWith(".html")).length} updates)`, gitHubCommitter, true);
     }
@@ -284,7 +284,7 @@ const SyncEndpoint = async (gitHubTarget, gitHubCredentials, gitHubCommitter) =>
         pagesMap.set(`${x.slug}.html`, ignoreThisOne ? null : HTML);
       });
 
-      const pagesTree = await createTreeFromFileMap(gitRepo, endpointConfig.outputBranch, pagesMap, endpointConfig.PagePath);
+      const pagesTree = await createTreeFromFileMap(gitRepo, endpointConfig.outputBranch, pagesMap, endpointConfig.PagePath, true);
       await PrIfChanged(gitRepo, endpointConfig.outputBranch, pagesTree, `${commitTitlePages} (${pagesTree.filter(x => x.path.endsWith(".html")).length} updates)`, gitHubCommitter, true);
     }
   }
