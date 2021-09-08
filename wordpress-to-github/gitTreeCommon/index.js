@@ -106,7 +106,7 @@ const gitHubBlobPredictSha = content => sha1(`blob ${Buffer.byteLength(content)}
  *  return a new PR if the tree has changes
  * @param {*} gitRepo from github-api
  * @param {string} masterBranch usually "master" or "main"
- * @param {{}[]} tree from createTreeFromFileMap
+ * @param {GithubTreeRow[]} tree from createTreeFromFileMap
  * @param {string} PrTitle the name of the new branch to create
  * @param {{name:string,email:string}} committer Github Name/Email
  * @param {boolean} [commit_only] true if skipping the PR process and just making a commit
