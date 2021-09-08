@@ -110,7 +110,7 @@ const gitHubBlobPredictSha = content => sha1(`blob ${Buffer.byteLength(content)}
  * @param {string} PrTitle the name of the new branch to create
  * @param {{name:string,email:string}} committer Github Name/Email
  * @param {boolean} [commit_only] true if skipping the PR process and just making a commit
- * @returns {Promise<{html_url:string;number:number,head:{ref:string}}>} the new PR
+ * @returns the new PR
  */
 const PrIfChanged = async (gitRepo, masterBranch, tree, PrTitle,committer,commit_only) => {
   if(!tree.length) {
@@ -135,6 +135,7 @@ const PrIfChanged = async (gitRepo, masterBranch, tree, PrTitle,committer,commit
   }
 
   //Grab the starting point for a fresh tree
+  /** @type {{data:{object:{sha:string}}}} */
   const refResult = await gitRepo.getRef(`heads/${masterBranch}`);
   const baseSha = refResult.data.object.sha;
 
@@ -149,10 +150,12 @@ const PrIfChanged = async (gitRepo, masterBranch, tree, PrTitle,committer,commit
   }
 
   //Create a commit the maps to all the tree changes
+  /** @type {{data:{sha:string,html_url:string}}} */
   const commitResult = await gitRepo.commit(baseSha,createTreeResult.data.sha,PrTitle,committer);
   const commitSha = commitResult.data.sha;
 
   //Compare the proposed commit with the trunk (master) branch
+  /** @type {{data:{files:*[]}}} */
   const compare = await gitRepo.compareBranches(baseSha,commitSha);
   if (compare.data.files.length) {
     console.log(`${compare.data.files.length} changes.`);
@@ -167,6 +170,7 @@ const PrIfChanged = async (gitRepo, masterBranch, tree, PrTitle,committer,commit
       await gitRepo.createBranch(masterBranch,newBranchName);
       await gitRepo.updateHead(`heads/${newBranchName}`,commitSha);
 
+      /** @type {{html_url:string;number:number,head:{ref:string}}} */
       const Pr = (await gitRepo.createPullRequest({
           title: PrTitle,
           head: newBranchName,
