@@ -167,13 +167,11 @@ const SyncEndpoint = async (gitHubTarget, gitHubCredentials, gitHubCommitter) =>
           for (const s of jsonData.sizes) {
             mediaMap.set(s.path, mediaContentPlaceholder);
           }
-        } else {
-          //PDF
-          jsonData.path = pathFromMediaSourceUrl(x.source_url);
-          mediaMap.set(jsonData.path, mediaContentPlaceholder);
         }
-
-        mediaMap.set(`${pathFromMediaSourceUrl(x.source_url).split('.')[0]}.json`, wrapInFileMeta(endpointConfigData.wordpress_source_url, gitHubTarget, fieldMetaReference.media, jsonData));
+        //PDF
+        jsonData.path = pathFromMediaSourceUrl(x.source_url);
+        mediaMap.set(jsonData.path, mediaContentPlaceholder);
+        mediaMap.set(pathFromMediaSourceUrl(x.source_url).replace(/\.([^\.]+)$/,'.json'), wrapInFileMeta(endpointConfigData.wordpress_source_url, gitHubTarget, fieldMetaReference.media, jsonData));
       });
 
       let mediaTree = await createTreeFromFileMap(gitRepo, gitHubTarget.Branch, mediaMap, endpointConfig.MediaPath, true);
@@ -192,10 +190,10 @@ const SyncEndpoint = async (gitHubTarget, gitHubCredentials, gitHubCommitter) =>
             for (const sizeJson of mediaTreeItem.sizes) {
               await syncBinaryFile(sizeJson.wordpress_url, gitRepo, mediaTree, endpointConfig);
             }
-          } else {
-            //not sized media (PDF or non-image)
-            await syncBinaryFile(mediaTreeItem.wordpress_url, gitRepo, mediaTree, endpointConfig);
           }
+
+          //not sized media (PDF or non-image)
+          await syncBinaryFile(mediaTreeItem.wordpress_url, gitRepo, mediaTree, endpointConfig);
         }
       }
 
