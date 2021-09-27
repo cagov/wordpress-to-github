@@ -18,6 +18,17 @@
         }
       },
       {
+        "name": "Drought development",
+        "enabled": true,
+        "enabledLocal": true,
+        "GitHubTarget": {
+          "Owner": "cagov",
+          "Repo": "drought.ca.gov",
+          "Branch": "development",
+          "ConfigPath": "wordpress/wordpress-to-github.config.json"
+        }
+      },
+      {
         "name": "Cannabis",
         "enabled": true,
         "enabledLocal": false,
@@ -25,6 +36,17 @@
           "Owner": "cagov",
           "Repo": "cannabis.ca.gov",
           "Branch": "main",
+          "ConfigPath": "wordpress/wordpress-to-github.config.json"
+        }
+      },
+      {
+        "name": "Cannabis development",
+        "enabled": false,
+        "enabledLocal": false,
+        "GitHubTarget": {
+          "Owner": "cagov",
+          "Repo": "cannabis.ca.gov",
+          "Branch": "development",
           "ConfigPath": "wordpress/wordpress-to-github.config.json"
         }
       },
