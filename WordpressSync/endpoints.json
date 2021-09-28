@@ -30,7 +30,7 @@
       },
       {
         "name": "Cannabis",
-        "enabled": true,
+        "enabled": false,
         "enabledLocal": false,
         "GitHubTarget": {
           "Owner": "cagov",
@@ -41,8 +41,8 @@
       },
       {
         "name": "Cannabis development",
-        "enabled": false,
-        "enabledLocal": false,
+        "enabled": true,
+        "enabledLocal": true,
         "GitHubTarget": {
           "Owner": "cagov",
           "Repo": "cannabis.ca.gov",
@@ -51,8 +51,19 @@
         }
       },
       {
-        "name": "digital.ca.gov website",
+        "name": "Cannabis Pantheon Staging",
         "enabled": true,
+        "enabledLocal": true,
+        "GitHubTarget": {
+          "Owner": "cagov",
+          "Repo": "cannabis.ca.gov",
+          "Branch": "staging",
+          "ConfigPath": "wordpress/wordpress-to-github.config.json"
+        }
+      },
+      {
+        "name": "digital.ca.gov website",
+        "enabled": false,
         "enabledLocal": false,
         "GitHubTarget": {
           "Owner": "cagov",
@@ -63,7 +74,7 @@
       },
       {
         "name": "Covid 19 website (Using data to create test output)",
-        "enabled": true,
+        "enabled": false,
         "enabledLocal": false,
         "GitHubTarget": {
           "Owner": "cagov",
