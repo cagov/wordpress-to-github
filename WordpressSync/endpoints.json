@@ -7,8 +7,8 @@
   "data": {
     "projects": [
       {
-        "name": "Drought",
-        "enabled": false,
+        "name": "drought.ca.gov",
+        "enabled": true,
         "enabledLocal": false,
         "GitHubTarget": {
           "Owner": "cagov",
@@ -18,9 +18,20 @@
         }
       },
       {
-        "name": "Drought development",
-        "enabled": true,
-        "enabledLocal": true,
+        "name": "staging.drought.ca.gov",
+        "enabled": false,
+        "enabledLocal": false,
+        "GitHubTarget": {
+          "Owner": "cagov",
+          "Repo": "drought.ca.gov",
+          "Branch": "staging-test",
+          "ConfigPath": "wordpress/wordpress-to-github.config.json"
+        }
+      },
+      {
+        "name": "development.drought.ca.gov",
+        "enabled": false,
+        "enabledLocal": false,
         "GitHubTarget": {
           "Owner": "cagov",
           "Repo": "drought.ca.gov",
@@ -29,7 +40,7 @@
         }
       },
       {
-        "name": "Cannabis",
+        "name": "headless.cannabis.ca.gov",
         "enabled": true,
         "enabledLocal": false,
         "GitHubTarget": {
@@ -40,9 +51,9 @@
         }
       },
       {
-        "name": "Cannabis Flywheel Staging",
+        "name": "staging.cannabis.ca.gov",
         "enabled": true,
-        "enabledLocal": true,
+        "enabledLocal": false,
         "GitHubTarget": {
           "Owner": "cagov",
           "Repo": "cannabis.ca.gov",
@@ -51,20 +62,9 @@
         }
       },
       {
-        "name": "Cannabis Pantheon Staging",
+        "name": "development.cannabis.ca.gov",
         "enabled": true,
-        "enabledLocal": true,
-        "GitHubTarget": {
-          "Owner": "cagov",
-          "Repo": "cannabis.ca.gov",
-          "Branch": "staging-pantheon",
-          "ConfigPath": "wordpress/wordpress-to-github.config.json"
-        }
-      },
-      {
-        "name": "Cannabis development",
-        "enabled": true,
-        "enabledLocal": true,
+        "enabledLocal": false,
         "GitHubTarget": {
           "Owner": "cagov",
           "Repo": "cannabis.ca.gov",
@@ -73,7 +73,62 @@
         }
       },
       {
-        "name": "digital.ca.gov website",
+        "name": "staging-pantheon.ca.gov",
+        "enabled": true,
+        "enabledLocal": false,
+        "GitHubTarget": {
+          "Owner": "cagov",
+          "Repo": "cannabis.ca.gov",
+          "Branch": "staging-pantheon",
+          "ConfigPath": "wordpress/wordpress-to-github.config.json"
+        }
+      },
+      {
+        "name": "development-pantheon.cannabis.ca.gov",
+        "enabled": true,
+        "enabledLocal": false,
+        "GitHubTarget": {
+          "Owner": "cagov",
+          "Repo": "cannabis.ca.gov",
+          "Branch": "development-pantheon",
+          "ConfigPath": "wordpress/wordpress-to-github.config.json"
+        }
+      },
+      {
+        "name": "main-wp58.cannabis.ca.gov",
+        "enabled": true,
+        "enabledLocal": false,
+        "GitHubTarget": {
+          "Owner": "cagov",
+          "Repo": "cannabis.ca.gov",
+          "Branch": "main-wp58",
+          "ConfigPath": "wordpress/wordpress-to-github.config.json"
+        }
+      },
+      {
+        "name": "staging-wp58.cannabis.ca.gov",
+        "enabled": true,
+        "enabledLocal": false,
+        "GitHubTarget": {
+          "Owner": "cagov",
+          "Repo": "cannabis.ca.gov",
+          "Branch": "staging-wp58",
+          "ConfigPath": "wordpress/wordpress-to-github.config.json"
+        }
+      },
+      {
+        "name": "development-wp58.cannabis.ca.gov",
+        "enabled": true,
+        "enabledLocal": false,
+        "GitHubTarget": {
+          "Owner": "cagov",
+          "Repo": "cannabis.ca.gov",
+          "Branch": "development-wp58",
+          "ConfigPath": "wordpress/wordpress-to-github.config.json"
+        }
+      },
+      {
+        "name": "digital.ca.gov",
         "enabled": true,
         "enabledLocal": false,
         "GitHubTarget": {
@@ -84,8 +139,30 @@
         }
       },
       {
-        "name": "Covid 19 website (Using data to create test output)",
-        "enabled": true,
+        "name": "staging.digital.ca.gov website",
+        "enabled": false,
+        "enabledLocal": false,
+        "GitHubTarget": {
+          "Owner": "cagov",
+          "Repo": "digital.ca.gov",
+          "Branch": "staging",
+          "ConfigPath": "wordpress/wordpress-to-github.config.json"
+        }
+      },
+      {
+        "name": "development.digital.ca.gov",
+        "enabled": false,
+        "enabledLocal": false,
+        "GitHubTarget": {
+          "Owner": "cagov",
+          "Repo": "digital.ca.gov",
+          "Branch": "staging",
+          "ConfigPath": "wordpress/wordpress-to-github.config.json"
+        }
+      },
+      {
+        "name": "headless-wp58.covid19.ca.gov",
+        "enabled": false,
         "enabledLocal": false,
         "GitHubTarget": {
           "Owner": "cagov",
@@ -93,7 +170,30 @@
           "Branch": "main",
           "ConfigPath": "wordpress_output/wordpress-to-github.config.json"
         }
+      },
+      {
+        "name": "staging-wp58.covid19.ca.gov",
+        "enabled": false,
+        "enabledLocal": false,
+        "GitHubTarget": {
+          "Owner": "cagov",
+          "Repo": "automation-development-target",
+          "Branch": "main",
+          "ConfigPath": "wordpress_output/wordpress-to-github.config.json"
+        }
+      },
+      {
+        "name": "development-wp58.covid19.ca.gov",
+        "enabled": false,
+        "enabledLocal": false,
+        "GitHubTarget": {
+          "Owner": "chachasikes",
+          "Repo": "covid19",
+          "Branch": "development-wp58",
+          "ConfigPath": "wordpress_output/wordpress-to-github.config.json"
+        }
       }
+
     ]
   }
 }
