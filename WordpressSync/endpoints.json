@@ -8,7 +8,7 @@
     "projects": [
       {
         "name": "Drought",
-        "enabled": false,
+        "enabled": true,
         "enabledLocal": false,
         "GitHubTarget": {
           "Owner": "cagov",
@@ -20,7 +20,7 @@
       {
         "name": "Drought development",
         "enabled": true,
-        "enabledLocal": true,
+        "enabledLocal": false,
         "GitHubTarget": {
           "Owner": "cagov",
           "Repo": "drought.ca.gov",
@@ -42,7 +42,7 @@
       {
         "name": "Cannabis Flywheel Staging",
         "enabled": true,
-        "enabledLocal": true,
+        "enabledLocal": false,
         "GitHubTarget": {
           "Owner": "cagov",
           "Repo": "cannabis.ca.gov",
@@ -53,7 +53,7 @@
       {
         "name": "Cannabis Pantheon Staging",
         "enabled": true,
-        "enabledLocal": true,
+        "enabledLocal": false,
         "GitHubTarget": {
           "Owner": "cagov",
           "Repo": "cannabis.ca.gov",
@@ -64,7 +64,7 @@
       {
         "name": "Cannabis development",
         "enabled": true,
-        "enabledLocal": true,
+        "enabledLocal": false,
         "GitHubTarget": {
           "Owner": "cagov",
           "Repo": "cannabis.ca.gov",
