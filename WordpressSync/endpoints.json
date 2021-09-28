@@ -57,7 +57,7 @@
         "GitHubTarget": {
           "Owner": "cagov",
           "Repo": "cannabis.ca.gov",
-          "Branch": "staging-pantheon-live",
+          "Branch": "staging-pantheon",
           "ConfigPath": "wordpress/wordpress-to-github.config.json"
         }
       },
