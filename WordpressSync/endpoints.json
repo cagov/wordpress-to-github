@@ -40,13 +40,24 @@
         }
       },
       {
-        "name": "Cannabis Pantheon Staging",
+        "name": "Cannabis Flywheel Staging",
         "enabled": true,
         "enabledLocal": true,
         "GitHubTarget": {
           "Owner": "cagov",
           "Repo": "cannabis.ca.gov",
           "Branch": "staging",
+          "ConfigPath": "wordpress/wordpress-to-github.config.json"
+        }
+      },
+      {
+        "name": "Cannabis Pantheon Staging",
+        "enabled": true,
+        "enabledLocal": true,
+        "GitHubTarget": {
+          "Owner": "cagov",
+          "Repo": "cannabis.ca.gov",
+          "Branch": "staging-pantheon",
           "ConfigPath": "wordpress/wordpress-to-github.config.json"
         }
       },
