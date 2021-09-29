@@ -18,19 +18,8 @@
         }
       },
       {
-        "name": "staging.drought.ca.gov",
-        "enabled": false,
-        "enabledLocal": false,
-        "GitHubTarget": {
-          "Owner": "cagov",
-          "Repo": "drought.ca.gov",
-          "Branch": "staging-test",
-          "ConfigPath": "wordpress/wordpress-to-github.config.json"
-        }
-      },
-      {
         "name": "development.drought.ca.gov",
-        "enabled": false,
+        "enabled": true,
         "enabledLocal": false,
         "GitHubTarget": {
           "Owner": "cagov",
@@ -165,8 +154,8 @@
         "enabled": false,
         "enabledLocal": false,
         "GitHubTarget": {
-          "Owner": "cagov",
-          "Repo": "automation-development-target",
+          "Owner": "chachasikes",
+          "Repo": "covid19",
           "Branch": "main",
           "ConfigPath": "wordpress_output/wordpress-to-github.config.json"
         }
@@ -176,8 +165,8 @@
         "enabled": false,
         "enabledLocal": false,
         "GitHubTarget": {
-          "Owner": "cagov",
-          "Repo": "automation-development-target",
+          "Owner": "chachasikes",
+          "Repo": "covid19",
           "Branch": "main",
           "ConfigPath": "wordpress_output/wordpress-to-github.config.json"
         }
