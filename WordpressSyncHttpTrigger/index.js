@@ -1,6 +1,6 @@
 // @ts-check
 const { SyncEndpoint } = require('../wordpress-to-github');
-const { slackBotReportError,slackBotChatPost,slackBotReplyPost } = require('../common/slackBot');
+const { slackBotReportError,slackBotChatPost,slackBotReplyPost,slackBotReactionAdd } = require('../common/slackBot');
 const log = [];
 
 const debugChannel = 'C02G6PETB9B'; //#wordpress-sync-http-trigger
@@ -24,7 +24,10 @@ module.exports = async function (context, req) {
     const appName = context.executionContext.functionName;
     let slackPostTS = "";
     try {
-        slackPostTS = (await (await slackBotChatPost(debugChannel,`\n\n*Request Logged*\n\`\`\`${JSON.stringify(req,null,2)}\`\`\``)).json()).ts;
+        const TriggerName = req.query['Trigger'] || 'Generic Trigger';
+        const SourceName = req.headers['user-agent'] || 'Generic Source';
+        slackPostTS = (await (await slackBotChatPost(debugChannel,`${TriggerName} from ${SourceName}`)).json()).ts;
+        await slackBotReplyPost(debugChannel, slackPostTS, `\n\n*Full Details*\n\`\`\`${JSON.stringify(req,null,2)}\`\`\``);
 
         if(!req.body || !req.body.Branch || !req.body.Owner || !req.body.Repo || !req.body.ConfigPath) {
             context.res = {
@@ -42,6 +45,7 @@ module.exports = async function (context, req) {
         await wait(10*1000); // let's wait 10 seconds before processing to try to avoid sync issues with the WP database
 
         await SyncEndpoint(req.body, gitHubCredentials, gitHubCommitter);
+        await slackBotReactionAdd(debugChannel, slackPostTS, 'white_check_mark');
         await slackBotReplyPost(debugChannel, slackPostTS, 'POST Success');
         context.res = {
             status: 204 //OK - No content
@@ -49,6 +53,7 @@ module.exports = async function (context, req) {
     } catch (e) {
         await slackBotReportError(debugChannel,`Error running ${appName}`,e,context,null);
         await slackBotReplyPost(debugChannel, slackPostTS, 'Error!');
+        await slackBotReactionAdd(debugChannel, slackPostTS, 'no_entry');
         context.res = {
             status: 500,
             body: "Error - " + e.message
