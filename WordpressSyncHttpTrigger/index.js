@@ -17,11 +17,15 @@ const gitHubCredentials = {
  * @param {{executionContext:{functionName:string},res:{status?:number,body?:any,headers?:{"Content-Type":string}}}} context 
  * @param {{method:string,headers:{"user-agent":string},query:{},params:{},body:import('../wordpress-to-github/common').GitHubTarget}} req 
  */
+
+
 module.exports = async function (context, req) {
     const appName = context.executionContext.functionName;
     let slackPostTS = "";
     try {
-        slackPostTS = (await (await slackBotChatPost(debugChannel,`\n\n*Request Logged*\n\`\`\`${JSON.stringify(req,null,2)}\`\`\``)).json()).ts;
+        // slackPostTS = (await (await slackBotChatPost(debugChannel,`\n\n*Request Logged*\n\`\`\`${JSON.stringify(req,null,2)}\`\`\``)).json()).ts;
+        slackPostTS = (await (await slackBotChatPost(debugChannel,`\n\n*Request Logged*\n`)).json()).ts;
+
 
         if(!req.body || !req.body.Branch || !req.body.Owner || !req.body.Repo || !req.body.ConfigPath) {
             context.res = {
@@ -30,6 +34,13 @@ module.exports = async function (context, req) {
             };
             return;
         }
+
+        function wait(timeout) {
+            return new Promise(resolve => {
+                setTimeout(resolve, timeout);
+            });
+        }
+        await wait(10*1000); // let's wait 10 seconds before processing to try to avoid sync issues with the WP database
 
         await SyncEndpoint(req.body, gitHubCredentials, gitHubCommitter);
         await slackBotReplyPost(debugChannel, slackPostTS, 'POST Success');
