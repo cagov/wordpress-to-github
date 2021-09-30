@@ -24,9 +24,9 @@ module.exports = async function (context, req) {
     const appName = context.executionContext.functionName;
     let slackPostTS = "";
     try {
-        const TriggerName = req.query['Trigger'] || 'Generic Trigger';
-        const SourceName = req.headers['user-agent'] || 'Generic Source';
-        slackPostTS = (await (await slackBotChatPost(debugChannel,`${TriggerName} from ${SourceName}`)).json()).ts;
+        const TriggerName = req.query['Trigger'] || req.body['trigger'] || '(Trigger)';
+        const SlugName = req.body['slug'] || '(slug)';
+        slackPostTS = (await (await slackBotChatPost(debugChannel,`${SlugName} - ${TriggerName}`)).json()).ts;
         await slackBotReplyPost(debugChannel, slackPostTS, `\n\n*Full Details*\n\`\`\`${JSON.stringify(req,null,2)}\`\`\``);
 
         if(!req.body || !req.body.Branch || !req.body.Owner || !req.body.Repo || !req.body.ConfigPath) {
