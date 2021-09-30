@@ -2,8 +2,9 @@
 const { SyncEndpoint } = require('../wordpress-to-github');
 const { slackBotReportError,slackBotChatPost,slackBotReplyPost } = require('../common/slackBot');
 const log = [];
-//const debugChannel = 'C01DBP67MSQ'; // #testingbot
-const debugChannel = 'C01H6RB99E2'; //Carter debug
+
+const debugChannel = 'C02G6PETB9B'; //#wordpress-sync-http-trigger
+
 const gitHubCommitter = {
     name: process.env["GITHUB_NAME"],
     email: process.env["GITHUB_EMAIL"]
@@ -17,6 +18,8 @@ const gitHubCredentials = {
  * @param {{executionContext:{functionName:string},res:{status?:number,body?:any,headers?:{"Content-Type":string}}}} context 
  * @param {{method:string,headers:{"user-agent":string},query:{},params:{},body:import('../wordpress-to-github/common').GitHubTarget}} req 
  */
+
+
 module.exports = async function (context, req) {
     const appName = context.executionContext.functionName;
     let slackPostTS = "";
@@ -30,6 +33,13 @@ module.exports = async function (context, req) {
             };
             return;
         }
+
+        function wait(timeout) {
+            return new Promise(resolve => {
+                setTimeout(resolve, timeout);
+            });
+        }
+        await wait(10*1000); // let's wait 10 seconds before processing to try to avoid sync issues with the WP database
 
         await SyncEndpoint(req.body, gitHubCredentials, gitHubCommitter);
         await slackBotReplyPost(debugChannel, slackPostTS, 'POST Success');
