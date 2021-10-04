@@ -62,7 +62,7 @@
         }
       },
       {
-        "name": "staging-pantheon.ca.gov",
+        "name": "staging-pantheon.cannabis.ca.gov",
         "enabled": true,
         "enabledLocal": false,
         "GitHubTarget": {
