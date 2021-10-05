@@ -115,22 +115,25 @@ const SyncEndpoint = async (gitHubTarget, gitHubCredentials, gitHubCommitter) =>
 
     if (endpointConfig.GeneralFilePath) {
       const fetchResponse = await WpApi_getSomething(`${endpointConfigData.wordpress_source_url}/wp-json/?_fields=description,gmt_offset,name,namespaces,timezone_string,home,url&cachebust=${Math.random()}`);
+      try {
+        const data = await fetchResponse.json();
+        delete data._links;
 
-      const data = await fetchResponse.json();
-      delete data._links;
+        const jsonData = {meta: {
+          ...commonMeta(endpointConfigData.wordpress_source_url,gitHubTarget)
+        },
+        data}
+        const filePath = endpointConfig.GeneralFilePath.split('/').slice(0,-1).join('/');
+        const fileName = endpointConfig.GeneralFilePath.split('/').slice(-1)[0];
 
-      const jsonData = {meta: {
-        ...commonMeta(endpointConfigData.wordpress_source_url,gitHubTarget)
-      },
-      data}
-      const filePath = endpointConfig.GeneralFilePath.split('/').slice(0,-1).join('/');
-      const fileName = endpointConfig.GeneralFilePath.split('/').slice(-1)[0];
+        const fileMap = new Map();
+        fileMap.set(fileName,jsonData);
+        const newTree = await createTreeFromFileMap(gitRepo, endpointConfig.outputBranch, fileMap, filePath, true);
 
-      const fileMap = new Map();
-      fileMap.set(fileName,jsonData);
-      const newTree = await createTreeFromFileMap(gitRepo, endpointConfig.outputBranch, fileMap, filePath, true);
-
-      await PrIfChanged(gitRepo, endpointConfig.outputBranch, newTree, commitTitleGeneral, gitHubCommitter, true);
+        await PrIfChanged(gitRepo, endpointConfig.outputBranch, newTree, commitTitleGeneral, gitHubCommitter, true);
+      } catch (e) {
+        throw new Error("Problem with endpoint JSON data" + gitHubTarget.Repo);
+      }
     }
     
     /** @type {Map <string,any> | null} */

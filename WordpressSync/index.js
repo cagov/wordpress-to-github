@@ -1,6 +1,7 @@
 // @ts-check
 const { SyncEndpoint } = require('../wordpress-to-github');
 const { slackBotReportError } = require('../common/slackBot');
+const { reportError } = require('../common/reportError');
 const debugChannel = 'C01DBP67MSQ'; // #testingbot
 //const debugChannel = 'C01H6RB99E2'; //Carter debug
 const endPointsJson = require('./endpoints.json')
@@ -25,8 +26,12 @@ module.exports = async function (context, myTimer) {
   const debugMode = process.env.debug?.toLowerCase()==='true';
 
   if(debugMode) {
-    await doProcessEndpoints();
-    return;
+    try {
+      await doProcessEndpoints();
+    } catch (e) {
+      console.log(`Error running ${appName}`,e);
+      reportError(`Error running ${appName}`,e,context,myTimer, {type: "console"});
+    }
   }
 
   try {
