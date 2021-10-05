@@ -85,7 +85,7 @@
       },
       {
         "name": "main-wp58.cannabis.ca.gov",
-        "enabled": true,
+        "enabled": false,
         "enabledLocal": false,
         "GitHubTarget": {
           "Owner": "cagov",
@@ -96,7 +96,7 @@
       },
       {
         "name": "staging-wp58.cannabis.ca.gov",
-        "enabled": true,
+        "enabled": false,
         "enabledLocal": false,
         "GitHubTarget": {
           "Owner": "cagov",
@@ -107,7 +107,7 @@
       },
       {
         "name": "development-wp58.cannabis.ca.gov",
-        "enabled": true,
+        "enabled": false,
         "enabledLocal": false,
         "GitHubTarget": {
           "Owner": "cagov",
