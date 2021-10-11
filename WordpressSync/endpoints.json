@@ -7,7 +7,7 @@
   "data": {
     "projects": [
       {
-        "name": "Drought",
+        "name": "drought.ca.gov",
         "enabled": true,
         "enabledLocal": false,
         "GitHubTarget": {
@@ -18,7 +18,18 @@
         }
       },
       {
-        "name": "Drought development",
+        "name": "main-test-pantheon.drought.ca.gov",
+        "enabled": false,
+        "enabledLocal": false,
+        "GitHubTarget": {
+          "Owner": "cagov",
+          "Repo": "drought.ca.gov",
+          "Branch": "main-test-pantheon",
+          "ConfigPath": "wordpress/wordpress-to-github.main-test-pantheon.config.json"
+        }
+      },
+      {
+        "name": "development.drought.ca.gov",
         "enabled": false,
         "enabledLocal": false,
         "GitHubTarget": {
@@ -28,7 +39,7 @@
           "ConfigPath": "wordpress/wordpress-to-github.config.json"
         }
       },
-  {
+      {
         "name": "headless.cannabis.ca.gov",
         "enabled": true,
         "enabledLocal": false,
