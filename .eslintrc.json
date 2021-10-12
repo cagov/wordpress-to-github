@@ -6,7 +6,8 @@
         "node": true
     },
     "extends": [
-        "eslint:recommended"
+        "eslint:recommended",
+        "plugin:jsdoc/recommended"
     ],
     "parserOptions": {
         "ecmaVersion": 12,
@@ -37,6 +38,11 @@
         "prefer-arrow-callback": "warn",
         "prefer-template": "warn",
         "semi": "warn",
-        "yoda": "warn"
+        "yoda": "warn",
+        "jsdoc/require-returns": "off",
+        "jsdoc/require-returns-type": "off",
+        "jsdoc/require-property-description": "off",
+        "jsdoc/require-param-description": "off",
+        "jsdoc/require-returns-description": "off"
       }
 }
