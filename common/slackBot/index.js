@@ -1,6 +1,5 @@
 // @ts-check
-// @ts-ignore
-const fetchRetry = require('fetch-retry')(require('node-fetch'), {retries:3,retryDelay:2000});
+const fetchRetry = require('fetch-retry')(require('node-fetch/lib'), {retries:3,retryDelay:2000});
 const slackApiChatPost = 'https://slack.com/api/chat.postMessage';
 const slackApiChannelHistory = 'https://slack.com/api/conversations.history';
 const slackApiChannelReplies = 'https://slack.com/api/conversations.replies';

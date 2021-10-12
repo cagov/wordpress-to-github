@@ -1,9 +1,7 @@
 // @ts-check
 const apiPath = '/wp-json/wp/v2/';
 const { gitHubBlobPredictShaFromBuffer, GithubTreeRow } = require('../gitTreeCommon');
-const fetch = require('node-fetch');
-// @ts-ignore
-const fetchRetry = require('fetch-retry')(fetch, { retries: 3, retryDelay: 2000 });
+const fetchRetry = require('fetch-retry')(require('node-fetch/lib'), {retries:3,retryDelay:2000});
 
 /**
  * @typedef {object} GithubTargetConfig
