@@ -4,6 +4,7 @@ const todayDateString = () => nowPacTime({year: 'numeric',month: '2-digit',day: 
 const todayTimeString = () => nowPacTime({hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit'}).replace(/:/g,'-');
 /**
  * Halts processing for a set time
+ * 
  * @param {number} ms milliseconds to sleep (1000 = 1s)
  */
 const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
@@ -13,6 +14,7 @@ const sha1 = require('sha1');
 /**
  * Returns a Github equivalent sha hash for any given content
  * see https://git-scm.com/book/en/v2/Git-Internals-Git-Objects
+ * 
  * @param {string} content string content to hash
  * @returns SHA Hash that would be used on Github for the given content
  */
@@ -21,6 +23,7 @@ const gitHubBlobPredictSha = content => sha1(`blob ${Buffer.byteLength(content)}
 /**
  * Returns a Github equivalent sha hash for any given content
  * see https://git-scm.com/book/en/v2/Git-Internals-Git-Objects
+ * 
  * @param {Buffer} buffer buffer to hash
  * @returns SHA Hash that would be used on Github for the given content
  */
@@ -31,7 +34,7 @@ const gitHubBlobPredictSha = content => sha1(`blob ${Buffer.byteLength(content)}
   ;
 
 /**
- * @typedef {Object} GithubTreeRow
+ * @typedef {object} GithubTreeRow
  * @property {string} path
  * @property {string} mode usually '100644'
  * @property {string} type usually 'blob'
@@ -42,6 +45,7 @@ const gitHubBlobPredictSha = content => sha1(`blob ${Buffer.byteLength(content)}
 
 /**
  * Creates a gitHub Tree array, skipping duplicates based on the outputpath
+ * 
  * @param {*} gitRepo from github-api
  * @param {string} masterBranch usually "master" or "main"
  * @param {Map<string,any>} filesMap contains the data to push
@@ -104,6 +108,7 @@ const gitHubBlobPredictSha = content => sha1(`blob ${Buffer.byteLength(content)}
 
 /**
  *  return a new PR if the tree has changes
+ * 
  * @param {*} gitRepo from github-api
  * @param {string} masterBranch usually "master" or "main"
  * @param {GithubTreeRow[]} tree from createTreeFromFileMap
