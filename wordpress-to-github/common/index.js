@@ -1,11 +1,9 @@
 // @ts-check
 const apiPath = '/wp-json/wp/v2/';
-const { gitHubBlobPredictShaFromBuffer } = require('../gitTreeCommon');
+const { gitHubBlobPredictShaFromBuffer, GithubTreeRow } = require('../gitTreeCommon');
 const fetch = require('node-fetch');
 // @ts-ignore
 const fetchRetry = require('fetch-retry')(fetch, { retries: 3, retryDelay: 2000 });
-
-import {GithubTreeRow} from '../gitTreeCommon'; //for JS-DOC
 
 /**
  * @typedef {object} GithubTargetConfig
@@ -283,10 +281,10 @@ const wrapInFileMeta = (wordpress_source_url, gitHubTarget, field_reference, dat
 /**
  * A custom Github function to check for file exists
  *
- * @param {{ _request: (arg0: string, arg1: *, arg2: *) => Promise<*> }} myRepo
+ * @param {{ _request: function( string, *, *) : Promise<*> }} myRepo
  * @param {string} path
  * @param {undefined} [data]
- * @param {(arg0: any, arg1: boolean, arg2: any) => void} [cb]
+ * @param {function(any, boolean, any) : void} [cb]
  */
 function githubDoesFileExist(myRepo, path, data, cb) {
   return myRepo._request('HEAD', path, data).then((/** @type {any} */ response) => {

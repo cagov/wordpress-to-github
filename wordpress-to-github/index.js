@@ -14,7 +14,16 @@ const {
   WpApi_GetPagedData_ByObjectType,
   WpApi_getSomething,
   pathFromMediaSourceUrl,
-  addMediaSection
+  addMediaSection,
+  GitHubTarget,
+  GitHubCredentials,
+  EndpointConfigData,
+  WordpressApiDateCacheItem,
+  GitHubCommitter,
+  GithubOutputJson,
+  WordpressMediaRow,
+  WordpressPageRow,
+  WordpressPostRow
 } = require('./common');
 const commitTitlePosts = 'Wordpress Posts Update';
 const commitTitlePages = 'Wordpress Pages Update';
@@ -25,14 +34,15 @@ const fieldMetaReference = {
   pages: "https://developer.wordpress.org/rest-api/reference/pages/",
   media: "https://developer.wordpress.org/rest-api/reference/pages/"
 };
-/** @type {Map <string,import('./common').WordpressApiDateCacheItem>} */
+/** @type {Map <string,WordpressApiDateCacheItem>} */
 const updateCache = new Map();
 const cacheObjects = ['media', 'posts', 'pages'];
 
 /**
  * process a Wordpress endpoint and place the data in GitHub
- * @param {import('./common').GitHubTarget} gitHubTarget
- * @param {import('./common').GitHubCredentials} gitHubCredentials
+ * 
+ * @param {GitHubTarget} gitHubTarget
+ * @param {GitHubCredentials} gitHubCredentials
  */
 const getRemoteConfig = async (gitHubTarget, gitHubCredentials) => {
   const gitModule = new GitHub(gitHubCredentials);
@@ -40,14 +50,15 @@ const getRemoteConfig = async (gitHubTarget, gitHubCredentials) => {
   // @ts-ignore
   const gitRepo = await gitModule.getRepo(gitHubTarget.Owner, gitHubTarget.Repo);
 
-  /** @type {import('./common').EndpointConfigData} */
+  /** @type {EndpointConfigData} */
   const endpointConfig = (await gitRepo.getContents(gitHubTarget.Branch, gitHubTarget.ConfigPath, true)).data.data;
 
   return endpointConfig;
-}
+};
 
 /**
  * returns true if there are any items that match in both arrays
+ * 
  * @param {any[]} [array1]
  * @param {any[]} [array2]
  */
@@ -57,9 +68,10 @@ const anythingInArrayMatch = (array1,array2) =>
 
 /**
  * process a Wordpress endpoint and place the data in GitHub
- * @param {import('./common').GitHubTarget} gitHubTarget
- * @param {import('./common').GitHubCredentials} gitHubCredentials
- * @param {import('./common').GitHubCommitter} gitHubCommitter
+ * 
+ * @param {GitHubTarget} gitHubTarget
+ * @param {GitHubCredentials} gitHubCredentials
+ * @param {GitHubCommitter} gitHubCommitter
  */
 const SyncEndpoint = async (gitHubTarget, gitHubCredentials, gitHubCommitter) => {
   const gitModule = new GitHub(gitHubCredentials);
@@ -75,7 +87,7 @@ const SyncEndpoint = async (gitHubTarget, gitHubCredentials, gitHubCommitter) =>
   //Check cache (and set cache for next time)
   let cacheMatch = true;
   for (let type of cacheObjects) {
-    const cacheKey = wordPressApiUrl + '+' + type;
+    const cacheKey = `${wordPressApiUrl}+${type}`;
 
     const currentStatus = await WpApi_GetCacheItem_ByObjectType(wordPressApiUrl, type);
     const cacheItem = updateCache.get(cacheKey);
@@ -86,13 +98,13 @@ const SyncEndpoint = async (gitHubTarget, gitHubCredentials, gitHubCommitter) =>
     }
   }
   if (cacheMatch) {
-    console.log('match cache for ' + wordPressApiUrl);
+    console.log(`match cache for ${wordPressApiUrl}`);
     return;
   }
 
   const repoDetails = await gitRepo.getDetails();
   if (!repoDetails.data.permissions.push) {
-    throw new Error('App user has no write permissions for ' + gitHubTarget.Repo);
+    throw new Error(`App user has no write permissions for ${gitHubTarget.Repo}`);
   }
 
   //List of WP categories
@@ -100,11 +112,11 @@ const SyncEndpoint = async (gitHubTarget, gitHubCredentials, gitHubCommitter) =>
   const taglist = await fetchDictionary(wordPressApiUrl, 'tags');
   const userlist = await fetchDictionary(wordPressApiUrl, 'users');
 
-  /** @type {import('./common').WordpressMediaRow[] | null} */
+  /** @type {WordpressMediaRow[] | null} */
   const allMedia = endpointConfigs.some(x=>x.MediaPath) ? await WpApi_GetPagedData_ByObjectType(wordPressApiUrl, 'media') : null;
-  /** @type {import('./common').WordpressPostRow[] | null} */
+  /** @type {WordpressPostRow[] | null} */
   const allPosts = endpointConfigs.some(x=>x.PostPath) ? await WpApi_GetPagedData_ByObjectType(wordPressApiUrl, 'posts') : null;
-  /** @type {import('./common').WordpressPageRow[] | null} */
+  /** @type {WordpressPageRow[] | null} */
   const allPages = endpointConfigs.some(x=>x.PagePath) ? await WpApi_GetPagedData_ByObjectType(wordPressApiUrl, 'pages') : null;
 
   for (let endpointConfig of endpointConfigs) {
@@ -122,7 +134,7 @@ const SyncEndpoint = async (gitHubTarget, gitHubCredentials, gitHubCommitter) =>
       const jsonData = {meta: {
         ...commonMeta(endpointConfigData.wordpress_source_url,gitHubTarget)
       },
-      data}
+      data};
       const filePath = endpointConfig.GeneralFilePath.split('/').slice(0,-1).join('/');
       const fileName = endpointConfig.GeneralFilePath.split('/').slice(-1)[0];
 
@@ -144,7 +156,7 @@ const SyncEndpoint = async (gitHubTarget, gitHubCredentials, gitHubCommitter) =>
     const mediaContentPlaceholder = 'TBD : Binary file to be updated in a later step';
     if (endpointConfig.MediaPath && mediaMap && allMedia) {
       allMedia.forEach(x => {
-        /** @type {import('./common').GithubOutputJson} */
+        /** @type {GithubOutputJson} */
         const jsonData = {
           ...x,
           author: userlist[x.author.toString()],
@@ -171,7 +183,7 @@ const SyncEndpoint = async (gitHubTarget, gitHubCredentials, gitHubCommitter) =>
         //PDF
         jsonData.path = pathFromMediaSourceUrl(x.source_url);
         mediaMap.set(jsonData.path, mediaContentPlaceholder);
-        mediaMap.set(pathFromMediaSourceUrl(x.source_url).replace(/\.([^\.]+)$/,'.json'), wrapInFileMeta(endpointConfigData.wordpress_source_url, gitHubTarget, fieldMetaReference.media, jsonData));
+        mediaMap.set(pathFromMediaSourceUrl(x.source_url).replace(/\.([^.]+)$/,'.json'), wrapInFileMeta(endpointConfigData.wordpress_source_url, gitHubTarget, fieldMetaReference.media, jsonData));
       });
 
       let mediaTree = await createTreeFromFileMap(gitRepo, gitHubTarget.Branch, mediaMap, endpointConfig.MediaPath, true);
@@ -213,16 +225,16 @@ const SyncEndpoint = async (gitHubTarget, gitHubCredentials, gitHubCommitter) =>
      */
     const mapLookup = (jsonData, fieldName, dictionary) => {
       if (jsonData[fieldName]) {
-        return jsonData[fieldName].map((/** @type {string | number} */ t) => dictionary[t])
+        return jsonData[fieldName].map((/** @type {string | number} */ t) => dictionary[t]);
       } else {
-        return undefined
+        return undefined;
       }
-    }
+    };
 
     /**
      * 
-     * @param {import('./common').WordpressPostRow | import('./common').WordpressPageRow} wpRow 
-     * @returns {import('./common').GithubOutputJson}
+     * @param {WordpressPostRow | WordpressPageRow} wpRow 
+     * @returns {GithubOutputJson}
      */
      const wordPressRowToGitHubOutput = wpRow => {
       const jsonData = {
@@ -234,14 +246,14 @@ const SyncEndpoint = async (gitHubTarget, gitHubCredentials, gitHubCommitter) =>
       };
 
       if (!wpRow.categories) {
-        delete jsonData.categories
+        delete jsonData.categories;
       }
       if (!wpRow.tags) {
-        delete jsonData.tags
+        delete jsonData.tags;
       }
 
       return jsonData;
-    }
+    };
 
 
     // POSTS

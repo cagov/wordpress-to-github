@@ -1,16 +1,17 @@
 // @ts-check
 const { SyncEndpoint } = require('../wordpress-to-github');
+const { GitHubCommitter, GitHubCredentials } = require('../wordpress-to-github/common');
 const { slackBotReportError } = require('../common/slackBot');
 const debugChannel = 'C01DBP67MSQ'; // #testingbot
 //const debugChannel = 'C01H6RB99E2'; //Carter debug
-const endPointsJson = require('./endpoints.json')
+const endPointsJson = require('./endpoints.json');
 const endpoints = endPointsJson.data.projects;
-/** @type {import('../wordpress-to-github/common').GitHubCommitter} **/
+/** @type {GitHubCommitter} **/
 const gitHubCommitter = {
   name: `${process.env["GITHUB_NAME"]}`,
   email: `${process.env["GITHUB_EMAIL"]}`
 };
-/** @type {import('../wordpress-to-github/common').GitHubCredentials} **/
+/** @type {GitHubCredentials} **/
 const gitHubCredentials = { 
   token: `${process.env["GITHUB_TOKEN"]}`
 };
