@@ -8,7 +8,7 @@
     "projects": [
       {
         "name": "drought.ca.gov",
-        "enabled": false,
+        "enabled": true,
         "enabledLocal": false,
         "GitHubTarget": {
           "Owner": "cagov",
@@ -19,7 +19,7 @@
       },
       {
         "name": "main-test-pantheon.drought.ca.gov",
-        "enabled": false,
+        "enabled": true,
         "enabledLocal": false,
         "GitHubTarget": {
           "Owner": "cagov",
