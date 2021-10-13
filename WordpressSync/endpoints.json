@@ -19,7 +19,7 @@
       },
       {
         "name": "main-test-pantheon.drought.ca.gov",
-        "enabled": true,
+        "enabled": false,
         "enabledLocal": false,
         "GitHubTarget": {
           "Owner": "cagov",
