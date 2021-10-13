@@ -3,17 +3,12 @@
   "title": "Schema for endpoints.json",
   "type": "object",
   "additionalProperties": true,
-  "required": [
-    "meta",
-    "data"
-  ],
+  "required": ["meta", "data"],
   "properties": {
     "meta": {},
     "data": {
       "type": "object",
-      "required": [
-        "projects"
-      ],
+      "required": ["projects"],
       "additionalProperties": false,
       "properties": {
         "projects": {
@@ -37,41 +32,27 @@
               "GitHubTarget": {
                 "type": "object",
                 "description": "The endpoint target to deploy changes",
-                "required": [
-                  "Owner",
-                  "Repo",
-                  "Branch",
-                  "ConfigPath"
-                ],
+                "required": ["Owner", "Repo", "Branch", "ConfigPath"],
                 "properties": {
                   "Owner": {
                     "type": "string",
                     "description": "GitHub Owner",
-                    "examples": [
-                      "cagov"
-                    ]
+                    "examples": ["cagov"]
                   },
                   "Repo": {
                     "type": "string",
                     "description": "GitHub Repo",
-                    "examples": [
-                      "wordpress-to-github"
-                    ]
+                    "examples": ["wordpress-to-github"]
                   },
                   "Branch": {
                     "type": "string",
                     "description": "GitHub Target Branch",
-                    "examples": [
-                      "master",
-                      "main"
-                    ]
+                    "examples": ["master", "main"]
                   },
                   "ConfigPath": {
                     "type": "string",
                     "description": "Path to config.json file for this endpoint",
-                    "examples": [
-                      "wordpress/wordpress-to-github.config.json"
-                    ]
+                    "examples": ["wordpress/wordpress-to-github.config.json"]
                   }
                 }
               }

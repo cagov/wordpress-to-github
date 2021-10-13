@@ -13,10 +13,7 @@
         "outputBranch": {
           "type": "string",
           "description": "What branch to deploy to?",
-          "examples": [
-            "staging",
-            "master"
-          ],
+          "examples": ["staging", "master"],
           "default": "main"
         },
         "disabled": {
@@ -27,52 +24,34 @@
         "PostPath": {
           "type": "string",
           "description": "Where should the posts go?",
-          "examples": [
-            "wordpress/posts"
-          ]
+          "examples": ["wordpress/posts"]
         },
         "PagePath": {
           "type": "string",
           "description": "Where should the pages go?",
-          "examples": [
-            "wordpress/pages"
-          ]
+          "examples": ["wordpress/pages"]
         },
         "MediaPath": {
           "type": "string",
           "description": "where should image media go?",
-          "examples": [
-            "wordpress/media"
-          ]
+          "examples": ["wordpress/media"]
         },
         "GeneralFilePath": {
           "type": "string",
           "description": "The full path and filename for a 'general' file that contains information about the whole site.",
-          "examples": [
-            "wordpress/general/general.json"
-          ]
+          "examples": ["wordpress/general/general.json"]
         },
         "ExcludeProperties": {
           "type": "array",
           "default": [],
           "description": "Which properties should we suppress in output?",
-          "examples": [
-            [
-              "content",
-              "_links"
-            ]
-          ]
+          "examples": [["content", "_links"]]
         },
         "tags_exclude": {
           "type": "array",
           "default": [],
           "description": "Ignore Pages/Posts with these tags (Case sensitive!).",
-          "examples": [
-            [
-              "staging",
-              "development"
-            ]
-          ],
+          "examples": [["staging", "development"]],
           "items": {
             "type": "string"
           }
@@ -81,9 +60,7 @@
     }
   },
   "type": "object",
-  "required": [
-    "data"
-  ],
+  "required": ["data"],
   "additionalProperties": false,
   "properties": {
     "$schema": {
@@ -94,18 +71,13 @@
     },
     "data": {
       "type": "object",
-      "required": [
-        "wordpress_source_url",
-        "github_targets"
-      ],
+      "required": ["wordpress_source_url", "github_targets"],
       "additionalProperties": false,
       "properties": {
         "wordpress_source_url": {
           "$ref": "#/definitions/URL",
           "description": "URL of the Wordpress instance to read from",
-          "examples": [
-            "https://mywpinstance.azurewebsites.net"
-          ]
+          "examples": ["https://mywpinstance.azurewebsites.net"]
         },
         "github_targets": {
           "description": "List of Github targets to run.",
@@ -124,14 +96,8 @@
               "PagePath": "wordpress/pages",
               "MediaPath": "wordpress/media",
               "GeneralFilePath": "wordpress/general/general.json",
-              "ExcludeProperties": [
-                "content",
-                "_links"
-              ],
-              "tags_exclude": [
-                "staging",
-                "development"
-              ]
+              "ExcludeProperties": ["content", "_links"],
+              "tags_exclude": ["staging", "development"]
             },
             {
               "outputBranch": "staging",
@@ -140,13 +106,8 @@
               "PagePath": "wordpress/pages",
               "MediaPath": "wordpress/media",
               "GeneralFilePath": "wordpress/general/general.json",
-              "ExcludeProperties": [
-                "content",
-                "_links"
-              ],
-              "tags_exclude": [
-                "development"
-              ]
+              "ExcludeProperties": ["content", "_links"],
+              "tags_exclude": ["development"]
             }
           ]
         }

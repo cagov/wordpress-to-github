@@ -1,7 +1,13 @@
 // @ts-check
-const apiPath = '/wp-json/wp/v2/';
-const { gitHubBlobPredictShaFromBuffer, GithubTreeRow } = require('../gitTreeCommon');
-const fetchRetry = require('fetch-retry')(require('node-fetch/lib'), {retries:3,retryDelay:2000});
+const apiPath = "/wp-json/wp/v2/";
+const {
+  gitHubBlobPredictShaFromBuffer,
+  GithubTreeRow
+} = require("../gitTreeCommon");
+const fetchRetry = require("fetch-retry")(require("node-fetch/lib"), {
+  retries: 3,
+  retryDelay: 2000
+});
 
 /**
  * @typedef {object} GithubTargetConfig
@@ -79,7 +85,7 @@ const fetchRetry = require('fetch-retry')(require('node-fetch/lib'), {retries:3,
  * @property {string} type "page"
  */
 
-/** 
+/**
  * @typedef {object} WordpressMediaRow Expected MEDIA input when using the Wordpress API - https://developer.wordpress.org/rest-api/reference/media/
  * @property {number} author
  * @property {string} caption
@@ -106,7 +112,7 @@ const fetchRetry = require('fetch-retry')(require('node-fetch/lib'), {retries:3,
  * @property {string} type "attachment"
  */
 
-/** 
+/**
  * @typedef {object} GithubOutputJson Expected output when pushing to github Json
  * @property {string} author
  * @property {string} date_gmt
@@ -133,7 +139,8 @@ const fetchRetry = require('fetch-retry')(require('node-fetch/lib'), {retries:3,
  * @param {string} source_url
  * @example "/wp-content/uploads/2020/07/myImage.jpg" => "2020/07/myImage.jpg"
  */
-const pathFromMediaSourceUrl = source_url => source_url.split('/wp-content/uploads/')[1];
+const pathFromMediaSourceUrl = source_url =>
+  source_url.split("/wp-content/uploads/")[1];
 
 /**
  * Creates the META section from an edpoint
@@ -159,8 +166,8 @@ const commonMeta = (wordpress_source_url, gitHubTarget) => ({
  */
 const wpRenderRenderFields = json => {
   for (let key of Object.keys(json)) {
-    if (json[key] && (json[key]['rendered'] === "" || json[key]['rendered'])) {
-      json[key] = json[key]['rendered'];
+    if (json[key] && (json[key]["rendered"] === "" || json[key]["rendered"])) {
+      json[key] = json[key]["rendered"];
     }
   }
 };
@@ -173,14 +180,17 @@ const wpRenderRenderFields = json => {
  * @returns {Promise<WordpressApiDateCacheItem>}
  */
 const WpApi_GetCacheItem_ByObjectType = async (wordPressApiUrl, objecttype) => {
-  const fetchResponse = await fetchRetry(`${wordPressApiUrl}${objecttype}?per_page=1&orderby=modified&order=desc&_fields=modified&cachebust=${Math.random()}`, { method: "Get" });
+  const fetchResponse = await fetchRetry(
+    `${wordPressApiUrl}${objecttype}?per_page=1&orderby=modified&order=desc&_fields=modified&cachebust=${Math.random()}`,
+    { method: "Get" }
+  );
 
   const result = fetchResponse.ok ? await fetchResponse.json() : [];
   if (result && result.length) {
     return {
       modified: result[0].modified,
       type: objecttype,
-      count: Number(fetchResponse.headers.get('X-WP-Total'))
+      count: Number(fetchResponse.headers.get("X-WP-Total"))
     };
   } else {
     return { type: objecttype, count: 0 };
@@ -198,13 +208,18 @@ const WpApi_GetPagedData_ByQuery = async fetchquery => {
   const rows = [];
 
   for (let currentpage = 1; currentpage <= totalpages; currentpage++) {
-    const fetchResponse = await fetchRetry(`${fetchquery}&page=${currentpage}&cachebust=${Math.random()}`, { method: "Get" });
+    const fetchResponse = await fetchRetry(
+      `${fetchquery}&page=${currentpage}&cachebust=${Math.random()}`,
+      { method: "Get" }
+    );
     if (!fetchResponse.ok) {
-      throw new Error(`${fetchResponse.status} - ${fetchResponse.statusText} - ${fetchResponse.url}`);
+      throw new Error(
+        `${fetchResponse.status} - ${fetchResponse.statusText} - ${fetchResponse.url}`
+      );
     }
-    totalpages = Number(fetchResponse.headers.get('x-wp-totalpages'));
+    totalpages = Number(fetchResponse.headers.get("x-wp-totalpages"));
 
-    rows.push(...await fetchResponse.json());
+    rows.push(...(await fetchResponse.json()));
   }
 
   return rows;
@@ -213,17 +228,18 @@ const WpApi_GetPagedData_ByQuery = async fetchquery => {
 /**
  * GET something.
  *
- * @param {string} fetchquery 
- * @returns 
+ * @param {string} fetchquery
+ * @returns
  */
-const WpApi_getSomething = async fetchquery => await fetchRetry(fetchquery, { method: "Get" });
+const WpApi_getSomething = async fetchquery =>
+  await fetchRetry(fetchquery, { method: "Get" });
 
 /**
  * Call the paged wordpress api put all the paged data into a single return array
  *
  * @param {string} wordPressApiUrl WP source URL
  * @param {string} objecttype page/posts/media etc
- * @example 
+ * @example
  * await WpApi_GetPagedData_ByObjectType('https://as-go-covid19-d-001.azurewebsites.net/wp-json/wp/v2/','posts')
  * //query https://as-go-covid19-d-001.azurewebsites.net/wp-json/wp/v2/posts?per_page=100&orderby=slug&order=asc
  */
@@ -244,11 +260,10 @@ const WpApi_GetPagedData_ByObjectType = async (wordPressApiUrl, objecttype) => {
  *
  * @param {string} html WP html to clean
  */
-const cleanupContent = html => html
-  .replace(/\n\n\n/g, '\n') //reduce triple spacing
-  .replace(/^\n/g, '') //remove leading CR
-  ;
-
+const cleanupContent = html =>
+  html
+    .replace(/\n\n\n/g, "\n") //reduce triple spacing
+    .replace(/^\n/g, ""); //remove leading CR
 /**
  * fetches a dictionary object from WP
  *
@@ -256,17 +271,30 @@ const cleanupContent = html => html
  * @param {string} listname the list to get
  * @returns the dictionary
  */
-const fetchDictionary = async (wordPressApiUrl, listname) => Object.assign({}, ...
-  (await WpApi_GetPagedData_ByQuery(`${wordPressApiUrl}${listname}?context=embed&hide_empty=true&per_page=100&order_by=name&_fields=id,name`))
-    .map((/** @type {{ id: string, name: string }} */ x) => ({ [x.id]: x.name })));
+const fetchDictionary = async (wordPressApiUrl, listname) =>
+  Object.assign(
+    {},
+    ...(
+      await WpApi_GetPagedData_ByQuery(
+        `${wordPressApiUrl}${listname}?context=embed&hide_empty=true&per_page=100&order_by=name&_fields=id,name`
+      )
+    ).map((/** @type {{ id: string, name: string }} */ x) => ({
+      [x.id]: x.name
+    }))
+  );
 
 /**
- * @param {string} wordpress_source_url 
- * @param {GitHubTarget} gitHubTarget 
+ * @param {string} wordpress_source_url
+ * @param {GitHubTarget} gitHubTarget
  * @param {string} field_reference //url for field refernce
- * @param {GithubOutputJson} data 
+ * @param {GithubOutputJson} data
  */
-const wrapInFileMeta = (wordpress_source_url, gitHubTarget, field_reference, data) => ({
+const wrapInFileMeta = (
+  wordpress_source_url,
+  gitHubTarget,
+  field_reference,
+  data
+) => ({
   meta: {
     created_date: data.date_gmt,
     updated_date: data.modified_gmt,
@@ -285,34 +313,37 @@ const wrapInFileMeta = (wordpress_source_url, gitHubTarget, field_reference, dat
  * @param {function(any, boolean, any) : void} [cb]
  */
 function githubDoesFileExist(myRepo, path, data, cb) {
-  return myRepo._request('HEAD', path, data).then((/** @type {any} */ response) => {
-    if (cb) {
-      cb(null, true, response);
-    }
-    return true;
-  }, (/** @type {{ response: { status: number } }} */ response) => {
-    if (response.response.status === 404) {
+  return myRepo._request("HEAD", path, data).then(
+    (/** @type {any} */ response) => {
       if (cb) {
-        cb(null, false, response);
+        cb(null, true, response);
       }
-      return false;
-    }
+      return true;
+    },
+    (/** @type {{ response: { status: number } }} */ response) => {
+      if (response.response.status === 404) {
+        if (cb) {
+          cb(null, false, response);
+        }
+        return false;
+      }
 
-    if (cb) {
-      // @ts-ignore
-      cb(response);
+      if (cb) {
+        // @ts-ignore
+        cb(response);
+      }
+      throw response;
     }
-    throw response;
-  });
+  );
 }
 
 /**
  * Syncs a binary file with Github, by adding the blob if its not already there and then updating the sha in the tree
  *
- * @param {string} wordpress_url 
- * @param {*} gitRepo 
- * @param {GithubTreeRow[]} mediaTree 
- * @param {GithubTargetConfig} endpoint 
+ * @param {string} wordpress_url
+ * @param {*} gitRepo
+ * @param {GithubTreeRow[]} mediaTree
+ * @param {GithubTargetConfig} endpoint
  */
 const syncBinaryFile = async (wordpress_url, gitRepo, mediaTree, endpoint) => {
   console.log(`Downloading...${wordpress_url}`);
@@ -322,14 +353,21 @@ const syncBinaryFile = async (wordpress_url, gitRepo, mediaTree, endpoint) => {
 
   let sha = gitHubBlobPredictShaFromBuffer(buffer);
 
-  const exists = await githubDoesFileExist(gitRepo, `/repos/${gitRepo.__fullname}/git/blobs/${sha}`);
+  const exists = await githubDoesFileExist(
+    gitRepo,
+    `/repos/${gitRepo.__fullname}/git/blobs/${sha}`
+  );
   if (!exists) {
     const blobResult = await gitRepo.createBlob(buffer);
     sha = blobResult.data.sha; //should be the same, but just in case
   }
 
   //swap in the new blob sha here.  If the sha matches something already there it will be determined on server.
-  const treeNode = mediaTree.find(x => x.path === `${endpoint.MediaPath}/${pathFromMediaSourceUrl(wordpress_url)}`);
+  const treeNode = mediaTree.find(
+    x =>
+      x.path ===
+      `${endpoint.MediaPath}/${pathFromMediaSourceUrl(wordpress_url)}`
+  );
   if (treeNode) {
     delete treeNode.content;
     treeNode.sha = sha;
@@ -356,14 +394,15 @@ const removeExcludedProperties = (json, excludeList) => {
  * @param {string} startText make sure this text appears in front
  * @param {string} value the text to look at
  */
-const ensureStringStartsWith = (startText, value) => (value.startsWith(startText) ? '' : startText) + value;
+const ensureStringStartsWith = (startText, value) =>
+  (value.startsWith(startText) ? "" : startText) + value;
 
 /**
  * Places the media section if SyncMedia is on
  *
  * @param {GithubTargetConfig} endpoint
  * @param {Map <string,any> | null} mediaMap
- * @param {GithubOutputJson} jsonData 
+ * @param {GithubOutputJson} jsonData
  * @param {string} HTML
  */
 const addMediaSection = (endpoint, mediaMap, jsonData, HTML) => {

@@ -14,14 +14,8 @@
         "PagePath": "wordpress_output/pages",
         "MediaPath": "wordpress_output/media",
         "GeneralFilePath": "wordpress_output/general/general.json",
-        "ExcludeProperties": [
-          "content",
-          "_links"
-        ],
-        "tags_exclude": [
-          "staging",
-          "development"
-        ]
+        "ExcludeProperties": ["content", "_links"],
+        "tags_exclude": ["staging", "development"]
       },
       {
         "outputBranch": "staging",
@@ -30,13 +24,8 @@
         "PagePath": "wordpress_output/pages",
         "MediaPath": "wordpress_output/media",
         "GeneralFilePath": "wordpress_output/general/general.json",
-        "ExcludeProperties": [
-          "content",
-          "_links"
-        ],
-        "tags_exclude": [
-          "development"
-        ]
+        "ExcludeProperties": ["content", "_links"],
+        "tags_exclude": ["development"]
       }
     ]
   }
