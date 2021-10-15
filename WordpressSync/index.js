@@ -49,9 +49,17 @@ module.exports = async function (context, myTimer) {
 const doProcessEndpoints = async () => {
   const debugMode = process.env.debug?.toLowerCase() === "true";
 
-  for (const endpoint of endpoints.filter(
+  const work = endpoints.filter(
     x => (debugMode && x.enabledLocal) || (!debugMode && x.enabled)
-  )) {
+  );
+
+  if (!work.length) {
+    console.error(
+      `No endpoints selected.  For debug mode you should set at least one "enabledLocal" to true.`
+    );
+  }
+
+  for (const endpoint of work) {
     console.log(`*** Checking endpoint for ${endpoint.name} ***`);
     await SyncEndpoint(
       endpoint.GitHubTarget,
