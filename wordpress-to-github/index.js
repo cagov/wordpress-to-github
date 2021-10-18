@@ -3,7 +3,7 @@ const GitHub = require("github-api");
 const {
   createTreeFromFileMap,
   CommitIfChanged,
-  GithubCommit
+  CommitReport
 } = require("./gitTreeCommon");
 const {
   ensureStringStartsWith,
@@ -86,18 +86,13 @@ const anythingInArrayMatch = (array1, array2) =>
  */
 
 /**
- *
- * @param {WordpressToGithubReportRow[]} Report
- * @param {GithubCommit} GitResult
+ * Addts a CommitResult to the Report if it exists
+ * @param {CommitReport[]} Report
+ * @param {CommitReport} [CommitResult]
  */
-const addToReport = (Report, GitResult) => {
-  if (GitResult) {
-    /** @type {WordpressToGithubReportRow} */
-    const newResult = {
-      commit_html_url: GitResult.html_url
-    };
-
-    Report.push(newResult);
+const addToReport = (Report, CommitResult) => {
+  if (CommitResult) {
+    Report.push(CommitResult);
   }
 };
 
@@ -113,7 +108,7 @@ const SyncEndpoint = async (
   gitHubCredentials,
   gitHubCommitter
 ) => {
-  /** @type {WordpressToGithubReportRow[]} */
+  /** @type {CommitReport[]} */
   const report = [];
   const gitModule = new GitHub(gitHubCredentials);
 

@@ -74,6 +74,12 @@ const gitHubBlobPredictShaFromBuffer = buffer =>
  */
 
 /**
+ * @typedef {object} CommitReport
+ * @property {GithubCommit} Commit
+ * @property {GithubCompareFile[]} Files
+ */
+
+/**
  * Creates a gitHub Tree array, skipping duplicates based on the outputpath
  *
  * @param {*} gitRepo from github-api
@@ -224,7 +230,11 @@ const CommitOrPrIfChanged = async (
       console.log(`Commit created - ${commitResult.html_url}`);
       await gitRepo.updateHead(`heads/${masterBranch}`, commitSha);
 
-      return { PullRequest: null, Commit: commitResult };
+      return {
+        PullRequest: null,
+        Commit: commitResult,
+        Files: compare.files
+      };
     } else {
       //Create a new branch and assign this commit to it, return the new branch.
       await gitRepo.createBranch(masterBranch, newBranchName);
@@ -241,7 +251,11 @@ const CommitOrPrIfChanged = async (
 
       console.log(`PR created - ${Pr.html_url}`);
 
-      return { PullRequest: Pr, Commit: commitResult, Compare: compare.files };
+      return {
+        PullRequest: Pr,
+        Commit: commitResult,
+        Files: compare.files
+      };
     }
   } else {
     console.log("no changes");
@@ -301,6 +315,7 @@ const CommitIfChanged = async (
   PrTitle,
   committer
 ) => {
+  /** @type {CommitReport} */
   const Result = await CommitOrPrIfChanged(
     gitRepo,
     masterBranch,
@@ -310,7 +325,7 @@ const CommitIfChanged = async (
     true
   );
 
-  if (Result) return Result.Commit;
+  return Result;
 };
 
 module.exports = {

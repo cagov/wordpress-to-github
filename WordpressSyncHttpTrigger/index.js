@@ -74,7 +74,11 @@ module.exports = async function (context, req) {
 
     await wait(10 * 1000); // let's wait 10 seconds before processing to try to avoid sync issues with the WP database
 
-    await SyncEndpoint(req.body, gitHubCredentials, gitHubCommitter);
+    const report = await SyncEndpoint(
+      req.body,
+      gitHubCredentials,
+      gitHubCommitter
+    );
     await slackBotReactionAdd(debugChannel, slackPostTS, "white_check_mark");
     await slackBotReplyPost(debugChannel, slackPostTS, "POST Success");
     context.res = {
