@@ -6,6 +6,7 @@
   },
   "data": {
     "wordpress_source_url": "https://as-go-covid19-d-001.azurewebsites.net",
+    "ReportingChannel_Slack": "A02G6PETB9B",
     "github_targets": [
       {
         "outputBranch": "main",

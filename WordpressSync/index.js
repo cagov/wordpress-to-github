@@ -61,10 +61,13 @@ const doProcessEndpoints = async () => {
 
   for (const endpoint of work) {
     console.log(`*** Checking endpoint for ${endpoint.name} ***`);
-    await SyncEndpoint(
+
+    const report = await SyncEndpoint(
       endpoint.GitHubTarget,
       gitHubCredentials,
       gitHubCommitter
     );
+
+    const x = report;
   }
 };
