@@ -74,7 +74,7 @@ const doProcessEndpoints = async () => {
 
     if (endpoint.ReportingChannel_Slack) {
       //Endpoint reporting channel enabled.  Add a post for each commit report.
-      if (commitReports.length) {
+      if (commitReports?.length) {
         /** @type {string[]} */
         let mergeFileNames = [];
         commitReports.map(x => {
