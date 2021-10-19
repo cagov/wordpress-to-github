@@ -29,6 +29,11 @@
                 "default": false,
                 "description": "Should we process this endpoint when running in local development?"
               },
+              "ReportingChannel_Slack": {
+                "type": "string",
+                "description": "Slack channel to report status to.",
+                "examples": ["A02G6PETB9B"]
+              },
               "GitHubTarget": {
                 "type": "object",
                 "description": "The endpoint target to deploy changes",

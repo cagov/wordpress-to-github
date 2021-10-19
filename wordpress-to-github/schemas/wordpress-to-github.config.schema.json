@@ -82,11 +82,6 @@
           "description": "URL of the Wordpress instance to read from",
           "examples": ["https://mywpinstance.azurewebsites.net"]
         },
-        "ReportingChannel_Slack": {
-          "type": "string",
-          "description": "Slack channel to report status to.",
-          "examples": ["A02G6PETB9B"]
-        },
         "github_targets": {
           "description": "List of Github targets to run.",
           "type": "array",
