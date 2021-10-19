@@ -26,7 +26,7 @@
       {
         "name": "staging.drought.ca.gov",
         "description": "Drought STAGING website",
-        "enabled": false,
+        "enabled": true,
         "enabledLocal": false,
         "ReportingChannel_Slack": "C02G6PETB9B",
         "WordPressSource": {
