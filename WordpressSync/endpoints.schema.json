@@ -31,7 +31,7 @@
               },
               "ReportingChannel_Slack": {
                 "type": "string",
-                "description": "Slack channel to report status to.",
+                "description": "Slack channel to report activity to.",
                 "examples": ["A02G6PETB9B"]
               },
               "GitHubTarget": {
