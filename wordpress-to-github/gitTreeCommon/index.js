@@ -162,7 +162,7 @@ const createTreeFromFileMap = async (
  * @param {GithubTreeRow[]} tree from createTreeFromFileMap
  * @param {string} PrTitle the name of the new branch to create
  * @param {{name:string,email:string}} committer Github Name/Email
- * @param {boolean} [commit_only] true if skipping the PR process and just making a commit
+ * @param {boolean} commit_only true if skipping the PR process and just making a commit
  * @returns the new PR
  */
 const CommitOrPrIfChanged = async (
