@@ -52,8 +52,6 @@ module.exports = async function (context, req) {
       `\n\n*Full Details*\n\`\`\`${JSON.stringify(req, null, 2)}\`\`\``
     );
 
-    await sleep(10 * 1000); // let's wait 10 seconds before processing to try to avoid sync issues with the WP database
-
     //Find endpoints that match the requestor
     const postAgent = req.headers["user-agent"];
     const activeEndpoints = endpoints.data.projects.filter(
@@ -68,25 +66,36 @@ module.exports = async function (context, req) {
       await slackBotReplyPost(
         debugChannel,
         slackPostTS,
-        `Matching endpoints found ...${activeEndpoints
+        `${
+          activeEndpoints.length
+        } matching endpoint(s) found ...${activeEndpoints
           .map(x => x.name)
           .join(", ")}`
       );
+
+      await sleep(10 * 1000); // let's wait 10 seconds before processing to try to avoid sync issues with the WP database
+
+      //run the indexpage async
+      const indexCode = require("../WordpressSync");
+      await indexCode(
+        {
+          executionContext: {
+            functionName: "WordpressSyncHttpTrigger"
+          }
+        },
+        null,
+        activeEndpoints.map(x => x.name)
+      );
+      await slackBotReplyPost(debugChannel, slackPostTS, `Done.`);
     } else {
       await slackBotReplyPost(
         debugChannel,
         slackPostTS,
         `No endpoints found for...${postAgent}`
       );
+      await slackBotReactionAdd(debugChannel, slackPostTS, "no_entry");
     }
 
-    const report = await SyncEndpoint(
-      req.body,
-      gitHubCredentials,
-      gitHubCommitter
-    );
-    await slackBotReactionAdd(debugChannel, slackPostTS, "white_check_mark");
-    await slackBotReplyPost(debugChannel, slackPostTS, "POST Success");
     context.res = {
       status: 204 //OK - No content
     };
@@ -98,8 +107,7 @@ module.exports = async function (context, req) {
       context,
       null
     );
-    await slackBotReplyPost(debugChannel, slackPostTS, "Error!");
-    await slackBotReactionAdd(debugChannel, slackPostTS, "no_entry");
+
     context.res = {
       status: 500,
       body: `Error - ${e.message}`
