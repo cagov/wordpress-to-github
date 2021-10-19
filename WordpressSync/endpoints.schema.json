@@ -16,6 +16,7 @@
           "uniqueItems": true,
           "items": {
             "additionalProperties": false,
+            "required": ["name", "enabled", "WordPressSource", "GitHubTarget"],
             "properties": {
               "name": {
                 "type": "string",
