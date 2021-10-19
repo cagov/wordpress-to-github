@@ -15,10 +15,15 @@
           "type": "array",
           "uniqueItems": true,
           "items": {
+            "additionalProperties": false,
             "properties": {
               "name": {
                 "type": "string",
                 "description": "friendly name for this job when it runs locally."
+              },
+              "notes": {
+                "type": "string",
+                "description": "Notes about this endpoint configuration."
               },
               "enabled": {
                 "type": "boolean",
@@ -34,10 +39,33 @@
                 "description": "Slack channel to report activity to.",
                 "examples": ["A02G6PETB9B"]
               },
+              "WordPressSource": {
+                "additionalProperties": false,
+                "description": "Describes the Wordpress instance to read from",
+                "required": ["url"],
+                "properties": {
+                  "url": {
+                    "type": "string",
+                    "description": "URL of the Wordpress instance to read from",
+                    "pattern": "^https?://",
+                    "examples": ["https://my-wordpress-site.azurewebsites.net"]
+                  },
+                  "tags_exclude": {
+                    "type": "array",
+                    "default": [],
+                    "description": "Ignore Pages/Posts with these tags (Case sensitive!).",
+                    "examples": [["staging", "development"]],
+                    "items": {
+                      "type": "string"
+                    }
+                  }
+                }
+              },
               "GitHubTarget": {
                 "type": "object",
                 "description": "The endpoint target to deploy changes",
                 "required": ["Owner", "Repo", "Branch", "ConfigPath"],
+                "additionalProperties": false,
                 "properties": {
                   "Owner": {
                     "type": "string",
