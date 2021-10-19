@@ -21,9 +21,9 @@
                 "type": "string",
                 "description": "friendly name for this job when it runs locally."
               },
-              "notes": {
+              "description": {
                 "type": "string",
-                "description": "Notes about this endpoint configuration."
+                "description": "Describe what this is being used for in this endpoint configuration."
               },
               "enabled": {
                 "type": "boolean",
