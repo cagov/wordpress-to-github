@@ -10,6 +10,7 @@
         "name": "drought.ca.gov",
         "enabled": true,
         "enabledLocal": false,
+        "ReportingChannel_Slack": "C02G6PETB9B",
         "GitHubTarget": {
           "Owner": "cagov",
           "Repo": "drought.ca.gov",
@@ -21,6 +22,7 @@
         "name": "main-test-pantheon.drought.ca.gov",
         "enabled": true,
         "enabledLocal": false,
+        "ReportingChannel_Slack": "C02G6PETB9B",
         "GitHubTarget": {
           "Owner": "cagov",
           "Repo": "drought.ca.gov",
@@ -32,6 +34,7 @@
         "name": "development.drought.ca.gov",
         "enabled": false,
         "enabledLocal": false,
+        "ReportingChannel_Slack": "C02G6PETB9B",
         "GitHubTarget": {
           "Owner": "cagov",
           "Repo": "drought.ca.gov",
@@ -43,6 +46,7 @@
         "name": "headless.cannabis.ca.gov",
         "enabled": true,
         "enabledLocal": false,
+        "ReportingChannel_Slack": "C02G6PETB9B",
         "GitHubTarget": {
           "Owner": "cagov",
           "Repo": "cannabis.ca.gov",
@@ -54,6 +58,7 @@
         "name": "staging.cannabis.ca.gov",
         "enabled": true,
         "enabledLocal": false,
+        "ReportingChannel_Slack": "C02G6PETB9B",
         "GitHubTarget": {
           "Owner": "cagov",
           "Repo": "cannabis.ca.gov",
@@ -65,6 +70,7 @@
         "name": "development.cannabis.ca.gov",
         "enabled": true,
         "enabledLocal": false,
+        "ReportingChannel_Slack": "C02G6PETB9B",
         "GitHubTarget": {
           "Owner": "cagov",
           "Repo": "cannabis.ca.gov",
@@ -76,6 +82,7 @@
         "name": "staging-pantheon.cannabis.ca.gov",
         "enabled": true,
         "enabledLocal": false,
+        "ReportingChannel_Slack": "C02G6PETB9B",
         "GitHubTarget": {
           "Owner": "cagov",
           "Repo": "cannabis.ca.gov",
@@ -87,6 +94,7 @@
         "name": "development-pantheon.cannabis.ca.gov",
         "enabled": true,
         "enabledLocal": false,
+        "ReportingChannel_Slack": "C02G6PETB9B",
         "GitHubTarget": {
           "Owner": "cagov",
           "Repo": "cannabis.ca.gov",
@@ -98,6 +106,7 @@
         "name": "main-wp58.cannabis.ca.gov",
         "enabled": false,
         "enabledLocal": false,
+        "ReportingChannel_Slack": "C02G6PETB9B",
         "GitHubTarget": {
           "Owner": "cagov",
           "Repo": "cannabis.ca.gov",
@@ -109,6 +118,7 @@
         "name": "staging-wp58.cannabis.ca.gov",
         "enabled": false,
         "enabledLocal": false,
+        "ReportingChannel_Slack": "C02G6PETB9B",
         "GitHubTarget": {
           "Owner": "cagov",
           "Repo": "cannabis.ca.gov",
@@ -120,6 +130,7 @@
         "name": "development-wp58.cannabis.ca.gov",
         "enabled": false,
         "enabledLocal": false,
+        "ReportingChannel_Slack": "C02G6PETB9B",
         "GitHubTarget": {
           "Owner": "cagov",
           "Repo": "cannabis.ca.gov",
@@ -131,6 +142,7 @@
         "name": "digital.ca.gov website",
         "enabled": true,
         "enabledLocal": false,
+        "ReportingChannel_Slack": "C02G6PETB9B",
         "GitHubTarget": {
           "Owner": "cagov",
           "Repo": "digital.ca.gov",
