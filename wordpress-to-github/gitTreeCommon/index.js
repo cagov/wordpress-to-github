@@ -65,11 +65,12 @@ const gitHubBlobPredictShaFromBuffer = buffer =>
  * @typedef {object} GithubCommit
  * @property {string} sha
  * @property {string} html_url
+ * @property {string} message
  */
 
 /**
  * @typedef {object} GithubCompareFile
- * @property {string} fileName
+ * @property {string} filename
  * @property {string} status
  */
 
