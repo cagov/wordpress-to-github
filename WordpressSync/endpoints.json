@@ -140,7 +140,7 @@
       },
       {
         "name": "Covid 19 website (Using data to create test output)",
-        "enabled": true,
+        "enabled": false,
         "enabledLocal": true,
         "ReportingChannel_Slack": "C01H6RB99E2",
         "GitHubTarget": {
