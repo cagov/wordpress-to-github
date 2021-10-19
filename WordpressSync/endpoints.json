@@ -8,13 +8,35 @@
     "projects": [
       {
         "name": "drought.ca.gov",
+        "description": "Drought production website",
         "enabled": true,
         "enabledLocal": false,
         "ReportingChannel_Slack": "C02G6PETB9B",
+        "WordPressSource": {
+          "url": "https://live-drought-ca-gov.pantheonsite.io",
+          "tags_exclude": ["staging", "development"]
+        },
         "GitHubTarget": {
           "Owner": "cagov",
           "Repo": "drought.ca.gov",
           "Branch": "main",
+          "ConfigPath": "wordpress/wordpress-to-github.config.json"
+        }
+      },
+      {
+        "name": "staging.drought.ca.gov",
+        "description": "Drought STAGING website",
+        "enabled": false,
+        "enabledLocal": false,
+        "ReportingChannel_Slack": "C02G6PETB9B",
+        "WordPressSource": {
+          "url": "https://live-drought-ca-gov.pantheonsite.io",
+          "tags_exclude": ["development"]
+        },
+        "GitHubTarget": {
+          "Owner": "cagov",
+          "Repo": "drought.ca.gov",
+          "Branch": "staging",
           "ConfigPath": "wordpress/wordpress-to-github.config.json"
         }
       },

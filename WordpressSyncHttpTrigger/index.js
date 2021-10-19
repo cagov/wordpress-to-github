@@ -1,12 +1,14 @@
 // @ts-check
 const { SyncEndpoint } = require("../wordpress-to-github");
 const { GitHubTarget } = require("../wordpress-to-github/common");
+const { sleep } = require("../wordpress-to-github/gitTreeCommon");
 const {
   slackBotReportError,
   slackBotChatPost,
   slackBotReplyPost,
   slackBotReactionAdd
 } = require("../common/slackBot");
+const endpoints = require("../WordpressSync/endpoints.json");
 
 const debugChannel = "C02G6PETB9B"; //#wordpress-sync-http-trigger
 
@@ -18,14 +20,6 @@ const gitHubCredentials = {
   token: process.env["GITHUB_TOKEN"]
 };
 
-/**
- * @param {number} timeout
- */
-function wait(timeout) {
-  return new Promise(resolve => {
-    setTimeout(resolve, timeout);
-  });
-}
 /**
  *
  * @typedef {object} Response
@@ -58,21 +52,33 @@ module.exports = async function (context, req) {
       `\n\n*Full Details*\n\`\`\`${JSON.stringify(req, null, 2)}\`\`\``
     );
 
-    if (
-      !req.body ||
-      !req.body.Branch ||
-      !req.body.Owner ||
-      !req.body.Repo ||
-      !req.body.ConfigPath
-    ) {
-      context.res = {
-        status: 400,
-        body: "Bad Request - Expecting JSON - {Owner:string, Repo:string, Branch:string, ConfigPath:string}"
-      };
-      return;
-    }
+    await sleep(10 * 1000); // let's wait 10 seconds before processing to try to avoid sync issues with the WP database
 
-    await wait(10 * 1000); // let's wait 10 seconds before processing to try to avoid sync issues with the WP database
+    //Find endpoints that match the requestor
+    const postAgent = req.headers["user-agent"];
+    const activeEndpoints = endpoints.data.projects.filter(
+      x =>
+        x.enabled &&
+        x.WordPressSource?.url &&
+        postAgent.includes(x.WordPressSource.url)
+    );
+
+    //if you find matches...congrats...report for now
+    if (activeEndpoints.length) {
+      await slackBotReplyPost(
+        debugChannel,
+        slackPostTS,
+        `Matching endpoints found ...${activeEndpoints
+          .map(x => x.name)
+          .join(", ")}`
+      );
+    } else {
+      await slackBotReplyPost(
+        debugChannel,
+        slackPostTS,
+        `No endpoints found for...${postAgent}`
+      );
+    }
 
     const report = await SyncEndpoint(
       req.body,
