@@ -43,7 +43,10 @@ module.exports = async function (context, req) {
     const SlugName = req.body["slug"] || "(slug)";
     slackPostTS = (
       await (
-        await slackBotChatPost(debugChannel, `${SlugName} - ${TriggerName}`)
+        await slackBotChatPost(
+          debugChannel,
+          `Notification received - ${SlugName} - ${TriggerName}`
+        )
       ).json()
     ).ts;
     await slackBotReplyPost(
