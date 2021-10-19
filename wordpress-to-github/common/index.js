@@ -10,11 +10,20 @@ const fetchRetry = require("fetch-retry")(require("node-fetch/lib"), {
 });
 
 /**
- * @typedef {object} GithubTargetConfig
- * @property {string} outputBranch branch for this target
+ * @typedef {object} SourceEndpointConfigData
+ * @property {boolean} enabled
+ * @property {boolean} enabledLocal
+ * @property {GitHubTarget} GitHubTarget
+ * @property {string} name
+ * @property {string} [description]
+ * @property {string} [ReportingChannel_Slack]
+ * @property {WordpressSource} WordPressSource
+ */
+
+/**
+ * @typedef {object} EndpointConfigData
  * @property {boolean} disabled true to ignore processing
  * @property {string[]} [ExcludeProperties] list of properties to exclude
- * @property {string[]} [tags_exclude] negative list of tags to signal ignoring an object
  * @property {string} [PostPath]
  * @property {string} [PagePath]
  * @property {string} [MediaPath]
@@ -22,12 +31,10 @@ const fetchRetry = require("fetch-retry")(require("node-fetch/lib"), {
  */
 
 /**
- * @typedef {object} EndpointConfigData
- * @property {string} wordpress_source_url
- * @property {GithubTargetConfig[]} github_targets
  * @typedef {{Owner:string, Repo:string, Branch:string, ConfigPath:string}} GitHubTarget
  * @typedef {{name:string, email:string}} GitHubCommitter
  * @typedef {{token:string}} GitHubCredentials
+ * @typedef {{url:string,tags_exclude:string[]}} WordpressSource
  * @typedef {{width:number,path:string}} WordpressMediaSize
  */
 
@@ -343,7 +350,7 @@ function githubDoesFileExist(myRepo, path, data, cb) {
  * @param {string} wordpress_url
  * @param {*} gitRepo
  * @param {GithubTreeRow[]} mediaTree
- * @param {GithubTargetConfig} endpoint
+ * @param {EndpointConfigData} endpoint
  */
 const syncBinaryFile = async (wordpress_url, gitRepo, mediaTree, endpoint) => {
   console.log(`Downloading...${wordpress_url}`);
@@ -400,7 +407,7 @@ const ensureStringStartsWith = (startText, value) =>
 /**
  * Places the media section if SyncMedia is on
  *
- * @param {GithubTargetConfig} endpoint
+ * @param {EndpointConfigData} endpoint
  * @param {Map <string,any> | null} mediaMap
  * @param {GithubOutputJson} jsonData
  * @param {string} HTML

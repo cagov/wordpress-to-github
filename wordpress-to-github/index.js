@@ -22,6 +22,7 @@ const {
   GitHubTarget,
   GitHubCredentials,
   EndpointConfigData,
+  SourceEndpointConfigData,
   WordpressApiDateCacheItem,
   GitHubCommitter,
   GithubOutputJson,
@@ -64,7 +65,7 @@ const getRemoteConfig = async (gitHubTarget, gitHubCredentials) => {
       gitHubTarget.ConfigPath,
       true
     )
-  ).data.data;
+  ).data.data.github_targets[0];
 
   return endpointConfig;
 };
@@ -99,12 +100,12 @@ const addToReport = (Report, CommitResult) => {
 /**
  * process a Wordpress endpoint and place the data in GitHub
  *
- * @param {GitHubTarget} gitHubTarget
+ * @param {SourceEndpointConfigData} sourceEndpointConfig
  * @param {GitHubCredentials} gitHubCredentials
  * @param {GitHubCommitter} gitHubCommitter
  */
 const SyncEndpoint = async (
-  gitHubTarget,
+  sourceEndpointConfig,
   gitHubCredentials,
   gitHubCommitter
 ) => {
@@ -114,17 +115,15 @@ const SyncEndpoint = async (
 
   // @ts-ignore
   const gitRepo = await gitModule.getRepo(
-    gitHubTarget.Owner,
-    gitHubTarget.Repo
+    sourceEndpointConfig.GitHubTarget.Owner,
+    sourceEndpointConfig.GitHubTarget.Repo
   );
 
   const endpointConfigData = await getRemoteConfig(
-    gitHubTarget,
+    sourceEndpointConfig.GitHubTarget,
     gitHubCredentials
   );
-  const wordPressApiUrl = endpointConfigData.wordpress_source_url + apiPath;
-
-  const endpointConfigs = endpointConfigData.github_targets;
+  const wordPressApiUrl = sourceEndpointConfig.WordPressSource.url + apiPath;
 
   //Check cache (and set cache for next time)
   let cacheMatch = true;
@@ -153,7 +152,7 @@ const SyncEndpoint = async (
   const repoDetails = await gitRepo.getDetails();
   if (!repoDetails.data.permissions.push) {
     throw new Error(
-      `App user has no write permissions for ${gitHubTarget.Repo}`
+      `App user has no write permissions for ${sourceEndpointConfig.GitHubTarget.Repo}`
     );
   }
 
@@ -163,320 +162,318 @@ const SyncEndpoint = async (
   const userlist = await fetchDictionary(wordPressApiUrl, "users");
 
   /** @type {WordpressMediaRow[] | null} */
-  const allMedia = endpointConfigs.some(x => x.MediaPath)
+  const allMedia = endpointConfigData.MediaPath
     ? await WpApi_GetPagedData_ByObjectType(wordPressApiUrl, "media")
     : null;
   /** @type {WordpressPostRow[] | null} */
-  const allPosts = endpointConfigs.some(x => x.PostPath)
+  const allPosts = endpointConfigData.PostPath
     ? await WpApi_GetPagedData_ByObjectType(wordPressApiUrl, "posts")
     : null;
   /** @type {WordpressPageRow[] | null} */
-  const allPages = endpointConfigs.some(x => x.PagePath)
+  const allPages = endpointConfigData.PagePath
     ? await WpApi_GetPagedData_ByObjectType(wordPressApiUrl, "pages")
     : null;
 
-  for (let endpointConfig of endpointConfigs) {
-    if (endpointConfig.disabled) {
-      console.log("Remote config is disabled.");
-      continue;
-    }
+  if (endpointConfigData.disabled) {
+    console.log("Remote config is disabled.");
+    return;
+  }
 
-    if (endpointConfig.GeneralFilePath) {
-      const fetchResponse = await WpApi_getSomething(
-        `${
-          endpointConfigData.wordpress_source_url
-        }/wp-json/?_fields=description,gmt_offset,name,namespaces,timezone_string,home,url&cachebust=${Math.random()}`
-      );
+  if (endpointConfigData.GeneralFilePath) {
+    const fetchResponse = await WpApi_getSomething(
+      `${
+        sourceEndpointConfig.WordPressSource.url
+      }/wp-json/?_fields=description,gmt_offset,name,namespaces,timezone_string,home,url&cachebust=${Math.random()}`
+    );
 
-      const data = await fetchResponse.json();
-      delete data._links;
+    const data = await fetchResponse.json();
+    delete data._links;
 
-      const jsonData = {
-        meta: {
-          ...commonMeta(endpointConfigData.wordpress_source_url, gitHubTarget)
-        },
-        data
-      };
-      const filePath = endpointConfig.GeneralFilePath.split("/")
-        .slice(0, -1)
-        .join("/");
-      const fileName = endpointConfig.GeneralFilePath.split("/").slice(-1)[0];
-
-      const fileMap = new Map();
-      fileMap.set(fileName, jsonData);
-      const newTree = await createTreeFromFileMap(
-        gitRepo,
-        endpointConfig.outputBranch,
-        fileMap,
-        filePath,
-        true
-      );
-
-      addToReport(
-        report,
-        await CommitIfChanged(
-          gitRepo,
-          endpointConfig.outputBranch,
-          newTree,
-          commitTitleGeneral,
-          gitHubCommitter
+    const jsonData = {
+      meta: {
+        ...commonMeta(
+          sourceEndpointConfig.WordPressSource.url,
+          sourceEndpointConfig.GitHubTarget
         )
-      );
-    }
+      },
+      data
+    };
+    const filePath = endpointConfigData.GeneralFilePath.split("/")
+      .slice(0, -1)
+      .join("/");
+    const fileName = endpointConfigData.GeneralFilePath.split("/").slice(-1)[0];
 
-    /** @type {Map <string,any> | null} */
-    const postMap = endpointConfig.PostPath ? new Map() : null;
-    /** @type {Map <string,any> | null} */
-    const pagesMap = endpointConfig.PagePath ? new Map() : null;
-    /** @type {Map <string,any> | null} */
-    const mediaMap = endpointConfig.MediaPath ? new Map() : null;
+    const fileMap = new Map();
+    fileMap.set(fileName, jsonData);
+    const newTree = await createTreeFromFileMap(
+      gitRepo,
+      sourceEndpointConfig.GitHubTarget.Branch,
+      fileMap,
+      filePath,
+      true
+    );
 
-    // MEDIA
-    const mediaContentPlaceholder =
-      "TBD : Binary file to be updated in a later step";
-    if (endpointConfig.MediaPath && mediaMap && allMedia) {
-      allMedia.forEach(x => {
-        /** @type {GithubOutputJson} */
-        const jsonData = {
-          ...x,
-          author: userlist[x.author.toString()],
+    addToReport(
+      report,
+      await CommitIfChanged(
+        gitRepo,
+        sourceEndpointConfig.GitHubTarget.Branch,
+        newTree,
+        commitTitleGeneral,
+        gitHubCommitter
+      )
+    );
+  }
+
+  /** @type {Map <string,any> | null} */
+  const postMap = endpointConfigData.PostPath ? new Map() : null;
+  /** @type {Map <string,any> | null} */
+  const pagesMap = endpointConfigData.PagePath ? new Map() : null;
+  /** @type {Map <string,any> | null} */
+  const mediaMap = endpointConfigData.MediaPath ? new Map() : null;
+
+  // MEDIA
+  const mediaContentPlaceholder =
+    "TBD : Binary file to be updated in a later step";
+  if (endpointConfigData.MediaPath && mediaMap && allMedia) {
+    allMedia.forEach(x => {
+      /** @type {GithubOutputJson} */
+      const jsonData = {
+        ...x,
+        author: userlist[x.author.toString()],
+        wordpress_url: ensureStringStartsWith(
+          sourceEndpointConfig.WordPressSource.url,
+          x.source_url
+        )
+      };
+
+      removeExcludedProperties(jsonData, endpointConfigData.ExcludeProperties);
+
+      if (x.media_details.sizes && Object.keys(x.media_details.sizes).length) {
+        jsonData.sizes = Object.keys(x.media_details.sizes).map(s => ({
+          type: s,
+          path: pathFromMediaSourceUrl(x.media_details.sizes[s].source_url),
           wordpress_url: ensureStringStartsWith(
-            endpointConfigData.wordpress_source_url,
-            x.source_url
-          )
-        };
+            sourceEndpointConfig.WordPressSource.url,
+            x.media_details.sizes[s].source_url
+          ),
+          ...x.media_details.sizes[s]
+        }));
 
-        removeExcludedProperties(jsonData, endpointConfig.ExcludeProperties);
+        jsonData.sizes.sort((a, b) => b.width - a.width); //Big first
 
-        if (
-          x.media_details.sizes &&
-          Object.keys(x.media_details.sizes).length
-        ) {
-          jsonData.sizes = Object.keys(x.media_details.sizes).map(s => ({
-            type: s,
-            path: pathFromMediaSourceUrl(x.media_details.sizes[s].source_url),
-            wordpress_url: ensureStringStartsWith(
-              endpointConfigData.wordpress_source_url,
-              x.media_details.sizes[s].source_url
-            ),
-            ...x.media_details.sizes[s]
-          }));
-
-          jsonData.sizes.sort((a, b) => b.width - a.width); //Big first
-
-          //put binary placeholders so they aren't deleted.  Will search for these if an update happens.
-          for (const s of jsonData.sizes) {
-            mediaMap.set(s.path, mediaContentPlaceholder);
-          }
-        }
-        //PDF
-        jsonData.path = pathFromMediaSourceUrl(x.source_url);
-        mediaMap.set(jsonData.path, mediaContentPlaceholder);
-        mediaMap.set(
-          pathFromMediaSourceUrl(x.source_url).replace(/\.([^.]+)$/, ".json"),
-          wrapInFileMeta(
-            endpointConfigData.wordpress_source_url,
-            gitHubTarget,
-            fieldMetaReference.media,
-            jsonData
-          )
-        );
-      });
-
-      let mediaTree = await createTreeFromFileMap(
-        gitRepo,
-        gitHubTarget.Branch,
-        mediaMap,
-        endpointConfig.MediaPath,
-        true
-      );
-
-      const mediaChanges = mediaTree
-        .filter(x => x.content && x.content !== mediaContentPlaceholder)
-        .map(mt => JSON.parse(mt.content).data);
-
-      if (mediaChanges.length) {
-        console.log(`Checking ${mediaTree.length} media items`);
-
-        //Pull in binaries for any media meta changes
-        for (const mediaTreeItem of mediaChanges) {
-          if (mediaTreeItem.sizes) {
-            //Sized images
-            for (const sizeJson of mediaTreeItem.sizes) {
-              await syncBinaryFile(
-                sizeJson.wordpress_url,
-                gitRepo,
-                mediaTree,
-                endpointConfig
-              );
-            }
-          }
-
-          //not sized media (PDF or non-image)
-          await syncBinaryFile(
-            mediaTreeItem.wordpress_url,
-            gitRepo,
-            mediaTree,
-            endpointConfig
-          );
+        //put binary placeholders so they aren't deleted.  Will search for these if an update happens.
+        for (const s of jsonData.sizes) {
+          mediaMap.set(s.path, mediaContentPlaceholder);
         }
       }
+      //PDF
+      jsonData.path = pathFromMediaSourceUrl(x.source_url);
+      mediaMap.set(jsonData.path, mediaContentPlaceholder);
+      mediaMap.set(
+        pathFromMediaSourceUrl(x.source_url).replace(/\.([^.]+)$/, ".json"),
+        wrapInFileMeta(
+          sourceEndpointConfig.WordPressSource.url,
+          sourceEndpointConfig.GitHubTarget,
+          fieldMetaReference.media,
+          jsonData
+        )
+      );
+    });
 
-      //Remove any leftover binary placeholders...
-      mediaTree = mediaTree.filter(x => x.content !== mediaContentPlaceholder);
-      addToReport(
-        report,
-        await CommitIfChanged(
+    let mediaTree = await createTreeFromFileMap(
+      gitRepo,
+      sourceEndpointConfig.GitHubTarget.Branch,
+      mediaMap,
+      endpointConfigData.MediaPath,
+      true
+    );
+
+    const mediaChanges = mediaTree
+      .filter(x => x.content && x.content !== mediaContentPlaceholder)
+      .map(mt => JSON.parse(mt.content).data);
+
+    if (mediaChanges.length) {
+      console.log(`Checking ${mediaTree.length} media items`);
+
+      //Pull in binaries for any media meta changes
+      for (const mediaTreeItem of mediaChanges) {
+        if (mediaTreeItem.sizes) {
+          //Sized images
+          for (const sizeJson of mediaTreeItem.sizes) {
+            await syncBinaryFile(
+              sizeJson.wordpress_url,
+              gitRepo,
+              mediaTree,
+              endpointConfigData
+            );
+          }
+        }
+
+        //not sized media (PDF or non-image)
+        await syncBinaryFile(
+          mediaTreeItem.wordpress_url,
           gitRepo,
-          gitHubTarget.Branch,
           mediaTree,
-          `${commitTitleMedia} (${mediaTree.length} updates)`,
-          gitHubCommitter
-        )
-      );
+          endpointConfigData
+        );
+      }
     }
 
-    /**
-     *
-     * @param {*} jsonData
-     * @param {string} fieldName
-     * @param {any} dictionary
-     * @returns {string[] | undefined}
-     */
-    const mapLookup = (jsonData, fieldName, dictionary) => {
-      if (jsonData[fieldName]) {
-        return jsonData[fieldName].map(
-          (/** @type {string | number} */ t) => dictionary[t]
-        );
-      } else {
-        return undefined;
-      }
+    //Remove any leftover binary placeholders...
+    mediaTree = mediaTree.filter(x => x.content !== mediaContentPlaceholder);
+    addToReport(
+      report,
+      await CommitIfChanged(
+        gitRepo,
+        sourceEndpointConfig.GitHubTarget.Branch,
+        mediaTree,
+        `${commitTitleMedia} (${mediaTree.length} updates)`,
+        gitHubCommitter
+      )
+    );
+  }
+
+  /**
+   *
+   * @param {*} jsonData
+   * @param {string} fieldName
+   * @param {any} dictionary
+   * @returns {string[] | undefined}
+   */
+  const mapLookup = (jsonData, fieldName, dictionary) => {
+    if (jsonData[fieldName]) {
+      return jsonData[fieldName].map(
+        (/** @type {string | number} */ t) => dictionary[t]
+      );
+    } else {
+      return undefined;
+    }
+  };
+
+  /**
+   *
+   * @param {WordpressPostRow | WordpressPageRow} wpRow
+   * @returns {GithubOutputJson}
+   */
+  const wordPressRowToGitHubOutput = wpRow => {
+    const jsonData = {
+      ...wpRow,
+      author: userlist[wpRow.author],
+      wordpress_url: wpRow.link,
+      categories: mapLookup(wpRow, "categories", categorylist),
+      tags: mapLookup(wpRow, "tags", taglist)
     };
 
-    /**
-     *
-     * @param {WordpressPostRow | WordpressPageRow} wpRow
-     * @returns {GithubOutputJson}
-     */
-    const wordPressRowToGitHubOutput = wpRow => {
-      const jsonData = {
-        ...wpRow,
-        author: userlist[wpRow.author],
-        wordpress_url: wpRow.link,
-        categories: mapLookup(wpRow, "categories", categorylist),
-        tags: mapLookup(wpRow, "tags", taglist)
-      };
-
-      if (!wpRow.categories) {
-        delete jsonData.categories;
-      }
-      if (!wpRow.tags) {
-        delete jsonData.tags;
-      }
-
-      return jsonData;
-    };
-
-    // POSTS
-    if (endpointConfig.PostPath && postMap && allPosts) {
-      allPosts.forEach(x => {
-        const jsonData = wordPressRowToGitHubOutput(x);
-
-        const HTML = cleanupContent(x.content);
-
-        addMediaSection(endpointConfig, mediaMap, jsonData, HTML);
-
-        removeExcludedProperties(jsonData, endpointConfig.ExcludeProperties);
-
-        const ignoreThisOne = anythingInArrayMatch(
-          jsonData.tags,
-          endpointConfig.tags_exclude
-        );
-
-        postMap.set(
-          `${x.slug}.json`,
-          ignoreThisOne
-            ? null
-            : wrapInFileMeta(
-                endpointConfigData.wordpress_source_url,
-                gitHubTarget,
-                fieldMetaReference.posts,
-                jsonData
-              )
-        );
-        postMap.set(`${x.slug}.html`, ignoreThisOne ? null : HTML);
-      });
-
-      const postTree = await createTreeFromFileMap(
-        gitRepo,
-        endpointConfig.outputBranch,
-        postMap,
-        endpointConfig.PostPath,
-        true
-      );
-      addToReport(
-        report,
-        await CommitIfChanged(
-          gitRepo,
-          endpointConfig.outputBranch,
-          postTree,
-          `${commitTitlePosts} (${
-            postTree.filter(x => x.path.endsWith(".html")).length
-          } updates)`,
-          gitHubCommitter
-        )
-      );
+    if (!wpRow.categories) {
+      delete jsonData.categories;
     }
-    // PAGES
-    if (endpointConfig.PagePath && pagesMap && allPages) {
-      allPages.forEach(x => {
-        const jsonData = wordPressRowToGitHubOutput(x);
-
-        const HTML = cleanupContent(x.content);
-
-        addMediaSection(endpointConfig, mediaMap, jsonData, HTML);
-
-        removeExcludedProperties(jsonData, endpointConfig.ExcludeProperties);
-
-        const ignoreThisOne = anythingInArrayMatch(
-          jsonData.tags,
-          endpointConfig.tags_exclude
-        );
-
-        pagesMap.set(
-          `${x.slug}.json`,
-          ignoreThisOne
-            ? null
-            : wrapInFileMeta(
-                endpointConfigData.wordpress_source_url,
-                gitHubTarget,
-                fieldMetaReference.media,
-                jsonData
-              )
-        );
-        pagesMap.set(`${x.slug}.html`, ignoreThisOne ? null : HTML);
-      });
-
-      const pagesTree = await createTreeFromFileMap(
-        gitRepo,
-        endpointConfig.outputBranch,
-        pagesMap,
-        endpointConfig.PagePath,
-        true
-      );
-      addToReport(
-        report,
-        await CommitIfChanged(
-          gitRepo,
-          endpointConfig.outputBranch,
-          pagesTree,
-          `${commitTitlePages} (${
-            pagesTree.filter(x => x.path.endsWith(".html")).length
-          } updates)`,
-          gitHubCommitter
-        )
-      );
+    if (!wpRow.tags) {
+      delete jsonData.tags;
     }
+
+    return jsonData;
+  };
+
+  // POSTS
+  if (endpointConfigData.PostPath && postMap && allPosts) {
+    allPosts.forEach(x => {
+      const jsonData = wordPressRowToGitHubOutput(x);
+
+      const HTML = cleanupContent(x.content);
+
+      addMediaSection(endpointConfigData, mediaMap, jsonData, HTML);
+
+      removeExcludedProperties(jsonData, endpointConfigData.ExcludeProperties);
+
+      const ignoreThisOne = anythingInArrayMatch(
+        jsonData.tags,
+        sourceEndpointConfig.WordPressSource.tags_exclude
+      );
+
+      postMap.set(
+        `${x.slug}.json`,
+        ignoreThisOne
+          ? null
+          : wrapInFileMeta(
+              sourceEndpointConfig.WordPressSource.url,
+              sourceEndpointConfig.GitHubTarget,
+              fieldMetaReference.posts,
+              jsonData
+            )
+      );
+      postMap.set(`${x.slug}.html`, ignoreThisOne ? null : HTML);
+    });
+
+    const postTree = await createTreeFromFileMap(
+      gitRepo,
+      sourceEndpointConfig.GitHubTarget.Branch,
+      postMap,
+      endpointConfigData.PostPath,
+      true
+    );
+    addToReport(
+      report,
+      await CommitIfChanged(
+        gitRepo,
+        sourceEndpointConfig.GitHubTarget.Branch,
+        postTree,
+        `${commitTitlePosts} (${
+          postTree.filter(x => x.path.endsWith(".html")).length
+        } updates)`,
+        gitHubCommitter
+      )
+    );
+  }
+  // PAGES
+  if (endpointConfigData.PagePath && pagesMap && allPages) {
+    allPages.forEach(x => {
+      const jsonData = wordPressRowToGitHubOutput(x);
+
+      const HTML = cleanupContent(x.content);
+
+      addMediaSection(endpointConfigData, mediaMap, jsonData, HTML);
+
+      removeExcludedProperties(jsonData, endpointConfigData.ExcludeProperties);
+
+      const ignoreThisOne = anythingInArrayMatch(
+        jsonData.tags,
+        sourceEndpointConfig.WordPressSource.tags_exclude
+      );
+
+      pagesMap.set(
+        `${x.slug}.json`,
+        ignoreThisOne
+          ? null
+          : wrapInFileMeta(
+              sourceEndpointConfig.WordPressSource.url,
+              sourceEndpointConfig.GitHubTarget,
+              fieldMetaReference.media,
+              jsonData
+            )
+      );
+      pagesMap.set(`${x.slug}.html`, ignoreThisOne ? null : HTML);
+    });
+
+    const pagesTree = await createTreeFromFileMap(
+      gitRepo,
+      sourceEndpointConfig.GitHubTarget.Branch,
+      pagesMap,
+      endpointConfigData.PagePath,
+      true
+    );
+    addToReport(
+      report,
+      await CommitIfChanged(
+        gitRepo,
+        sourceEndpointConfig.GitHubTarget.Branch,
+        pagesTree,
+        `${commitTitlePages} (${
+          pagesTree.filter(x => x.path.endsWith(".html")).length
+        } updates)`,
+        gitHubCommitter
+      )
+    );
   }
 
   return report;
