@@ -1,4 +1,6 @@
 // @ts-check
+// Updated 2021-10-18
+
 const nowPacTime = (/** @type {Intl.DateTimeFormatOptions} */ options) =>
   new Date().toLocaleString("en-CA", {
     timeZone: "America/Los_Angeles",
@@ -50,7 +52,32 @@ const gitHubBlobPredictShaFromBuffer = buffer =>
  * @property {string} type usually 'blob'
  * @property {string} [sha]
  * @property {string} [content]
- * @returns
+ */
+
+/**
+ * @typedef {object} GithubPullRequest
+ * @property {string} html_url
+ * @property {number} number
+ * @property {{ref:string}} head
+ */
+
+/**
+ * @typedef {object} GithubCommit
+ * @property {string} sha
+ * @property {string} html_url
+ * @property {string} message
+ */
+
+/**
+ * @typedef {object} GithubCompareFile
+ * @property {string} filename
+ * @property {string} status
+ */
+
+/**
+ * @typedef {object} CommitReport
+ * @property {GithubCommit} Commit
+ * @property {GithubCompareFile[]} Files
  */
 
 /**
@@ -135,10 +162,10 @@ const createTreeFromFileMap = async (
  * @param {GithubTreeRow[]} tree from createTreeFromFileMap
  * @param {string} PrTitle the name of the new branch to create
  * @param {{name:string,email:string}} committer Github Name/Email
- * @param {boolean} [commit_only] true if skipping the PR process and just making a commit
+ * @param {boolean} commit_only true if skipping the PR process and just making a commit
  * @returns the new PR
  */
-const PrIfChanged = async (
+const CommitOrPrIfChanged = async (
   gitRepo,
   masterBranch,
   tree,
@@ -188,32 +215,33 @@ const PrIfChanged = async (
   }
 
   //Create a commit the maps to all the tree changes
-  /** @type {{data:{sha:string,html_url:string}}} */
-  const commitResult = await gitRepo.commit(
-    baseSha,
-    createTreeResult.data.sha,
-    PrTitle,
-    committer
-  );
-  const commitSha = commitResult.data.sha;
+  /** @type {GithubCommit} */
+  const commitResult = (
+    await gitRepo.commit(baseSha, createTreeResult.data.sha, PrTitle, committer)
+  ).data;
+  const commitSha = commitResult.sha;
 
   //Compare the proposed commit with the trunk (master) branch
-  /** @type {{data:{files:*[]}}} */
-  const compare = await gitRepo.compareBranches(baseSha, commitSha);
-  if (compare.data.files.length) {
-    console.log(`${compare.data.files.length} changes.`);
+  /** @type {{files:GithubCompareFile[]}} */
+  const compare = (await gitRepo.compareBranches(baseSha, commitSha)).data;
+  if (compare.files.length) {
+    console.log(`${compare.files.length} changes.`);
 
     if (commit_only) {
-      console.log(`Commit created - ${commitResult.data.html_url}`);
+      console.log(`Commit created - ${commitResult.html_url}`);
       await gitRepo.updateHead(`heads/${masterBranch}`, commitSha);
 
-      return null;
+      return {
+        PullRequest: null,
+        Commit: commitResult,
+        Files: compare.files
+      };
     } else {
       //Create a new branch and assign this commit to it, return the new branch.
       await gitRepo.createBranch(masterBranch, newBranchName);
       await gitRepo.updateHead(`heads/${newBranchName}`, commitSha);
 
-      /** @type {{html_url:string;number:number,head:{ref:string}}} */
+      /** @type {GithubPullRequest} */
       const Pr = (
         await gitRepo.createPullRequest({
           title: PrTitle,
@@ -224,7 +252,11 @@ const PrIfChanged = async (
 
       console.log(`PR created - ${Pr.html_url}`);
 
-      return Pr;
+      return {
+        PullRequest: Pr,
+        Commit: commitResult,
+        Files: compare.files
+      };
     }
   } else {
     console.log("no changes");
@@ -232,9 +264,75 @@ const PrIfChanged = async (
   }
 };
 
+/**
+ *  return a new PR if the tree has changes
+ *
+ * @param {*} gitRepo from github-api
+ * @param {string} masterBranch usually "master" or "main"
+ * @param {GithubTreeRow[]} tree from createTreeFromFileMap
+ * @param {string} PrTitle the name of the new branch to create
+ * @param {{name:string,email:string}} committer Github Name/Email
+ * @param {boolean} [commit_only] deprecated
+ * @returns the new PR
+ */
+const PrIfChanged = async (
+  gitRepo,
+  masterBranch,
+  tree,
+  PrTitle,
+  committer,
+  commit_only
+) => {
+  if (commit_only !== undefined) {
+    throw new Error("commit_only is deprecated");
+  }
+
+  const PrResult = await CommitOrPrIfChanged(
+    gitRepo,
+    masterBranch,
+    tree,
+    PrTitle,
+    committer,
+    false
+  );
+
+  if (PrResult) return PrResult.PullRequest;
+};
+
+/**
+ *  return a new PR if the tree has changes
+ *
+ * @param {*} gitRepo from github-api
+ * @param {string} masterBranch usually "master" or "main"
+ * @param {GithubTreeRow[]} tree from createTreeFromFileMap
+ * @param {string} PrTitle the name of the new branch to create
+ * @param {{name:string,email:string}} committer Github Name/Email
+ * @returns the new PR
+ */
+const CommitIfChanged = async (
+  gitRepo,
+  masterBranch,
+  tree,
+  PrTitle,
+  committer
+) => {
+  /** @type {CommitReport} */
+  const Result = await CommitOrPrIfChanged(
+    gitRepo,
+    masterBranch,
+    tree,
+    PrTitle,
+    committer,
+    true
+  );
+
+  return Result;
+};
+
 module.exports = {
   createTreeFromFileMap,
   PrIfChanged,
+  CommitIfChanged,
   todayDateString,
   todayTimeString,
   nowPacTime,

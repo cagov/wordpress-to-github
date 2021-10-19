@@ -1,6 +1,10 @@
 // @ts-check
 const GitHub = require("github-api");
-const { createTreeFromFileMap, PrIfChanged } = require("./gitTreeCommon");
+const {
+  createTreeFromFileMap,
+  CommitIfChanged,
+  CommitReport
+} = require("./gitTreeCommon");
 const {
   ensureStringStartsWith,
   removeExcludedProperties,
@@ -77,6 +81,22 @@ const anythingInArrayMatch = (array1, array2) =>
   array1.some(s => array2.includes(s));
 
 /**
+ * @typedef {object} WordpressToGithubReportRow
+ * @property {string} commit_html_url
+ */
+
+/**
+ * Addts a CommitResult to the Report if it exists
+ * @param {CommitReport[]} Report
+ * @param {CommitReport} [CommitResult]
+ */
+const addToReport = (Report, CommitResult) => {
+  if (CommitResult) {
+    Report.push(CommitResult);
+  }
+};
+
+/**
  * process a Wordpress endpoint and place the data in GitHub
  *
  * @param {GitHubTarget} gitHubTarget
@@ -88,6 +108,8 @@ const SyncEndpoint = async (
   gitHubCredentials,
   gitHubCommitter
 ) => {
+  /** @type {CommitReport[]} */
+  const report = [];
   const gitModule = new GitHub(gitHubCredentials);
 
   // @ts-ignore
@@ -190,13 +212,15 @@ const SyncEndpoint = async (
         true
       );
 
-      await PrIfChanged(
-        gitRepo,
-        endpointConfig.outputBranch,
-        newTree,
-        commitTitleGeneral,
-        gitHubCommitter,
-        true
+      addToReport(
+        report,
+        await CommitIfChanged(
+          gitRepo,
+          endpointConfig.outputBranch,
+          newTree,
+          commitTitleGeneral,
+          gitHubCommitter
+        )
       );
     }
 
@@ -300,14 +324,15 @@ const SyncEndpoint = async (
 
       //Remove any leftover binary placeholders...
       mediaTree = mediaTree.filter(x => x.content !== mediaContentPlaceholder);
-
-      await PrIfChanged(
-        gitRepo,
-        gitHubTarget.Branch,
-        mediaTree,
-        `${commitTitleMedia} (${mediaTree.length} updates)`,
-        gitHubCommitter,
-        true
+      addToReport(
+        report,
+        await CommitIfChanged(
+          gitRepo,
+          gitHubTarget.Branch,
+          mediaTree,
+          `${commitTitleMedia} (${mediaTree.length} updates)`,
+          gitHubCommitter
+        )
       );
     }
 
@@ -389,16 +414,17 @@ const SyncEndpoint = async (
         endpointConfig.PostPath,
         true
       );
-
-      await PrIfChanged(
-        gitRepo,
-        endpointConfig.outputBranch,
-        postTree,
-        `${commitTitlePosts} (${
-          postTree.filter(x => x.path.endsWith(".html")).length
-        } updates)`,
-        gitHubCommitter,
-        true
+      addToReport(
+        report,
+        await CommitIfChanged(
+          gitRepo,
+          endpointConfig.outputBranch,
+          postTree,
+          `${commitTitlePosts} (${
+            postTree.filter(x => x.path.endsWith(".html")).length
+          } updates)`,
+          gitHubCommitter
+        )
       );
     }
     // PAGES
@@ -438,18 +464,22 @@ const SyncEndpoint = async (
         endpointConfig.PagePath,
         true
       );
-      await PrIfChanged(
-        gitRepo,
-        endpointConfig.outputBranch,
-        pagesTree,
-        `${commitTitlePages} (${
-          pagesTree.filter(x => x.path.endsWith(".html")).length
-        } updates)`,
-        gitHubCommitter,
-        true
+      addToReport(
+        report,
+        await CommitIfChanged(
+          gitRepo,
+          endpointConfig.outputBranch,
+          pagesTree,
+          `${commitTitlePages} (${
+            pagesTree.filter(x => x.path.endsWith(".html")).length
+          } updates)`,
+          gitHubCommitter
+        )
       );
     }
   }
+
+  return report;
 };
 
 module.exports = {

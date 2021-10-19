@@ -4,7 +4,11 @@ const {
   GitHubCommitter,
   GitHubCredentials
 } = require("../wordpress-to-github/common");
-const { slackBotReportError } = require("../common/slackBot");
+const {
+  slackBotReportError,
+  slackBotChatPost,
+  slackBotReplyPost
+} = require("../common/slackBot");
 const debugChannel = "C01DBP67MSQ"; // #testingbot
 //const debugChannel = 'C01H6RB99E2'; //Carter debug
 const endPointsJson = require("./endpoints.json");
@@ -61,10 +65,49 @@ const doProcessEndpoints = async () => {
 
   for (const endpoint of work) {
     console.log(`*** Checking endpoint for ${endpoint.name} ***`);
-    await SyncEndpoint(
+
+    const commitReports = await SyncEndpoint(
       endpoint.GitHubTarget,
       gitHubCredentials,
       gitHubCommitter
     );
+
+    if (endpoint.ReportingChannel_Slack) {
+      //Endpoint reporting channel enabled.  Add a post for each commit report.
+      if (commitReports.length) {
+        /** @type {string[]} */
+        let mergeFileNames = [];
+        commitReports.map(x => {
+          mergeFileNames.push(
+            ...x.Files.map(
+              x => x.filename.split("/").slice(-1)[0].split(".")[0]
+            )
+          );
+        });
+
+        const allfileNames = [...new Set(mergeFileNames)];
+
+        const slackPostTS = (
+          await (
+            await slackBotChatPost(
+              endpoint.ReportingChannel_Slack,
+              `${endpoint.name} - _${allfileNames.join(", ")}_`
+            )
+          ).json()
+        ).ts;
+
+        for (const commitReport of commitReports) {
+          const fileData = commitReport.Files.map(
+            x => `• ${x.status} - _${x.filename.split("/").slice(-1)[0]}_`
+          ).join("\n");
+
+          await slackBotReplyPost(
+            endpoint.ReportingChannel_Slack,
+            slackPostTS,
+            `<${commitReport.Commit.html_url}|${commitReport.Commit.message}>\n${fileData}`
+          );
+        }
+      }
+    }
   }
 };

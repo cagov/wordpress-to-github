@@ -1,6 +1,9 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "Schema for a single wordpress-to-github endpoint",
+  "description": "Use this schema when building a wordpress-to-github.config for your Github branch.",
+  "$comment": "Version 1.0",
+  "$id": "wordpress-to-github_config_v1_0",
   "definitions": {
     "URL": {
       "type": "string",
