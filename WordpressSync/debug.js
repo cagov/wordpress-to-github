@@ -7,5 +7,9 @@ process.env.debug = true;
 //run the indexpage async
 const indexCode = require("./index");
 (async () => {
-  return await indexCode({ executionContext: { functionName: "debug" } });
+  return await indexCode(
+    { executionContext: { functionName: "debug" } },
+    null,
+    []
+  );
 })();
