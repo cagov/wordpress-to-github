@@ -100,11 +100,13 @@ const addToReport = (Report, CommitResult) => {
 /**
  * process a Wordpress endpoint and place the data in GitHub
  *
+ * @param {GitHubTarget} gitHubTarget
  * @param {SourceEndpointConfigData} sourceEndpointConfig
  * @param {GitHubCredentials} gitHubCredentials
  * @param {GitHubCommitter} gitHubCommitter
  */
 const SyncEndpoint = async (
+  gitHubTarget,
   sourceEndpointConfig,
   gitHubCredentials,
   gitHubCommitter
@@ -115,12 +117,12 @@ const SyncEndpoint = async (
 
   // @ts-ignore
   const gitRepo = await gitModule.getRepo(
-    sourceEndpointConfig.GitHubTarget.Owner,
-    sourceEndpointConfig.GitHubTarget.Repo
+    gitHubTarget.Owner,
+    gitHubTarget.Repo
   );
 
   const endpointConfig = await getRemoteConfig(
-    sourceEndpointConfig.GitHubTarget,
+    gitHubTarget,
     gitHubCredentials
   );
   const wordPressApiUrl = sourceEndpointConfig.WordPressSource.url + apiPath;
@@ -152,7 +154,7 @@ const SyncEndpoint = async (
   const repoDetails = await gitRepo.getDetails();
   if (!repoDetails.data.permissions.push) {
     throw new Error(
-      `App user has no write permissions for ${sourceEndpointConfig.GitHubTarget.Repo}`
+      `App user has no write permissions for ${gitHubTarget.Repo}`
     );
   }
 
@@ -193,7 +195,7 @@ const SyncEndpoint = async (
         meta: {
           ...commonMeta(
             sourceEndpointConfig.WordPressSource.url,
-            sourceEndpointConfig.GitHubTarget
+            gitHubTarget
           )
         },
         data
@@ -207,7 +209,7 @@ const SyncEndpoint = async (
       fileMap.set(fileName, jsonData);
       const newTree = await createTreeFromFileMap(
         gitRepo,
-        sourceEndpointConfig.GitHubTarget.Branch,
+        gitHubTarget.Branch,
         fileMap,
         filePath,
         true
@@ -217,7 +219,7 @@ const SyncEndpoint = async (
         report,
         await CommitIfChanged(
           gitRepo,
-          sourceEndpointConfig.GitHubTarget.Branch,
+          gitHubTarget.Branch,
           newTree,
           commitTitleGeneral,
           gitHubCommitter
@@ -277,7 +279,7 @@ const SyncEndpoint = async (
           pathFromMediaSourceUrl(x.source_url).replace(/\.([^.]+)$/, ".json"),
           wrapInFileMeta(
             sourceEndpointConfig.WordPressSource.url,
-            sourceEndpointConfig.GitHubTarget,
+            gitHubTarget,
             fieldMetaReference.media,
             jsonData
           )
@@ -286,7 +288,7 @@ const SyncEndpoint = async (
 
       let mediaTree = await createTreeFromFileMap(
         gitRepo,
-        sourceEndpointConfig.GitHubTarget.Branch,
+        gitHubTarget.Branch,
         mediaMap,
         endpointConfig.MediaPath,
         true
@@ -329,7 +331,7 @@ const SyncEndpoint = async (
         report,
         await CommitIfChanged(
           gitRepo,
-          sourceEndpointConfig.GitHubTarget.Branch,
+          gitHubTarget.Branch,
           mediaTree,
           `${commitTitleMedia} (${mediaTree.length} updates)`,
           gitHubCommitter
@@ -400,7 +402,7 @@ const SyncEndpoint = async (
             ? null
             : wrapInFileMeta(
                 sourceEndpointConfig.WordPressSource.url,
-                sourceEndpointConfig.GitHubTarget,
+                gitHubTarget,
                 fieldMetaReference.posts,
                 jsonData
               )
@@ -410,7 +412,7 @@ const SyncEndpoint = async (
 
       const postTree = await createTreeFromFileMap(
         gitRepo,
-        sourceEndpointConfig.GitHubTarget.Branch,
+        gitHubTarget.Branch,
         postMap,
         endpointConfig.PostPath,
         true
@@ -419,7 +421,7 @@ const SyncEndpoint = async (
         report,
         await CommitIfChanged(
           gitRepo,
-          sourceEndpointConfig.GitHubTarget.Branch,
+          gitHubTarget.Branch,
           postTree,
           `${commitTitlePosts} (${
             postTree.filter(x => x.path.endsWith(".html")).length
@@ -450,7 +452,7 @@ const SyncEndpoint = async (
             ? null
             : wrapInFileMeta(
                 sourceEndpointConfig.WordPressSource.url,
-                sourceEndpointConfig.GitHubTarget,
+                gitHubTarget,
                 fieldMetaReference.media,
                 jsonData
               )
@@ -460,7 +462,7 @@ const SyncEndpoint = async (
 
       const pagesTree = await createTreeFromFileMap(
         gitRepo,
-        sourceEndpointConfig.GitHubTarget.Branch,
+        gitHubTarget.Branch,
         pagesMap,
         endpointConfig.PagePath,
         true
@@ -469,7 +471,7 @@ const SyncEndpoint = async (
         report,
         await CommitIfChanged(
           gitRepo,
-          sourceEndpointConfig.GitHubTarget.Branch,
+          gitHubTarget.Branch,
           pagesTree,
           `${commitTitlePages} (${
             pagesTree.filter(x => x.path.endsWith(".html")).length
