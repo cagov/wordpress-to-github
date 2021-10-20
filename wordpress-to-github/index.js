@@ -249,7 +249,10 @@ const SyncEndpoint = async (
 
         removeExcludedProperties(jsonData, endpointConfigData.ExcludeProperties);
 
-        if (x.media_details.sizes && Object.keys(x.media_details.sizes).length) {
+        if (
+          x.media_details.sizes &&
+          Object.keys(x.media_details.sizes).length
+        ) {
           jsonData.sizes = Object.keys(x.media_details.sizes).map(s => ({
             type: s,
             path: pathFromMediaSourceUrl(x.media_details.sizes[s].source_url),
