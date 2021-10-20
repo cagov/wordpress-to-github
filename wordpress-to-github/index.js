@@ -476,7 +476,7 @@ const SyncEndpoint = async (
           gitHubCommitter
         )
       );
-    } 
+  } 
 
   return report;
 };
