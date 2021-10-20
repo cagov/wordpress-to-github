@@ -128,8 +128,9 @@ const SyncEndpoint = async (
 
   //Check cache (and set cache for next time)
   let cacheMatch = true;
+  const cacheRoot = `Owner:${gitHubTarget.Owner},Repo:${gitHubTarget.Repo},Branch:${gitHubTarget.Branch},wordPressApiUrl:${wordPressApiUrl}`;
   for (let type of cacheObjects) {
-    const cacheKey = `${wordPressApiUrl}+${type}`;
+    const cacheKey = `${cacheRoot},type:${type}`;
 
     const currentStatus = await WpApi_GetCacheItem_ByObjectType(
       wordPressApiUrl,
@@ -146,7 +147,7 @@ const SyncEndpoint = async (
     }
   }
   if (cacheMatch) {
-    console.log(`match cache for ${wordPressApiUrl}`);
+    console.log(`match cache for ${cacheRoot}`);
     return;
   }
 
