@@ -193,10 +193,7 @@ const SyncEndpoint = async (
 
       const jsonData = {
         meta: {
-          ...commonMeta(
-            sourceEndpointConfig.WordPressSource.url,
-            gitHubTarget
-          )
+          ...commonMeta(sourceEndpointConfig.WordPressSource.url, gitHubTarget)
         },
         data
       };
