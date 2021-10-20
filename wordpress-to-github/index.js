@@ -119,7 +119,7 @@ const SyncEndpoint = async (
     sourceEndpointConfig.GitHubTarget.Repo
   );
 
-  const endpointConfigData = await getRemoteConfig(
+  const endpointConfig = await getRemoteConfig(
     sourceEndpointConfig.GitHubTarget,
     gitHubCredentials
   );
@@ -162,24 +162,24 @@ const SyncEndpoint = async (
   const userlist = await fetchDictionary(wordPressApiUrl, "users");
 
   /** @type {WordpressMediaRow[] | null} */
-  const allMedia = endpointConfigData.MediaPath
+  const allMedia = endpointConfig.MediaPath
     ? await WpApi_GetPagedData_ByObjectType(wordPressApiUrl, "media")
     : null;
   /** @type {WordpressPostRow[] | null} */
-  const allPosts = endpointConfigData.PostPath
+  const allPosts = endpointConfig.PostPath
     ? await WpApi_GetPagedData_ByObjectType(wordPressApiUrl, "posts")
     : null;
   /** @type {WordpressPageRow[] | null} */
-  const allPages = endpointConfigData.PagePath
+  const allPages = endpointConfig.PagePath
     ? await WpApi_GetPagedData_ByObjectType(wordPressApiUrl, "pages")
     : null;
 
-    if (endpointConfigData.disabled) {
+    if (endpointConfig.disabled) {
       console.log("Remote config is disabled.");
       return;
     }
 
-    if (endpointConfigData.GeneralFilePath) {
+    if (endpointConfig.GeneralFilePath) {
       const fetchResponse = await WpApi_getSomething(
         `${
           sourceEndpointConfig.WordPressSource.url
@@ -198,10 +198,10 @@ const SyncEndpoint = async (
         },
         data
       };
-      const filePath = endpointConfigData.GeneralFilePath.split("/")
+      const filePath = endpointConfig.GeneralFilePath.split("/")
         .slice(0, -1)
         .join("/");
-      const fileName = endpointConfigData.GeneralFilePath.split("/").slice(-1)[0];
+      const fileName = endpointConfig.GeneralFilePath.split("/").slice(-1)[0];
 
       const fileMap = new Map();
       fileMap.set(fileName, jsonData);
@@ -226,16 +226,16 @@ const SyncEndpoint = async (
     }
 
     /** @type {Map <string,any> | null} */
-    const postMap = endpointConfigData.PostPath ? new Map() : null;
+    const postMap = endpointConfig.PostPath ? new Map() : null;
     /** @type {Map <string,any> | null} */
-    const pagesMap = endpointConfigData.PagePath ? new Map() : null;
+    const pagesMap = endpointConfig.PagePath ? new Map() : null;
     /** @type {Map <string,any> | null} */
-    const mediaMap = endpointConfigData.MediaPath ? new Map() : null;
+    const mediaMap = endpointConfig.MediaPath ? new Map() : null;
 
     // MEDIA
     const mediaContentPlaceholder =
       "TBD : Binary file to be updated in a later step";
-    if (endpointConfigData.MediaPath && mediaMap && allMedia) {
+    if (endpointConfig.MediaPath && mediaMap && allMedia) {
       allMedia.forEach(x => {
         /** @type {GithubOutputJson} */
         const jsonData = {
@@ -247,7 +247,7 @@ const SyncEndpoint = async (
           )
         };
 
-        removeExcludedProperties(jsonData, endpointConfigData.ExcludeProperties);
+        removeExcludedProperties(jsonData, endpointConfig.ExcludeProperties);
 
         if (
           x.media_details.sizes &&
@@ -288,7 +288,7 @@ const SyncEndpoint = async (
         gitRepo,
         sourceEndpointConfig.GitHubTarget.Branch,
         mediaMap,
-        endpointConfigData.MediaPath,
+        endpointConfig.MediaPath,
         true
       );
 
@@ -308,7 +308,7 @@ const SyncEndpoint = async (
                 sizeJson.wordpress_url,
                 gitRepo,
                 mediaTree,
-                endpointConfigData
+                endpointConfig
               );
             }
           }
@@ -318,7 +318,7 @@ const SyncEndpoint = async (
             mediaTreeItem.wordpress_url,
             gitRepo,
             mediaTree,
-            endpointConfigData
+            endpointConfig
           );
         }
       }
@@ -379,15 +379,15 @@ const SyncEndpoint = async (
     };
 
     // POSTS
-    if (endpointConfigData.PostPath && postMap && allPosts) {
+    if (endpointConfig.PostPath && postMap && allPosts) {
       allPosts.forEach(x => {
         const jsonData = wordPressRowToGitHubOutput(x);
 
         const HTML = cleanupContent(x.content);
 
-        addMediaSection(endpointConfigData, mediaMap, jsonData, HTML);
+        addMediaSection(endpointConfig, mediaMap, jsonData, HTML);
 
-        removeExcludedProperties(jsonData, endpointConfigData.ExcludeProperties);
+        removeExcludedProperties(jsonData, endpointConfig.ExcludeProperties);
 
         const ignoreThisOne = anythingInArrayMatch(
           jsonData.tags,
@@ -412,7 +412,7 @@ const SyncEndpoint = async (
         gitRepo,
         sourceEndpointConfig.GitHubTarget.Branch,
         postMap,
-        endpointConfigData.PostPath,
+        endpointConfig.PostPath,
         true
       );
       addToReport(
@@ -429,15 +429,15 @@ const SyncEndpoint = async (
       );
     }
     // PAGES
-    if (endpointConfigData.PagePath && pagesMap && allPages) {
+    if (endpointConfig.PagePath && pagesMap && allPages) {
       allPages.forEach(x => {
         const jsonData = wordPressRowToGitHubOutput(x);
 
         const HTML = cleanupContent(x.content);
 
-        addMediaSection(endpointConfigData, mediaMap, jsonData, HTML);
+        addMediaSection(endpointConfig, mediaMap, jsonData, HTML);
 
-        removeExcludedProperties(jsonData, endpointConfigData.ExcludeProperties);
+        removeExcludedProperties(jsonData, endpointConfig.ExcludeProperties);
 
         const ignoreThisOne = anythingInArrayMatch(
           jsonData.tags,
@@ -462,7 +462,7 @@ const SyncEndpoint = async (
         gitRepo,
         sourceEndpointConfig.GitHubTarget.Branch,
         pagesMap,
-        endpointConfigData.PagePath,
+        endpointConfig.PagePath,
         true
       );
       addToReport(
