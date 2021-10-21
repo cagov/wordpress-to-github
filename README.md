@@ -6,6 +6,10 @@ A service for taking content from Wordpress instances and pushing the HTML conte
 
 The service scans a list of WordPress projects. Each project's WordPress site is queried through the WordPress API. The service compares the objects from the API to the project's target GitHub branch. Content changes are recorded in GitHub as commits.
 
+### Caching
+
+The service will ask WordPress for object counts and last updated timestamps (and cache them) to determine if it should run. If you are working on the WordPress API output without updating the content itself, changes may not appear until the cache is reset.
+
 ## Setting up Local Execution
 
 When using Visual Studio Code, you can run the polling service locally. Only projects with `enabledLocal: true` will run. It is recommended that you keep all projects set to `enabledLocal: false` until you are sure you want to run them. The `RUN AND DEBUG` launch menu in VS Code should contain `Debug DIRECT WordpressSync`; use that to run locally with debugging.
