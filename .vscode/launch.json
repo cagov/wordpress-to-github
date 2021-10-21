@@ -12,7 +12,7 @@
       "type": "node",
       "request": "launch",
       "name": "Debug DIRECT WordpressSync",
-      "program": "debug",
+      "program": "debug.js",
       "cwd": "${workspaceRoot}/WordpressSync",
       "outputCapture": "std"
     },
