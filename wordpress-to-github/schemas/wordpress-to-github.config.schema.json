@@ -75,6 +75,7 @@
           "maxItems": 1,
           "items": {
             "type": "object",
+            "additionalProperties": false,
             "properties": {
               "disabled": {
                 "type": "boolean",
