@@ -22,6 +22,7 @@ const {
   GitHubTarget,
   GitHubCredentials,
   EndpointConfigData,
+  SourceEndpointConfigData,
   WordpressApiDateCacheItem,
   GitHubCommitter,
   GithubOutputJson,
@@ -64,7 +65,7 @@ const getRemoteConfig = async (gitHubTarget, gitHubCredentials) => {
       gitHubTarget.ConfigPath,
       true
     )
-  ).data.data;
+  ).data.data.github_targets[0];
 
   return endpointConfig;
 };
@@ -100,11 +101,13 @@ const addToReport = (Report, CommitResult) => {
  * process a Wordpress endpoint and place the data in GitHub
  *
  * @param {GitHubTarget} gitHubTarget
+ * @param {SourceEndpointConfigData} sourceEndpointConfig
  * @param {GitHubCredentials} gitHubCredentials
  * @param {GitHubCommitter} gitHubCommitter
  */
 const SyncEndpoint = async (
   gitHubTarget,
+  sourceEndpointConfig,
   gitHubCredentials,
   gitHubCommitter
 ) => {
@@ -118,13 +121,11 @@ const SyncEndpoint = async (
     gitHubTarget.Repo
   );
 
-  const endpointConfigData = await getRemoteConfig(
+  const endpointConfig = await getRemoteConfig(
     gitHubTarget,
     gitHubCredentials
   );
-  const wordPressApiUrl = endpointConfigData.wordpress_source_url + apiPath;
-
-  const endpointConfigs = endpointConfigData.github_targets;
+  const wordPressApiUrl = sourceEndpointConfig.WordPressSource.url + apiPath;
 
   //Check cache (and set cache for next time)
   let cacheMatch = true;
@@ -164,28 +165,27 @@ const SyncEndpoint = async (
   const userlist = await fetchDictionary(wordPressApiUrl, "users");
 
   /** @type {WordpressMediaRow[] | null} */
-  const allMedia = endpointConfigs.some(x => x.MediaPath)
+  const allMedia = endpointConfig.MediaPath
     ? await WpApi_GetPagedData_ByObjectType(wordPressApiUrl, "media")
     : null;
   /** @type {WordpressPostRow[] | null} */
-  const allPosts = endpointConfigs.some(x => x.PostPath)
+  const allPosts = endpointConfig.PostPath
     ? await WpApi_GetPagedData_ByObjectType(wordPressApiUrl, "posts")
     : null;
   /** @type {WordpressPageRow[] | null} */
-  const allPages = endpointConfigs.some(x => x.PagePath)
+  const allPages = endpointConfig.PagePath
     ? await WpApi_GetPagedData_ByObjectType(wordPressApiUrl, "pages")
     : null;
 
-  for (let endpointConfig of endpointConfigs) {
     if (endpointConfig.disabled) {
       console.log("Remote config is disabled.");
-      continue;
+      return;
     }
 
     if (endpointConfig.GeneralFilePath) {
       const fetchResponse = await WpApi_getSomething(
         `${
-          endpointConfigData.wordpress_source_url
+          sourceEndpointConfig.WordPressSource.url
         }/wp-json/?_fields=description,gmt_offset,name,namespaces,timezone_string,home,url&cachebust=${Math.random()}`
       );
 
@@ -194,7 +194,7 @@ const SyncEndpoint = async (
 
       const jsonData = {
         meta: {
-          ...commonMeta(endpointConfigData.wordpress_source_url, gitHubTarget)
+          ...commonMeta(sourceEndpointConfig.WordPressSource.url, gitHubTarget)
         },
         data
       };
@@ -207,7 +207,7 @@ const SyncEndpoint = async (
       fileMap.set(fileName, jsonData);
       const newTree = await createTreeFromFileMap(
         gitRepo,
-        endpointConfig.outputBranch,
+        gitHubTarget.Branch,
         fileMap,
         filePath,
         true
@@ -217,7 +217,7 @@ const SyncEndpoint = async (
         report,
         await CommitIfChanged(
           gitRepo,
-          endpointConfig.outputBranch,
+          gitHubTarget.Branch,
           newTree,
           commitTitleGeneral,
           gitHubCommitter
@@ -242,7 +242,7 @@ const SyncEndpoint = async (
           ...x,
           author: userlist[x.author.toString()],
           wordpress_url: ensureStringStartsWith(
-            endpointConfigData.wordpress_source_url,
+            sourceEndpointConfig.WordPressSource.url,
             x.source_url
           )
         };
@@ -257,7 +257,7 @@ const SyncEndpoint = async (
             type: s,
             path: pathFromMediaSourceUrl(x.media_details.sizes[s].source_url),
             wordpress_url: ensureStringStartsWith(
-              endpointConfigData.wordpress_source_url,
+              sourceEndpointConfig.WordPressSource.url,
               x.media_details.sizes[s].source_url
             ),
             ...x.media_details.sizes[s]
@@ -276,7 +276,7 @@ const SyncEndpoint = async (
         mediaMap.set(
           pathFromMediaSourceUrl(x.source_url).replace(/\.([^.]+)$/, ".json"),
           wrapInFileMeta(
-            endpointConfigData.wordpress_source_url,
+            sourceEndpointConfig.WordPressSource.url,
             gitHubTarget,
             fieldMetaReference.media,
             jsonData
@@ -391,7 +391,7 @@ const SyncEndpoint = async (
 
         const ignoreThisOne = anythingInArrayMatch(
           jsonData.tags,
-          endpointConfig.tags_exclude
+          sourceEndpointConfig.WordPressSource.tags_exclude
         );
 
         postMap.set(
@@ -399,7 +399,7 @@ const SyncEndpoint = async (
           ignoreThisOne
             ? null
             : wrapInFileMeta(
-                endpointConfigData.wordpress_source_url,
+                sourceEndpointConfig.WordPressSource.url,
                 gitHubTarget,
                 fieldMetaReference.posts,
                 jsonData
@@ -410,7 +410,7 @@ const SyncEndpoint = async (
 
       const postTree = await createTreeFromFileMap(
         gitRepo,
-        endpointConfig.outputBranch,
+        gitHubTarget.Branch,
         postMap,
         endpointConfig.PostPath,
         true
@@ -419,7 +419,7 @@ const SyncEndpoint = async (
         report,
         await CommitIfChanged(
           gitRepo,
-          endpointConfig.outputBranch,
+          gitHubTarget.Branch,
           postTree,
           `${commitTitlePosts} (${
             postTree.filter(x => x.path.endsWith(".html")).length
@@ -441,7 +441,7 @@ const SyncEndpoint = async (
 
         const ignoreThisOne = anythingInArrayMatch(
           jsonData.tags,
-          endpointConfig.tags_exclude
+          sourceEndpointConfig.WordPressSource.tags_exclude
         );
 
         pagesMap.set(
@@ -449,7 +449,7 @@ const SyncEndpoint = async (
           ignoreThisOne
             ? null
             : wrapInFileMeta(
-                endpointConfigData.wordpress_source_url,
+                sourceEndpointConfig.WordPressSource.url,
                 gitHubTarget,
                 fieldMetaReference.media,
                 jsonData
@@ -460,7 +460,7 @@ const SyncEndpoint = async (
 
       const pagesTree = await createTreeFromFileMap(
         gitRepo,
-        endpointConfig.outputBranch,
+        gitHubTarget.Branch,
         pagesMap,
         endpointConfig.PagePath,
         true
@@ -469,7 +469,7 @@ const SyncEndpoint = async (
         report,
         await CommitIfChanged(
           gitRepo,
-          endpointConfig.outputBranch,
+          gitHubTarget.Branch,
           pagesTree,
           `${commitTitlePages} (${
             pagesTree.filter(x => x.path.endsWith(".html")).length
@@ -477,7 +477,6 @@ const SyncEndpoint = async (
           gitHubCommitter
         )
       );
-    }
   }
 
   return report;
