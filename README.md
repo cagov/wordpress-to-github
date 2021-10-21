@@ -156,3 +156,33 @@ Contains the projects to process with the service.
 `Branch` : GitHub Target Branch.
 
 `ConfigPath` : Path to config.json file for this endpoint.
+
+## Debugging
+
+Running this project locally is a good way to see exactly what it is querying, what it decides to update and what commits it creates.
+
+Follow the instructions above in the "Setting up Local Execution" section.
+
+The config file WordpressSync/endpoints/json contains the list of all endpoints to be reviewed and which repos to push content updates to. The enabledLocal on every one of these is set to false by default.
+
+If you run this project locally in VSCode while all the endpoints have enabledLocal: false it will stop execution after reviewing that file with a message that you need to enable at least one endpoint to make updates.
+
+Execute this locally in VSCode by:
+
+- Selecting the debug section in the sidebar (triangle with bug icon)
+- Choosing Debug DIRECT WordpressSync from the pulldown menu at the top of the right sidebar
+- Clicking the triangle next to your pulldown selection to begin execution
+
+Executing the code on a live endpoint will behave exactly as this does in production, it will check for updates at the server endpoint, create a commit of these changes to the target repository specified in endpoints.json and send slack notifications to the channel specified.
+
+These commits will be performed with the account associated with your github token in your local.settings.json file. The local.settings.json file is gitignored and never committed to the repository. If it were accidentally committed github would immediately invalidate the exposed token and notify the committer. Individuals without access to accounts with permission to commit directly to the associated repo will not be able to create tokens the service can use to commit changes.
+
+Slack messages can be redirected to your own debug channels by changing the channel id or disabled by removing the ReportingChannel_Slack value from the object which you have enabledLocal: true.
+
+When an endpoint is enabled it will be queried 3 times, the VSCode command line console will show the running function's log output which will list the endpoints it is reviewing for updates. It queries WordPress for media, posts and pages.
+
+If an update is discovered the service will create a commit and logs will print a link to the commit created on github.
+
+If no update is discovered no further output is displayed.
+
+This service is executing in its production FAAS instance on a 2 minute timer. Running it locally will be performing the same actions occuring constantly in production against the same endpoints and github repos defined in the endpoints.json file.
