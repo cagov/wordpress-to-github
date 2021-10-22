@@ -215,4 +215,4 @@ With the list of keys you can...
 - View an existing key by clicking `Hidden value. Click to show value`
 - Create a `New function key` for assigning to a new WordPress notification instance
 - `Renew key value` to invalidate an old key for replacement
-- Delete a key that should no longer be used
+- 🗑️ Delete a key that should no longer be used
