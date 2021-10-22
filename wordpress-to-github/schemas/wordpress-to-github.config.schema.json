@@ -53,7 +53,7 @@
         },
         "MediaPath": {
           "type": "string",
-          "description": "where should image media go?",
+          "description": "Where should image media go?",
           "examples": ["wordpress/media"]
         },
         "GeneralFilePath": {
@@ -66,43 +66,6 @@
           "default": [],
           "description": "Which properties should we suppress in output?",
           "examples": [["content", "_links"]]
-        },
-        "github_targets": {
-          "description": "deprecated",
-          "type": "array",
-          "additionalProperties": false,
-          "minItems": 1,
-          "maxItems": 1,
-          "items": {
-            "type": "object",
-            "additionalProperties": false,
-            "properties": {
-              "disabled": {
-                "type": "boolean",
-                "description": "deprecated"
-              },
-              "PostPath": {
-                "type": "string",
-                "description": "deprecated"
-              },
-              "PagePath": {
-                "type": "string",
-                "description": "deprecated"
-              },
-              "MediaPath": {
-                "type": "string",
-                "description": "deprecated"
-              },
-              "GeneralFilePath": {
-                "type": "string",
-                "description": "deprecated"
-              },
-              "ExcludeProperties": {
-                "type": "array",
-                "description": "deprecated"
-              }
-            }
-          }
         }
       }
     }

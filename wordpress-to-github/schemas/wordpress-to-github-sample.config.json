@@ -10,16 +10,6 @@
     "PagePath": "wordpress/pages",
     "MediaPath": "wordpress/media",
     "GeneralFilePath": "wordpress/general/general.json",
-    "ExcludeProperties": ["content", "_links"],
-    "github_targets": [
-      {
-        "disabled": false,
-        "PostPath": "wordpress/posts",
-        "PagePath": "wordpress/pages",
-        "MediaPath": "wordpress/media",
-        "GeneralFilePath": "wordpress/general/general.json",
-        "ExcludeProperties": ["content", "_links"]
-      }
-    ]
+    "ExcludeProperties": ["content", "_links"]
   }
 }
