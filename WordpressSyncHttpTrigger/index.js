@@ -1,5 +1,4 @@
 // @ts-check
-const { SyncEndpoint } = require("../wordpress-to-github");
 const { GitHubTarget } = require("../wordpress-to-github/common");
 const { sleep } = require("../wordpress-to-github/gitTreeCommon");
 const {
@@ -21,7 +20,6 @@ const gitHubCredentials = {
 };
 
 /**
- *
  * @typedef {object} Response
  * @property {number} [status]
  * @property {*} [body]
@@ -29,8 +27,6 @@ const gitHubCredentials = {
  */
 
 /**
- * TEST
- *
  * @param {{executionContext:{functionName:string},res:Response}} context
  * @param {{method:string,headers:{"user-agent":string},query:{},params:{},body:GitHubTarget}} req
  */
