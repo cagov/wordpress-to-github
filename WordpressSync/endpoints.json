@@ -53,7 +53,7 @@
           "Owner": "cagov",
           "Repo": "drought.ca.gov",
           "Branch": "main-test-pantheon",
-          "ConfigPath": "wordpress/wordpress-to-github.main-test-pantheon.config.json"
+          "ConfigPath": "wordpress/wordpress-to-github.config.json"
         }
       },
       {
