@@ -1,5 +1,5 @@
 {
-  "$schema": "./endpoints.schema.json",
+  "$schema": "../WordpressSync/endpoints.schema.json",
   "meta": {
     "title": "endpoints config file",
     "description": "endpoints config file"
