@@ -5,11 +5,6 @@
   "debug.internalConsoleOptions": "neverOpen",
   "azureFunctions.preDeployTask": "npm prune",
   "editor.defaultFormatter": "esbenp.prettier-vscode",
-  "formattingToggle.affects": [
-    "formatOnPaste",
-    "formatOnSave",
-    "formatOnType"
-  ],
   "[javascript]": {
     "editor.defaultFormatter": "esbenp.prettier-vscode"
   }
