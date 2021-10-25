@@ -17,7 +17,8 @@
     "publish to NPM": "npm publish"
   },
   "keywords": [
-    "wordpress"
+    "wordpress",
+    "github"
   ],
   "author": {
     "name": "Carter Medlin",
