@@ -1,5 +1,5 @@
 {
-  "name": "cagov-wordpress-to-github",
+  "name": "cagov-wordpress-to-github-development",
   "version": "1.0.0",
   "repository": {
     "type": "git",
@@ -12,11 +12,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "fetch-retry": "^4.1.1",
-    "github-api": "^3.4.0",
-    "jsonschema": "^1.4.0",
-    "node-fetch": "^2.6.1",
-    "sha1": "^1.1.1"
+    "@cagov/wordpress-to-github": "file:wordpress-to-github"
   },
   "devDependencies": {
     "eslint": "^7.32.0",

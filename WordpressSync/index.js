@@ -1,10 +1,10 @@
 // @ts-check
-const { SyncEndpoint } = require("../wordpress-to-github");
+const { SyncEndpoint } = require("@cagov/wordpress-to-github");
 const {
   GitHubCommitter,
   GitHubCredentials,
   SourceEndpointConfigData
-} = require("../wordpress-to-github/common");
+} = require("@cagov/wordpress-to-github/common");
 const {
   slackBotReportError,
   slackBotChatPost,

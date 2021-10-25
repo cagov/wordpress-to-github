@@ -1,6 +1,6 @@
 // @ts-check
-const { GitHubTarget } = require("../wordpress-to-github/common");
-const { sleep } = require("../wordpress-to-github/gitTreeCommon");
+const { GitHubTarget } = require("@cagov/wordpress-to-github/common");
+const { sleep } = require("@cagov/wordpress-to-github/gitTreeCommon");
 const {
   slackBotReportError,
   slackBotChatPost,
