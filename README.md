@@ -72,7 +72,7 @@ Controls how the service will place content in GitHub. Copy `wordpress-to-github
 
 ### endpoints.json
 
-Contains the projects to process with the service.
+`WordpressSync/endpoints.json` contains the projects to process with the service.
 
 ```json
 {

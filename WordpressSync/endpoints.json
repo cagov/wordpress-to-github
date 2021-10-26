@@ -1,5 +1,5 @@
 {
-  "$schema": "./endpoints.schema.json",
+  "$schema": "https://raw.githubusercontent.com/cagov/wordpress-to-github/sandbox-testing/WordpressSync/endpoints.schema.json",
   "meta": {
     "title": "endpoints config file",
     "description": "endpoints config file"
@@ -7,189 +7,20 @@
   "data": {
     "projects": [
       {
-        "name": "drought.ca.gov",
-        "description": "Drought production website",
-        "enabled": true,
-        "enabledLocal": false,
-        "ReportingChannel_Slack": "C02G6PETB9B",
+        "name": "dev-sand",
+        "description": "Sandbox",
+        "enabled": false,
+        "enabledLocal": true,
+        "ReportingChannel_Slack": "",
         "WordPressSource": {
-          "url": "https://live-drought-ca-gov.pantheonsite.io",
-          "tags_exclude": ["staging", "development"]
+          "url": "https://dev-sand-ca-gov.pantheonsite.io",
+          "tags_exclude": ["staging"]
         },
         "GitHubTarget": {
           "Owner": "cagov",
-          "Repo": "drought.ca.gov",
-          "Branch": "main",
-          "ConfigPath": "wordpress/wordpress-to-github.config.json"
-        }
-      },
-      {
-        "name": "staging.drought.ca.gov",
-        "description": "Drought STAGING website",
-        "enabled": true,
-        "enabledLocal": false,
-        "ReportingChannel_Slack": "C02G6PETB9B",
-        "WordPressSource": {
-          "url": "https://live-drought-ca-gov.pantheonsite.io",
-          "tags_exclude": ["development"]
-        },
-        "GitHubTarget": {
-          "Owner": "cagov",
-          "Repo": "drought.ca.gov",
-          "Branch": "staging",
-          "ConfigPath": "wordpress/wordpress-to-github.config.json"
-        }
-      },
-      {
-        "name": "main-test-pantheon.drought.ca.gov",
-        "enabled": true,
-        "enabledLocal": false,
-        "ReportingChannel_Slack": "C02G6PETB9B",
-        "WordPressSource": {
-          "url": "https://test-drought-ca-gov.pantheonsite.io",
-          "tags_exclude": ["staging", "development"]
-        },
-        "GitHubTarget": {
-          "Owner": "cagov",
-          "Repo": "drought.ca.gov",
-          "Branch": "main-test-pantheon",
-          "ConfigPath": "wordpress/wordpress-to-github.config.json"
-        }
-      },
-      {
-        "name": "headless.cannabis.ca.gov",
-        "description": "",
-        "enabled": true,
-        "enabledLocal": false,
-        "ReportingChannel_Slack": "C02G6PETB9B",
-        "WordPressSource": {
-          "url": "https://cannabis.ca.gov",
-          "tags_exclude": []
-        },
-        "GitHubTarget": {
-          "Owner": "cagov",
-          "Repo": "cannabis.ca.gov",
-          "Branch": "main",
-          "ConfigPath": "wordpress/config/wordpress-to-github.config.json"
-        }
-      },
-      {
-        "name": "staging.cannabis.ca.gov",
-        "description": "",
-        "enabled": true,
-        "enabledLocal": false,
-        "ReportingChannel_Slack": "C02G6PETB9B",
-        "WordPressSource": {
-          "url": "https://cannabis.ca.gov",
-          "tags_exclude": []
-        },
-        "GitHubTarget": {
-          "Owner": "cagov",
-          "Repo": "cannabis.ca.gov",
-          "Branch": "staging",
-          "ConfigPath": "wordpress/config/wordpress-to-github.config.json"
-        }
-      },
-      {
-        "name": "development.cannabis.ca.gov",
-        "description": "",
-        "enabled": true,
-        "enabledLocal": false,
-        "ReportingChannel_Slack": "C02G6PETB9B",
-        "WordPressSource": {
-          "url": "https://cannabis.ca.gov",
-          "tags_exclude": []
-        },
-        "GitHubTarget": {
-          "Owner": "cagov",
-          "Repo": "cannabis.ca.gov",
+          "Repo": "odi-publishing-11ty-sandbox",
           "Branch": "development",
-          "ConfigPath": "wordpress/config/wordpress-to-github.config.json"
-        }
-      },
-      {
-        "name": "staging-pantheon.cannabis.ca.gov",
-        "description": "",
-        "enabled": true,
-        "enabledLocal": false,
-        "ReportingChannel_Slack": "C02G6PETB9B",
-        "WordPressSource": {
-          "url": "https://live-cagov-dcc.pantheonsite.io",
-          "tags_exclude": []
-        },
-        "GitHubTarget": {
-          "Owner": "cagov",
-          "Repo": "cannabis.ca.gov",
-          "Branch": "staging-pantheon",
-          "ConfigPath": "wordpress/config/wordpress-to-github.config.json"
-        }
-      },
-      {
-        "name": "development-pantheon.cannabis.ca.gov",
-        "description": "",
-        "enabled": true,
-        "enabledLocal": false,
-        "ReportingChannel_Slack": "C02G6PETB9B",
-        "WordPressSource": {
-          "url": "https://dev-cagov-dcc.pantheonsite.io",
-          "tags_exclude": []
-        },
-        "GitHubTarget": {
-          "Owner": "cagov",
-          "Repo": "cannabis.ca.gov",
-          "Branch": "development-pantheon",
-          "ConfigPath": "wordpress/config/wordpress-to-github.config.json"
-        }
-      },
-      {
-        "name": "digital.ca.gov",
-        "description": "digital.ca.gov website",
-        "enabled": true,
-        "enabledLocal": false,
-        "ReportingChannel_Slack": "C02G6PETB9B",
-        "WordPressSource": {
-          "url": "https://live-odi-content-api.pantheonsite.io",
-          "tags_exclude": ["Preview-Mode"]
-        },
-        "GitHubTarget": {
-          "Owner": "cagov",
-          "Repo": "digital.ca.gov",
-          "Branch": "main",
           "ConfigPath": "wordpress/wordpress-to-github.config.json"
-        }
-      },
-      {
-        "name": "Covid 19 website",
-        "description": "Using data to create test output.",
-        "enabled": false,
-        "enabledLocal": false,
-        "ReportingChannel_Slack": "C01H6RB99E2",
-        "WordPressSource": {
-          "url": "https://as-go-covid19-d-001.azurewebsites.net",
-          "tags_exclude": ["staging-only", "development"]
-        },
-        "GitHubTarget": {
-          "Owner": "cagov",
-          "Repo": "automation-development-target",
-          "Branch": "main",
-          "ConfigPath": "wordpress_output/wordpress-to-github.config.json"
-        }
-      },
-      {
-        "name": "Covid 19 website Staging",
-        "description": "(Staging) Using data to create test output.",
-        "enabled": false,
-        "enabledLocal": false,
-        "ReportingChannel_Slack": "C01H6RB99E2",
-        "WordPressSource": {
-          "url": "https://as-go-covid19-d-001.azurewebsites.net",
-          "tags_exclude": ["development"]
-        },
-        "GitHubTarget": {
-          "Owner": "cagov",
-          "Repo": "automation-development-target",
-          "Branch": "staging",
-          "ConfigPath": "wordpress_output/wordpress-to-github.config.json"
         }
       }
     ]
