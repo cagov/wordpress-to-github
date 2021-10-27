@@ -70,9 +70,9 @@ Controls how the service will place content in GitHub. Copy `wordpress-to-github
 `ExcludeProperties`
 : Which WordPress properties should we suppress in output?
 
-### endpoints.json
+### WordpressSync/endpoints.json
 
-`WordpressSync/endpoints.json` contains the projects to process with the service.
+Contains the projects to process with the service.
 
 ```json
 {
