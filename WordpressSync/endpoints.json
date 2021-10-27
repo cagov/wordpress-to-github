@@ -144,9 +144,9 @@
       {
         "name": "digital.ca.gov",
         "description": "digital.ca.gov website",
-        "enabled": true,
+        "enabled": false,
         "enabledLocal": false,
-        "ReportingChannel_Slack": "C02G6PETB9B",
+        "ReportingChannel_Slack": "C01H6RB99E2",
         "WordPressSource": {
           "url": "https://live-odi-content-api.pantheonsite.io",
           "tags_exclude": ["Preview-Mode"]
