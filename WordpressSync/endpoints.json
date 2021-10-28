@@ -59,7 +59,7 @@
       {
         "name": "headless.cannabis.ca.gov",
         "description": "",
-        "enabled": true,
+        "enabled": false,
         "enabledLocal": false,
         "ReportingChannel_Slack": "C02G6PETB9B",
         "WordPressSource": {
@@ -76,7 +76,7 @@
       {
         "name": "staging.cannabis.ca.gov",
         "description": "",
-        "enabled": true,
+        "enabled": false,
         "enabledLocal": false,
         "ReportingChannel_Slack": "C02G6PETB9B",
         "WordPressSource": {
@@ -93,7 +93,7 @@
       {
         "name": "development.cannabis.ca.gov",
         "description": "",
-        "enabled": true,
+        "enabled": false,
         "enabledLocal": false,
         "ReportingChannel_Slack": "C02G6PETB9B",
         "WordPressSource": {
@@ -110,7 +110,7 @@
       {
         "name": "staging-pantheon.cannabis.ca.gov",
         "description": "",
-        "enabled": true,
+        "enabled": false,
         "enabledLocal": false,
         "ReportingChannel_Slack": "C02G6PETB9B",
         "WordPressSource": {
@@ -127,7 +127,7 @@
       {
         "name": "development-pantheon.cannabis.ca.gov",
         "description": "",
-        "enabled": true,
+        "enabled": false,
         "enabledLocal": false,
         "ReportingChannel_Slack": "C02G6PETB9B",
         "WordPressSource": {
