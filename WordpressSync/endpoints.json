@@ -9,7 +9,7 @@
       {
         "name": "drought.ca.gov",
         "description": "Drought production website",
-        "enabled": true,
+        "enabled": false,
         "enabledLocal": false,
         "ReportingChannel_Slack": "C02G6PETB9B",
         "WordPressSource": {
@@ -26,7 +26,7 @@
       {
         "name": "staging.drought.ca.gov",
         "description": "Drought STAGING website",
-        "enabled": true,
+        "enabled": false,
         "enabledLocal": false,
         "ReportingChannel_Slack": "C02G6PETB9B",
         "WordPressSource": {
@@ -42,7 +42,7 @@
       },
       {
         "name": "main-test-pantheon.drought.ca.gov",
-        "enabled": true,
+        "enabled": false,
         "enabledLocal": false,
         "ReportingChannel_Slack": "C02G6PETB9B",
         "WordPressSource": {
