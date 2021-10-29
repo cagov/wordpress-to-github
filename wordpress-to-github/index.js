@@ -35,6 +35,7 @@ const {
 const commitTitlePosts = "Wordpress Posts Update";
 const commitTitlePages = "Wordpress Pages Update";
 const commitTitleMedia = "Wordpress Media Update";
+const commitTitleMenus = "Wordpress Menu Update";
 const commitTitleGeneral = "Wordpress General File Update";
 const fieldMetaReference = {
   posts: "https://developer.wordpress.org/rest-api/reference/posts/",
@@ -235,6 +236,8 @@ const SyncEndpoint = async (
   const pagesMap = endpointConfig.PagePath ? new Map() : null;
   /** @type {Map <string,any> | null} */
   const mediaMap = endpointConfig.MediaPath ? new Map() : null;
+  /** @type {Map <string,any> | null} */
+  const menuMap = endpointConfig.MenuPath ? new Map() : null;
 
   // MEDIA
   const mediaContentPlaceholder =
@@ -475,6 +478,32 @@ const SyncEndpoint = async (
         `${commitTitlePages} (${
           pagesTree.filter(x => x.path.endsWith(".html")).length
         } updates)`,
+        gitHubCommitter
+      )
+    );
+  }
+
+  // MENUS
+  if (allMenus) {
+    allMenus.forEach(menu => {
+      menuMap.set(`${menu.slug}.json`, JSON.stringify(menu, null, 2))
+    });
+
+    const menuTree = await createTreeFromFileMap(
+      gitRepo,
+      gitHubTarget.Branch,
+      menuMap,
+      endpointConfig.MenuPath,
+      false
+    );
+
+    addToReport(
+      report,
+      await CommitIfChanged(
+        gitRepo,
+        gitHubTarget.Branch,
+        menuTree,
+        `${commitTitleMenus} (${menuTree.length} updates)`,
         gitHubCommitter
       )
     );

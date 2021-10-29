@@ -250,21 +250,15 @@ const WpApi_getSomething = async fetchquery =>
  * @param {string} wordPressMenuApiUrl Full URL to the WordPress Menu API.
  * @param {string[]} menuSlugs Array of strings corresponding to menu "slugs" we want.
  */
-const WpApi_GetMenuData = async (wordPressMenuApiUrl, menuSlugs) => {
+const WpApi_GetMenuData = (wordPressMenuApiUrl, menuSlugs) => {
   // Fetch all menus concurrently, shove each into array.
-  const menus = await Promise.all(menuSlugs.map(async slug => {
+  return Promise.all(menuSlugs.map(async slug => {
     const fetchquery = `${wordPressMenuApiUrl}${slug}`;
     console.log(`querying Wordpress API - ${fetchquery}`);
 
     return await WpApi_getSomething(fetchquery)
       .then(response => response.json());
   }));
-
-  // Convert array into an object, keyed by menuSlug.
-  return menus.reduce((obj, menu) => {
-    obj[menu.slug] = menu;
-    return obj;
-  }, {})
 };
 
 /**
