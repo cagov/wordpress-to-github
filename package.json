@@ -12,7 +12,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@cagov/wordpress-to-github": "file:wordpress-to-github"
+    "@cagov/wordpress-to-github": "file:wordpress-to-github/"
   },
   "devDependencies": {
     "eslint": "^7.32.0",
