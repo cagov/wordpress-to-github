@@ -46,29 +46,24 @@ Controls how the service will place content in GitHub.
     "PostPath": "wordpress/posts",
     "PagePath": "wordpress/pages",
     "MediaPath": "wordpress/media",
+    "MenuPath": "menu_test/menus",
+    "MenuSlugs": ["header-menu"],
     "GeneralFilePath": "wordpress/general/general.json",
     "ExcludeProperties": ["content", "_links"]
   }
 }
 ```
 
-`disabled`
-: Set to true to disable processing for this project.
-
-`PostPath`
-: Where should the posts go?
-
-`PagePath`
-: Where should the pages go?
-
-`MediaPath`
-: Where should image media go?
-
-`GeneralFilePath`
-: The full path and filename for a `general.json` file that contains information about the whole site.
-
-`ExcludeProperties`
-: Which WordPress properties should we suppress in output?
+|Name|Description|
+|:--:|:----------|
+|**`disabled`**|Set to true to disable processing for this project.|
+|**`PostPath`**|Where should the posts go?|
+|**`PagePath`**|Where should the pages go?|
+|**`MediaPath`**|Where should image media go?|
+|**`MenuPath`**|Where should the menus go?|
+|**`MenuSlugs`**|Which menus should be fetched?|
+|**`GeneralFilePath`**|The full path and filename for a `general.json` file that contains information about the whole site.|
+|**`ExcludeProperties`**|Which WordPress properties should we suppress in output?|
 
 ### endpoints.json
 
@@ -105,31 +100,21 @@ Contains the projects to process with the service.
 }
 ```
 
-`name` : Friendly name for this job when it runs locally.
-
-`description` : Describe what this is being used for in this endpoint configuration.
-
-`enabled` : Should we process this endpoint?
-
-`enabledLocal` : Should we process this endpoint when running in local development?
-
-`ReportingChannel_Slack` : Slack channel to report activity to.
-
-`WordPressSource` : Describes the Wordpress instance to read from.
-
-`url` : URL of the Wordpress instance to read from.
-
-`tags_exclude` : Ignore Pages/Posts with these tags (Case sensitive!).
-
-`GitHubTarget` : The endpoint target to deploy changes.
-
-`Owner` : GitHub Owner.
-
-`Repo` : GitHub Repo.
-
-`Branch` : GitHub Target Branch.
-
-`ConfigPath` : Path to config.json file for this endpoint.
+|Name|Description|
+|:--:|:----------|
+|**`name`**|Friendly name for this job when it runs locally.|
+|**`description`**|Describe what this is being used for in this endpoint configuration.|
+|**`enabled`**|Should we process this endpoint?|
+|**`enabledLocal`**|Should we process this endpoint when running in local development?|
+|**`ReportingChannel_Slack`**|Slack channel to report activity to.|
+|**`WordPressSource`**|Describes the Wordpress instance to read from.|
+|**`WordPressSource.url`**|URL of the Wordpress instance to read from.|
+|**`WordPressSource.tags_exclude`**|Ignore Pages/Posts with these tags (Case sensitive!).|
+|**`GitHubTarget`**|The endpoint target to deploy changes.|
+|**`GitHubTarget.Owner`**|GitHub Owner.|
+|**`GitHubTarget.Repo`**|GitHub Repo.|
+|**`GitHubTarget.Branch`**|GitHub Target Branch.|
+|**`GitHubTarget.ConfigPath`**|Path to config.json file for this endpoint.|
 
 ## Setting up Local Execution/Debugging
 
@@ -153,13 +138,12 @@ You will need to define a `local.settings.json` file in the project root with th
 }
 ```
 
-`GITHUB_NAME` : The name that will appear on commits.
-
-`GITHUB_EMAIL` : The email that will appear on commits.
-
-`GITHUB_TOKEN` : Your token used to authenticate with GitHub. Get one [here](https://github.com/settings/tokens).
-
-`SLACKBOT_TOKEN` : Your token used to authenticate with your Slack app. Make one [here](https://api.slack.com/apps/).
+|Name|Description|
+|:--:|:----------|
+|**`GITHUB_NAME`**|The name that will appear on commits.|
+|**`GITHUB_EMAIL`**|The email that will appear on commits.|
+|**`GITHUB_TOKEN`**|Your token used to authenticate with GitHub. Get one [here](https://github.com/settings/tokens).|
+|**`SLACKBOT_TOKEN`**|Your token used to authenticate with your Slack app. Make one [here](https://api.slack.com/apps/).|
 
 ### Local running with select projects
 
