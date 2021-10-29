@@ -6,6 +6,8 @@
     "access": "public"
   },
   "type": "commonjs",
+  "main": "index.js",
+  "typings": "index.js",
   "repository": {
     "type": "git",
     "url": "https://github.com/cagov/wordpress-to-github.git"
