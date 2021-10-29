@@ -6,7 +6,7 @@
     "url": "https://github.com/cagov/wordpress-to-github.git"
   },
   "description": "",
-  "main": "index.js",
+  "type": "commonjs",
   "scripts": {},
   "keywords": [],
   "author": "",
