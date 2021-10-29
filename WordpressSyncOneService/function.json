@@ -11,12 +11,6 @@
       "type": "http",
       "direction": "out",
       "name": "res"
-    },
-    {
-      "name": "WordpressSyncOneService",
-      "type": "timerTrigger",
-      "direction": "in",
-      "schedule": "0 0/2 * * * *"
     }
   ]
 }
