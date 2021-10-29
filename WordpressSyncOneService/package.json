@@ -1,5 +1,0 @@
-{
-  "dependencies": {
-    "@cagov/wordpress-to-github": "file:../wordpress-to-github"
-  }
-}
