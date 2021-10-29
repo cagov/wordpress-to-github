@@ -6,7 +6,7 @@ name: Build and deploy Node.js project to Azure Function App - FA-GO-UNIV-WP-GHU
 on:
   push:
     branches:
-      - main
+      - development
   workflow_dispatch:
 
 env:
