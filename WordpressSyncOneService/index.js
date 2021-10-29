@@ -11,6 +11,7 @@ module.exports = async function (context, req) {
   const appName = context.executionContext?.functionName;
   let slackPostTS = "";
   try {
+    throw new Error("error test");
     slackPostTS = (
       await (
         await slackBotChatPost(
