@@ -13,7 +13,7 @@
       "name": "res"
     },
     {
-      "name": "WordpressSync",
+      "name": "WordpressSyncOneService",
       "type": "timerTrigger",
       "direction": "in",
       "schedule": "0 0/2 * * * *"

@@ -24,7 +24,13 @@ module.exports = async function (context, req) {
     await slackBotReplyPost(
       debugChannel,
       slackPostTS,
-      `\n\n*Details*\n\`\`\`${JSON.stringify(debugInfo, null, 2)}\`\`\``
+      `\n\n*Context*\n\`\`\`${JSON.stringify(context, null, 2)}\`\`\``
+    );
+
+    await slackBotReplyPost(
+      debugChannel,
+      slackPostTS,
+      `\n\n*Req*\n\`\`\`${JSON.stringify(req, null, 2)}\`\`\``
     );
 
     context.res = {
