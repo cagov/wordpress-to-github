@@ -12,7 +12,9 @@ const {
   wrapInFileMeta,
   commonMeta,
   WpApi_GetCacheItem_ByObjectType,
+  WpApi_GetMenuData,
   apiPath,
+  menuApiPath,
   fetchDictionary,
   cleanupContent,
   WpApi_GetPagedData_ByObjectType,
@@ -123,6 +125,8 @@ const SyncEndpoint = async (
 
   const endpointConfig = await getRemoteConfig(gitHubTarget, gitHubCredentials);
   const wordPressApiUrl = sourceEndpointConfig.WordPressSource.url + apiPath;
+  const wordPressMenuApiUrl = sourceEndpointConfig.WordPressSource.url + menuApiPath;
+
 
   //Check cache (and set cache for next time)
   let cacheMatch = true;
@@ -172,6 +176,9 @@ const SyncEndpoint = async (
   /** @type {WordpressPageRow[] | null} */
   const allPages = endpointConfig.PagePath
     ? await WpApi_GetPagedData_ByObjectType(wordPressApiUrl, "pages")
+    : null;
+  const allMenus = endpointConfig.MenuPath
+    ? await WpApi_GetMenuData(wordPressMenuApiUrl, endpointConfig.MenuSlugs)
     : null;
 
   if (endpointConfig.disabled) {

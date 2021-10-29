@@ -9,6 +9,8 @@
     "PostPath": "wordpress/posts",
     "PagePath": "wordpress/pages",
     "MediaPath": "wordpress/media",
+    "MenuPath": "wordpress/menus",
+    "MenuSlugs": ["header-menu"],
     "GeneralFilePath": "wordpress/general/general.json",
     "ExcludeProperties": ["content", "_links"]
   }

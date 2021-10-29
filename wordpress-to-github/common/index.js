@@ -1,5 +1,6 @@
 // @ts-check
 const apiPath = "/wp-json/wp/v2/";
+const menuApiPath = "/wp-json/menus/v1/menus/";
 const {
   gitHubBlobPredictShaFromBuffer,
   GithubTreeRow
@@ -26,6 +27,8 @@ const fetchRetry = require("fetch-retry")(require("node-fetch/lib"), {
  * @property {string[]} [ExcludeProperties] list of properties to exclude
  * @property {string} [PostPath]
  * @property {string} [PagePath]
+ * @property {string} [MenuPath]
+ * @property {string[]} [MenuSlugs]
  * @property {string} [MediaPath]
  * @property {string} [GeneralFilePath]
  */
@@ -242,6 +245,29 @@ const WpApi_getSomething = async fetchquery =>
   await fetchRetry(fetchquery, { method: "Get" });
 
 /**
+ * Fetch menu data from the WordPress API for the given menu slugs. 
+ * 
+ * @param {string} wordPressMenuApiUrl Full URL to the WordPress Menu API.
+ * @param {string[]} menuSlugs Array of strings corresponding to menu "slugs" we want.
+ */
+const WpApi_GetMenuData = async (wordPressMenuApiUrl, menuSlugs) => {
+  // Fetch all menus concurrently, shove each into array.
+  const menus = await Promise.all(menuSlugs.map(async slug => {
+    const fetchquery = `${wordPressMenuApiUrl}${slug}`;
+    console.log(`querying Wordpress API - ${fetchquery}`);
+
+    return await WpApi_getSomething(fetchquery)
+      .then(response => response.json());
+  }));
+
+  // Convert array into an object, keyed by menuSlug.
+  return menus.reduce((obj, menu) => {
+    obj[menu.slug] = menu;
+    return obj;
+  }, {})
+};
+
+/**
  * Call the paged wordpress api put all the paged data into a single return array
  *
  * @param {string} wordPressApiUrl WP source URL
@@ -448,7 +474,9 @@ module.exports = {
   wrapInFileMeta,
   commonMeta,
   WpApi_GetCacheItem_ByObjectType,
+  WpApi_GetMenuData,
   apiPath,
+  menuApiPath,
   fetchDictionary,
   cleanupContent,
   WpApi_GetPagedData_ByObjectType,

@@ -56,6 +56,21 @@
           "description": "Where should image media go?",
           "examples": ["wordpress/media"]
         },
+        "MenuPath": {
+          "type": "string",
+          "description": "Where should menu data go?",
+          "examples": ["wordpress/menus"]
+        },
+        "MenuSlugs": {
+          "type": "array",
+          "description": "Which menus should be fetched?",
+          "items": {
+            "type": "string"
+          },
+          "examples": [
+            ["header-menu", "content-menu"]
+          ]
+        },
         "GeneralFilePath": {
           "type": "string",
           "description": "The full path and filename for a 'general' file that contains information about the whole site.  Remove this attribute to stop updating the file.  Changing this file path will not remove the old file.",

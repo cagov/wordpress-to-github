@@ -191,6 +191,22 @@
           "Branch": "staging",
           "ConfigPath": "wordpress_output/wordpress-to-github.config.json"
         }
+      },
+      {
+        "name": "Drought wp-to-gh menu testing",
+        "description": "Let's get the menus working.",
+        "enabled": false,
+        "enabledLocal": false,
+        "WordPressSource": {
+          "url": "https://dev-drought-ca-gov.pantheonsite.io/",
+          "tags_exclude": ["staging-only", "development"]
+        },
+        "GitHubTarget": {
+          "Owner": "cagov",
+          "Repo": "automation-development-target",
+          "Branch": "main",
+          "ConfigPath": "menu_test/wordpress-to-github.config.json"
+        }
       }
     ]
   }
