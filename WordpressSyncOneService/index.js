@@ -17,6 +17,8 @@ module.exports = async function (context, req) {
   };
 
   try {
+    const yo = require("@cagov/wordpress-to-github");
+
     slackPostTS = (
       await (await slackBotChatPost(debugChannel, "Work recorded")).json()
     ).ts;
@@ -34,7 +36,7 @@ module.exports = async function (context, req) {
     await slackBotReplyPost(
       debugChannel,
       slackPostTS,
-      `\n\n*Error Details*\n\`\`\`${JSON.stringify(debugInfo, null, 2)}\`\`\``
+      `\n\n*Error Details*\n\`\`\`${JSON.stringify(e, null, 2)}\`\`\``
     );
 
     context.res = {
