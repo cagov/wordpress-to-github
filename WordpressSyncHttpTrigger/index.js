@@ -31,7 +31,7 @@ const gitHubCredentials = {
  * @param {{method:string,headers:{"user-agent":string},query:{},params:{},body:GitHubTarget}} req
  */
 module.exports = async function (context, req) {
-  const appName = context.executionContext.functionName;
+  const appName = context.executionContext?.functionName;
   try {
     if (req.method !== "POST") {
       context.res = {
