@@ -17,8 +17,6 @@ module.exports = async function (context, req) {
   };
 
   try {
-    const yo = require("@cagov/wordpress-to-github");
-
     slackPostTS = (
       await (await slackBotChatPost(debugChannel, "Work recorded")).json()
     ).ts;
@@ -29,6 +27,8 @@ module.exports = async function (context, req) {
       `\n\n*Request Info*\n\`\`\`${JSON.stringify(req, null, 2)}\`\`\``
     );
 
+    const yo = require("@cagov/wordpress-to-github");
+
     context.res = {
       body: `${JSON.stringify(req, null, 2)}`
     };
@@ -36,12 +36,12 @@ module.exports = async function (context, req) {
     await slackBotReplyPost(
       debugChannel,
       slackPostTS,
-      `\n\n*Error Details*\n\`\`\`${JSON.stringify(e, null, 2)}\`\`\``
+      `\n\n*Error Details*\n\`\`\`${JSON.stringify(e.stack, null, 2)}\`\`\``
     );
 
     context.res = {
       status: 500,
-      body: `Error - ${e.message}`
+      body: `Error - ${e.message}\n${e.stack}`
     };
   }
 };
