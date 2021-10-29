@@ -5,6 +5,7 @@
   "publishConfig": {
     "access": "public"
   },
+  "type": "commonjs",
   "main": "index.js",
   "typings": "index.js",
   "repository": {
