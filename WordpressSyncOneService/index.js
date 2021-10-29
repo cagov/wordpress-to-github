@@ -17,19 +17,15 @@ module.exports = async function (context, req) {
   };
 
   try {
-    throw new Error("error test");
     slackPostTS = (
-      await (
-        await slackBotChatPost(
-          debugChannel,
-          `\n\n*Full Details*\n\`\`\`${JSON.stringify(
-            debugInfo,
-            null,
-            2
-          )}\`\`\``
-        )
-      ).json()
+      await (await slackBotChatPost(debugChannel, "Work recorded")).json()
     ).ts;
+
+    await slackBotReplyPost(
+      debugChannel,
+      slackPostTS,
+      `\n\n*Details*\n\`\`\`${JSON.stringify(debugInfo, null, 2)}\`\`\``
+    );
 
     context.res = {
       body: `${JSON.stringify(req, null, 2)}`
