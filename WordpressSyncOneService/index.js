@@ -26,6 +26,10 @@ module.exports = async function (context, req) {
       slackPostTS,
       `\n\n*Request Info*\n\`\`\`${JSON.stringify(req, null, 2)}\`\`\``
     );
+
+    context.res = {
+      body: `${JSON.stringify(req, null, 2)}`
+    };
   } catch (e) {
     await slackBotReplyPost(
       debugChannel,
