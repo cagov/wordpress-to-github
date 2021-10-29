@@ -1,4 +1,5 @@
 // @ts-check
+const crypto = require('crypto');
 const GitHub = require("github-api");
 const {
   createTreeFromFileMap,
@@ -44,7 +45,7 @@ const fieldMetaReference = {
 };
 /** @type {Map <string,WordpressApiDateCacheItem>} */
 const updateCache = new Map();
-const cacheObjects = ["media", "posts", "pages"];
+const cacheObjects = ["media", "posts", "pages", "menus"];
 
 /**
  * process a Wordpress endpoint and place the data in GitHub
@@ -128,18 +129,30 @@ const SyncEndpoint = async (
   const wordPressApiUrl = sourceEndpointConfig.WordPressSource.url + apiPath;
   const wordPressMenuApiUrl = sourceEndpointConfig.WordPressSource.url + menuApiPath;
 
+  const allMenus = endpointConfig.MenuPath
+    ? await WpApi_GetMenuData(wordPressMenuApiUrl, endpointConfig.MenuSlugs)
+    : null;
 
   //Check cache (and set cache for next time)
   let cacheMatch = true;
   const cacheRoot = `Owner:${gitHubTarget.Owner},Repo:${gitHubTarget.Repo},Branch:${gitHubTarget.Branch},wordPressApiUrl:${wordPressApiUrl}`;
   for (let type of cacheObjects) {
     const cacheKey = `${cacheRoot},type:${type}`;
-
-    const currentStatus = await WpApi_GetCacheItem_ByObjectType(
-      wordPressApiUrl,
-      type
-    );
     const cacheItem = updateCache.get(cacheKey);
+    let currentStatus;
+
+    if (type !== "menus") {
+      currentStatus = await WpApi_GetCacheItem_ByObjectType(
+        wordPressApiUrl,
+        type
+      );
+    } else if (endpointConfig.MenuPath) {
+      // Create an object (obj) of hashes corresponding to each menu, keyed by menu slug.
+      currentStatus = allMenus.reduce((obj, menu) => {
+        obj[menu.slug] = crypto.createHash('md5').update(JSON.stringify(menu)).digest("hex");
+      }, {})
+    }
+
     updateCache.set(cacheKey, currentStatus);
 
     if (
@@ -177,9 +190,6 @@ const SyncEndpoint = async (
   /** @type {WordpressPageRow[] | null} */
   const allPages = endpointConfig.PagePath
     ? await WpApi_GetPagedData_ByObjectType(wordPressApiUrl, "pages")
-    : null;
-  const allMenus = endpointConfig.MenuPath
-    ? await WpApi_GetMenuData(wordPressMenuApiUrl, endpointConfig.MenuSlugs)
     : null;
 
   if (endpointConfig.disabled) {
