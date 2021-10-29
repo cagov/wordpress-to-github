@@ -7,7 +7,10 @@
   },
   "description": "",
   "type": "commonjs",
-  "scripts": {},
+  "scripts": {
+    "install_normal": "npm install file:wordpress-to-github",
+    "install_without_symlinks": "npm install $(npm pack file:wordpress-to-github | tail -1)"
+  },
   "keywords": [],
   "author": "",
   "license": "ISC",
