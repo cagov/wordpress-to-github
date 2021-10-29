@@ -31,11 +31,18 @@ const gitHubCredentials = {
  * @param {{method:string,headers:{"user-agent":string},query:{},params:{},body:GitHubTarget}} req
  */
 module.exports = async function (context, req) {
-  const appName = context.executionContext.functionName;
-  let slackPostTS = "";
+  const appName = context.executionContext?.functionName;
   try {
-    const TriggerName =
-      req.query["Trigger"] || req.body["trigger"] || "(Trigger)";
+    if (req.method !== "POST") {
+      context.res = {
+        body: `Service is running, but is expecting a POST.`
+      };
+      return;
+    }
+
+    let slackPostTS = "";
+
+    const TriggerName = req.body["trigger"] || "(Trigger)";
     const SlugName = req.body["slug"] || "(slug)";
     slackPostTS = (
       await (

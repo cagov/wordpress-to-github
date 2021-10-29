@@ -199,20 +199,21 @@ process.env.debug = true; //set to false or remove to run like the real instance
 
 `enabledLocal` is ignored using this method. The `enabled` setting in each project is used, just like the real running instance.
 
-## Setting Trigger Function Keys
+## Setting Trigger App Keys
 
-Function keys need to be kept secret. They are required to authenticate to the function service from a WordPress notification instance. The keys are added to the end of the URL (as `&code=`) that will POST to the `WordpressSyncHttpTrigger` function. `WordpressSyncHttpTrigger` runs in `"authLevel": "function"` mode that requires Function Keys to operate.
+App keys need to be kept secret. They are required to authenticate to the function service from a WordPress notification instance. The keys are added to the end of the URL (as `&code=`) that will POST to the `WordpressSyncHttpTrigger` function. `WordpressSyncHttpTrigger` runs in `"authLevel": "function"` mode that requires App Keys to operate.
 
 To view the keys.
 
 1. As an Admin, go the the Function App in Azure.
-1. On the side bar, select `Functions`.
-1. In the list of functions, select `WordpressSyncHttpTrigger`.
-1. On the side bar, select `Function Keys`.
+1. On the side bar, select `App Keys`.
+1. The list of `Host keys (all functions)` contains your active keys.
 
 With the list of keys you can...
 
 - View an existing key by clicking `Hidden value. Click to show value`
-- Create a `New function key` for assigning to a new WordPress notification instance
+- Create a `New host key` for assigning to a new WordPress notification instance
 - `Renew key value` to invalidate an old key for replacement
 - 🗑️ Delete a key that should no longer be used
+
+Make sure to name the key appropriately, and have a unique key per consuming site.  Using the domain name as the key name is a good idea.
