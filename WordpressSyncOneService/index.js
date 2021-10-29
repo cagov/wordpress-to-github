@@ -10,13 +10,23 @@ const debugChannel = "C01H6RB99E2"; //#carter-dev
 module.exports = async function (context, req) {
   const appName = context.executionContext?.functionName;
   let slackPostTS = "";
+
+  const debugInfo = {
+    context,
+    req
+  };
+
   try {
     throw new Error("error test");
     slackPostTS = (
       await (
         await slackBotChatPost(
           debugChannel,
-          `\n\n*Full Details*\n\`\`\`${JSON.stringify(req, null, 2)}\`\`\``
+          `\n\n*Full Details*\n\`\`\`${JSON.stringify(
+            debugInfo,
+            null,
+            2
+          )}\`\`\``
         )
       ).json()
     ).ts;
@@ -28,7 +38,7 @@ module.exports = async function (context, req) {
     await slackBotReplyPost(
       debugChannel,
       slackPostTS,
-      `\n\n*Full Details*\n\`\`\`${JSON.stringify(req, null, 2)}\`\`\``
+      `\n\n*Error Details*\n\`\`\`${JSON.stringify(debugInfo, null, 2)}\`\`\``
     );
 
     context.res = {
