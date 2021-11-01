@@ -1,6 +1,6 @@
 // @ts-check
+const crypto = require('crypto');
 const apiPath = "/wp-json/wp/v2/";
-const menuApiPath = "/wp-json/menus/v1/menus/";
 const {
   gitHubBlobPredictShaFromBuffer,
   GithubTreeRow
@@ -27,10 +27,16 @@ const fetchRetry = require("fetch-retry")(require("node-fetch/lib"), {
  * @property {string[]} [ExcludeProperties] list of properties to exclude
  * @property {string} [PostPath]
  * @property {string} [PagePath]
- * @property {string} [MenuPath]
- * @property {string[]} [MenuSlugs]
  * @property {string} [MediaPath]
  * @property {string} [GeneralFilePath]
+ * @property {EndpointRequestsConfigData[]} [ApiRequests]
+ */
+
+/**
+ * @typedef {object} EndpointRequestsConfigData
+ * @property {string} Destination
+ * @property {string} Source 
+ * @property {string[]} [ExcludeProperties]
  */
 
 /**
@@ -144,6 +150,18 @@ const fetchRetry = require("fetch-retry")(require("node-fetch/lib"), {
  */
 
 /**
+ * @typedef {object} WordpressApiHashCacheItem Hash details for a Wordpress API response
+ * @property {string} Destination
+ * @property {string} Source
+ * @property {string} Hash
+ * 
+ * @typedef {object} WithData
+ * @property {string} Data
+ * 
+ * @typedef {WordpressApiHashCacheItem & WithData} WordpressApiHashDataItem
+ */
+
+/**
  * Get the path from the a media source url after the 'uploads' part
  *
  * @param {string} source_url
@@ -245,20 +263,38 @@ const WpApi_getSomething = async fetchquery =>
   await fetchRetry(fetchquery, { method: "Get" });
 
 /**
- * Fetch menu data from the WordPress API for the given menu slugs. 
+ * Fetch API request data from the WordPress API. 
  * 
- * @param {string} wordPressMenuApiUrl Full URL to the WordPress Menu API.
- * @param {string[]} menuSlugs Array of strings corresponding to menu "slugs" we want.
+ * @param {string} wordPressApiUrl Full URL to the WordPress Menu API.
+ * @param {EndpointRequestsConfigData[]} requests Array of Wordpress API requests.
+ * @returns {Promise<WordpressApiHashDataItem[]>}
  */
-const WpApi_GetMenuData = (wordPressMenuApiUrl, menuSlugs) => {
+const WpApi_GetApiRequestsData = (wordPressApiUrl, requests) => {
   // Fetch all menus concurrently, shove each into array.
-  return Promise.all(menuSlugs.map(async slug => {
-    const fetchquery = `${wordPressMenuApiUrl}${slug}`;
+  return Promise.all(requests.map(async request => {
+    const fetchquery = `${wordPressApiUrl}${request.Source}`;
     console.log(`querying Wordpress API - ${fetchquery}`);
 
     return await WpApi_getSomething(fetchquery)
-      .then(response => response.json());
+      .then(response => response.json())
+      .then(json => removeExcludedProperties(json, request.ExcludeProperties))
+      .then(json => ({ 
+        Source: request.Source,
+        Destination: request.Destination, 
+        Hash: crypto.createHash('md5').update(JSON.stringify(json)).digest("hex"),
+        Data: json
+      }));
   }));
+};
+
+/**
+ * Compares a cached object to a current object to see if the cache is out of date.
+ * @param {WordpressApiDateCacheItem|WordpressApiHashCacheItem} cacheItem 
+ * @param {WordpressApiDateCacheItem|WordpressApiHashCacheItem} currentItem 
+ * @returns {boolean}
+ */
+const jsonCacheDiscrepancy = (cacheItem, currentItem) => {
+  return !cacheItem || JSON.stringify(cacheItem) !== JSON.stringify(currentItem);
 };
 
 /**
@@ -406,6 +442,7 @@ const syncBinaryFile = async (wordpress_url, gitRepo, mediaTree, endpoint) => {
  *
  * @param {*} json
  * @param {string[]} [excludeList]
+ * @returns {string} 
  */
 const removeExcludedProperties = (json, excludeList) => {
   if (excludeList) {
@@ -413,6 +450,8 @@ const removeExcludedProperties = (json, excludeList) => {
       delete json[x];
     });
   }
+
+  return json;
 };
 
 /**
@@ -468,9 +507,9 @@ module.exports = {
   wrapInFileMeta,
   commonMeta,
   WpApi_GetCacheItem_ByObjectType,
-  WpApi_GetMenuData,
+  WpApi_GetApiRequestsData,
+  jsonCacheDiscrepancy,
   apiPath,
-  menuApiPath,
   fetchDictionary,
   cleanupContent,
   WpApi_GetPagedData_ByObjectType,

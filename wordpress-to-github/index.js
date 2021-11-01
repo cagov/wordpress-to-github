@@ -1,5 +1,4 @@
 // @ts-check
-const crypto = require('crypto');
 const GitHub = require("github-api");
 const {
   createTreeFromFileMap,
@@ -13,9 +12,9 @@ const {
   wrapInFileMeta,
   commonMeta,
   WpApi_GetCacheItem_ByObjectType,
-  WpApi_GetMenuData,
+  WpApi_GetApiRequestsData,
+  jsonCacheDiscrepancy,
   apiPath,
-  menuApiPath,
   fetchDictionary,
   cleanupContent,
   WpApi_GetPagedData_ByObjectType,
@@ -27,6 +26,7 @@ const {
   EndpointConfigData,
   SourceEndpointConfigData,
   WordpressApiDateCacheItem,
+  WordpressApiHashCacheItem,
   GitHubCommitter,
   GithubOutputJson,
   WordpressMediaRow,
@@ -36,16 +36,16 @@ const {
 const commitTitlePosts = "Wordpress Posts Update";
 const commitTitlePages = "Wordpress Pages Update";
 const commitTitleMedia = "Wordpress Media Update";
-const commitTitleMenus = "Wordpress Menu Update";
+const commitTitleApiRequests = "Wordpress API Requests Update";
 const commitTitleGeneral = "Wordpress General File Update";
 const fieldMetaReference = {
   posts: "https://developer.wordpress.org/rest-api/reference/posts/",
   pages: "https://developer.wordpress.org/rest-api/reference/pages/",
   media: "https://developer.wordpress.org/rest-api/reference/pages/"
 };
-/** @type {Map <string,WordpressApiDateCacheItem>} */
+/** @type {Map <string,WordpressApiDateCacheItem|WordpressApiHashCacheItem>} */
 const updateCache = new Map();
-const cacheObjects = ["media", "posts", "pages", "menus"];
+const cacheObjects = ["media", "posts", "pages"];
 
 /**
  * process a Wordpress endpoint and place the data in GitHub
@@ -127,41 +127,44 @@ const SyncEndpoint = async (
 
   const endpointConfig = await getRemoteConfig(gitHubTarget, gitHubCredentials);
   const wordPressApiUrl = sourceEndpointConfig.WordPressSource.url + apiPath;
-  const wordPressMenuApiUrl = sourceEndpointConfig.WordPressSource.url + menuApiPath;
 
-  const allMenus = endpointConfig.MenuPath
-    ? await WpApi_GetMenuData(wordPressMenuApiUrl, endpointConfig.MenuSlugs)
+  const allApiRequests = endpointConfig.ApiRequests && endpointConfig.ApiRequests.length
+    ? await WpApi_GetApiRequestsData(sourceEndpointConfig.WordPressSource.url, endpointConfig.ApiRequests)
     : null;
 
   //Check cache (and set cache for next time)
   let cacheMatch = true;
   const cacheRoot = `Owner:${gitHubTarget.Owner},Repo:${gitHubTarget.Repo},Branch:${gitHubTarget.Branch},wordPressApiUrl:${wordPressApiUrl}`;
+
   for (let type of cacheObjects) {
     const cacheKey = `${cacheRoot},type:${type}`;
     const cacheItem = updateCache.get(cacheKey);
-    let currentStatus;
-
-    if (type !== "menus") {
-      currentStatus = await WpApi_GetCacheItem_ByObjectType(
-        wordPressApiUrl,
-        type
-      );
-    } else if (endpointConfig.MenuPath) {
-      // Create an object (obj) of hashes corresponding to each menu, keyed by menu slug.
-      currentStatus = allMenus.reduce((obj, menu) => {
-        obj[menu.slug] = crypto.createHash('md5').update(JSON.stringify(menu)).digest("hex");
-      }, {})
-    }
+    const currentStatus = await WpApi_GetCacheItem_ByObjectType(
+      wordPressApiUrl,
+      type
+    );
 
     updateCache.set(cacheKey, currentStatus);
 
-    if (
-      !cacheItem ||
-      JSON.stringify(cacheItem) !== JSON.stringify(currentStatus)
-    ) {
+    if (jsonCacheDiscrepancy(cacheItem, currentStatus)) {
       cacheMatch = false;
     }
   }
+
+  if (allApiRequests) {
+    for (let request of allApiRequests) {
+      const apiRequestCacheKey = `${cacheRoot},type:apiResponse:${request.Source}`;
+      const apiRequestCacheItem = updateCache.get(apiRequestCacheKey);
+      const { Data, ...apiCurrentStatus } = request;
+
+      updateCache.set(apiRequestCacheKey, apiCurrentStatus);
+
+      if (jsonCacheDiscrepancy(apiRequestCacheItem, apiCurrentStatus)) {
+        cacheMatch = false;
+      }
+    }
+  }
+
   if (cacheMatch) {
     console.log(`match cache for ${cacheRoot}`);
     return;
@@ -246,8 +249,6 @@ const SyncEndpoint = async (
   const pagesMap = endpointConfig.PagePath ? new Map() : null;
   /** @type {Map <string,any> | null} */
   const mediaMap = endpointConfig.MediaPath ? new Map() : null;
-  /** @type {Map <string,any> | null} */
-  const menuMap = endpointConfig.MenuPath ? new Map() : null;
 
   // MEDIA
   const mediaContentPlaceholder =
@@ -493,30 +494,43 @@ const SyncEndpoint = async (
     );
   }
 
-  // MENUS
-  if (allMenus) {
-    allMenus.forEach(menu => {
-      menuMap.set(`${menu.slug}.json`, JSON.stringify(menu, null, 2))
-    });
+  // API Requests
+  if (allApiRequests) {
+    // Group all destination files by their parent folders.
+    const apiRequestsByFolder = allApiRequests.reduce((bucket, request) => {
+      let folderName = request.Destination.split("/").slice(0, -1).join("/");
+      let fileName = request.Destination.split("/").slice(-1);
 
-    const menuTree = await createTreeFromFileMap(
-      gitRepo,
-      gitHubTarget.Branch,
-      menuMap,
-      endpointConfig.MenuPath,
-      false
-    );
+      if (!(folderName in bucket)) {
+        bucket[folderName] = new Map();
+      }
 
-    addToReport(
-      report,
-      await CommitIfChanged(
+      bucket[folderName].set(fileName, JSON.stringify(request.Data, null, 2))
+
+      return bucket;
+    }, {});
+
+    // Create and commit a git tree for each set of files.
+    for (let [folderName, fileMap] of Object.entries(apiRequestsByFolder)) {
+      const requestsTree = await createTreeFromFileMap(
         gitRepo,
         gitHubTarget.Branch,
-        menuTree,
-        `${commitTitleMenus} (${menuTree.length} updates)`,
-        gitHubCommitter
-      )
-    );
+        fileMap,
+        folderName,
+        false
+      );
+  
+      addToReport(
+        report,
+        await CommitIfChanged(
+          gitRepo,
+          gitHubTarget.Branch,
+          requestsTree,
+          `${commitTitleApiRequests} (${folderName})`,
+          gitHubCommitter
+        )
+      );
+    }
   }
 
   return report;

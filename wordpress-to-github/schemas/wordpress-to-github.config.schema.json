@@ -31,6 +31,13 @@
           "PostPath": "wordpress/posts",
           "PagePath": "wordpress/pages",
           "MediaPath": "wordpress/media",
+          "ApiRequests": [
+            {
+              "Destination": "wordpress/menus/header-menu.json",
+              "Source": "/wp-json/menus/v1/menus/header-menu",
+              "ExcludeProperties": ["description"]
+            }
+          ],
           "GeneralFilePath": "wordpress/general/general.json",
           "ExcludeProperties": ["content", "_links"]
         }
@@ -56,19 +63,38 @@
           "description": "Where should image media go?",
           "examples": ["wordpress/media"]
         },
-        "MenuPath": {
-          "type": "string",
-          "description": "Where should menu data go?",
-          "examples": ["wordpress/menus"]
-        },
-        "MenuSlugs": {
+        "ApiRequests": {
           "type": "array",
-          "description": "Which menus should be fetched?",
+          "description": "What should be fetched from the API?",
           "items": {
-            "type": "string"
+            "type": "object",
+            "properties": {
+              "Destination": {
+                "type": "string",
+                "description": "The path where the API request should be stored in git.",
+                "examples": ["wordpress/menus/header-menu.json"]
+              },
+              "Source": {
+                "type": "string",
+                "description": "The Wordpress API URL to fetch.",
+                "examples": ["/wp-json/menus/v1/menus/header-menu"]
+              },
+              "ExcludeProperties": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "description": "Which properties should we suppress in output?",
+                "examples": [["description"]]
+              }
+            }
           },
           "examples": [
-            ["header-menu", "content-menu"]
+            {
+              "Destination": "wordpress/menus/header-menu.json",
+              "Source": "/wp-json/menus/v1/menus/header-menu",
+              "ExcludeProperties": ["description"]
+            }
           ]
         },
         "GeneralFilePath": {
