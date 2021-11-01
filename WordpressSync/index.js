@@ -92,7 +92,13 @@ const doProcessEndpoints = async work => {
         commitReports.map(x => {
           mergeFileNames.push(
             ...x.Files.map(
-              x => x.filename.split("/").slice(-1)[0].split(".")[0]
+              //Remove file extension, and remove resolution postfix
+              x =>
+                x.filename
+                  .split("/")
+                  .slice(-1)[0]
+                  .split(".")[0]
+                  .replace(/-\d+x\d+$/, "")
             )
           );
         });
