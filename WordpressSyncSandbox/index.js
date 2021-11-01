@@ -8,7 +8,6 @@ const {
 const debugChannel = "C01H6RB99E2"; //#carter-dev
 
 module.exports = async function (context, req) {
-  const appName = context.executionContext?.functionName;
   let slackPostTS = "";
 
   const debugInfo = {

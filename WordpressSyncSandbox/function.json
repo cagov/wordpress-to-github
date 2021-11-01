@@ -1,6 +1,12 @@
 {
   "bindings": [
     {
+      "name": "WordpressSyncSandbox",
+      "type": "timerTrigger",
+      "direction": "in",
+      "schedule": "0 0/2 * * * *"
+    },
+    {
       "authLevel": "anonymous",
       "type": "httpTrigger",
       "direction": "in",

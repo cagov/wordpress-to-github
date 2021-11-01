@@ -16,5 +16,13 @@
       "cwd": "${workspaceRoot}/WordpressSync",
       "outputCapture": "std"
     },
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "Debug DIRECT WordpressSyncSandbox",
+      "program": "debug.js",
+      "cwd": "${workspaceRoot}/WordpressSyncSandbox",
+      "outputCapture": "std"
+    }
   ]
 }
