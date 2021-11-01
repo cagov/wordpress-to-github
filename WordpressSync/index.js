@@ -98,7 +98,7 @@ const doProcessEndpoints = async work => {
                   .split("/")
                   .slice(-1)[0]
                   .split(".")[0]
-                  .replace(/-\d+x\d+$/, "")
+                  .replace(/-\d{1,4}x\d{1,4}$/, "")
             )
           );
         });
