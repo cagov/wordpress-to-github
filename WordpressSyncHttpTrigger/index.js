@@ -29,7 +29,7 @@ const gitHubCredentials = {
 
 /**
  * @param {{executionContext:{functionName:string},res:Response}} context
- * @param {{method:string,url:string,headers:{"user-agent":string,host:string},query:{code?:string},params:{},body:GitHubTarget}} req
+ * @param {{method:string,headers:{"user-agent":string},query?:{code?:string},params:{},body:{slug?:string,trigger?:string}}} req
  */
 module.exports = async function (context, req) {
   const appName = context.executionContext?.functionName;
@@ -43,8 +43,8 @@ module.exports = async function (context, req) {
 
     let slackPostTS = "";
 
-    const TriggerName = req.body["trigger"] || "(Trigger)";
-    const SlugName = req.body["slug"] || "(slug)";
+    const TriggerName = req.body.trigger || "(Trigger)";
+    const SlugName = req.body.slug || "(slug)";
     slackPostTS = (
       await (
         await slackBotChatPost(
@@ -54,15 +54,7 @@ module.exports = async function (context, req) {
       ).json()
     ).ts;
 
-    const debugOutput = {
-      "user-agent": req.headers["user-agent"],
-      host: req.headers.host,
-      url: req.url,
-      "x-original-url": req.headers["x-original-url"],
-      body: req.body
-    };
-
-    const redactedOutput = JSON.stringify(debugOutput, null, 2).replace(
+    const redactedOutput = JSON.stringify(req, null, 2).replace(
       new RegExp(req.query.code, "g"),
       `${req.query?.code?.substring(0, 3)}[...]`
     );

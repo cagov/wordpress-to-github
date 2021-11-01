@@ -63,15 +63,7 @@ const sample = {
 module.exports = async function (context, req) {
   let slackPostTS = "";
 
-  const samplePayload = {
-    "user-agent": sample.headers["user-agent"],
-    host: sample.headers.host,
-    url: sample.url,
-    "x-original-url": sample.headers["x-original-url"],
-    body: sample.body
-  };
-
-  const responseOutput = JSON.stringify(samplePayload, null, 2).replace(
+  const responseOutput = JSON.stringify(sample, null, 2).replace(
     new RegExp(sample.query.code, "g"),
     `${sample.query?.code?.substring(0, 3)}[...]`
   );
