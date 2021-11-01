@@ -42,8 +42,8 @@ module.exports = async function (context, req) {
 
     let slackPostTS = "";
 
-    const TriggerName = req.body.trigger || "(Trigger)";
-    const SlugName = req.body.slug || "(slug)";
+    const TriggerName = req.body?.trigger || "(Trigger)";
+    const SlugName = req.body?.slug || "(slug)";
     slackPostTS = (
       await (
         await slackBotChatPost(
