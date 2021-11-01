@@ -154,12 +154,10 @@ const pathFromMediaSourceUrl = source_url =>
  *
  * @param {string} wordpress_source_url
  * @param {GitHubTarget} gitHubTarget
- * @param {string} object_url
  */
-const commonMeta = (wordpress_source_url, gitHubTarget, object_url) => ({
+const commonMeta = (wordpress_source_url, gitHubTarget) => ({
   api_version: "v2",
   api_url: wordpress_source_url + apiPath,
-  object_url,
   process: {
     source_code: "https://github.com/cagov/wordpress-to-github",
     source_data: wordpress_source_url,
@@ -297,20 +295,18 @@ const fetchDictionary = async (wordPressApiUrl, listname) =>
  * @param {GitHubTarget} gitHubTarget
  * @param {string} field_reference //url for field refernce
  * @param {GithubOutputJson} data
- * @param {string} object_url
  */
 const wrapInFileMeta = (
   wordpress_source_url,
   gitHubTarget,
   field_reference,
-  data,
-  object_url
+  data
 ) => ({
   meta: {
     created_date: data.date_gmt,
     updated_date: data.modified_gmt,
     field_reference,
-    ...commonMeta(wordpress_source_url, gitHubTarget, object_url)
+    ...commonMeta(wordpress_source_url, gitHubTarget)
   },
   data
 });

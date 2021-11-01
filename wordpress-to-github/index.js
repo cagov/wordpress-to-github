@@ -180,9 +180,10 @@ const SyncEndpoint = async (
   }
 
   if (endpointConfig.GeneralFilePath) {
-    const targetUrl = `${sourceEndpointConfig.WordPressSource.url}/wp-json?_fields=description,gmt_offset,name,namespaces,timezone_string,home,url`;
     const fetchResponse = await WpApi_getSomething(
-      `${targetUrl}&cachebust=${Math.random()}`
+      `${
+        sourceEndpointConfig.WordPressSource.url
+      }/wp-json/?_fields=description,gmt_offset,name,namespaces,timezone_string,home,url&cachebust=${Math.random()}`
     );
 
     const data = await fetchResponse.json();
@@ -190,11 +191,7 @@ const SyncEndpoint = async (
 
     const jsonData = {
       meta: {
-        ...commonMeta(
-          sourceEndpointConfig.WordPressSource.url,
-          gitHubTarget,
-          targetUrl
-        )
+        ...commonMeta(sourceEndpointConfig.WordPressSource.url, gitHubTarget)
       },
       data
     };
@@ -247,9 +244,6 @@ const SyncEndpoint = async (
         )
       };
 
-      /** @type {string} */
-      const object_url = jsonData["_links"]?.self[0].href;
-
       removeExcludedProperties(jsonData, endpointConfig.ExcludeProperties);
 
       if (x.media_details.sizes && Object.keys(x.media_details.sizes).length) {
@@ -279,8 +273,7 @@ const SyncEndpoint = async (
           sourceEndpointConfig.WordPressSource.url,
           gitHubTarget,
           fieldMetaReference.media,
-          jsonData,
-          object_url
+          jsonData
         )
       );
     });
@@ -388,9 +381,6 @@ const SyncEndpoint = async (
 
       addMediaSection(endpointConfig, mediaMap, jsonData, HTML);
 
-      /** @type {string} */
-      const object_url = jsonData["_links"]?.self[0].href;
-
       removeExcludedProperties(jsonData, endpointConfig.ExcludeProperties);
 
       const ignoreThisOne = anythingInArrayMatch(
@@ -406,8 +396,7 @@ const SyncEndpoint = async (
               sourceEndpointConfig.WordPressSource.url,
               gitHubTarget,
               fieldMetaReference.posts,
-              jsonData,
-              object_url
+              jsonData
             )
       );
       postMap.set(`${x.slug}.html`, ignoreThisOne ? null : HTML);
@@ -442,9 +431,6 @@ const SyncEndpoint = async (
 
       addMediaSection(endpointConfig, mediaMap, jsonData, HTML);
 
-      /** @type {string} */
-      const object_url = jsonData["_links"]?.self[0].href;
-
       removeExcludedProperties(jsonData, endpointConfig.ExcludeProperties);
 
       const ignoreThisOne = anythingInArrayMatch(
@@ -460,8 +446,7 @@ const SyncEndpoint = async (
               sourceEndpointConfig.WordPressSource.url,
               gitHubTarget,
               fieldMetaReference.media,
-              jsonData,
-              object_url
+              jsonData
             )
       );
       pagesMap.set(`${x.slug}.html`, ignoreThisOne ? null : HTML);
