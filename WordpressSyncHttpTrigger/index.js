@@ -61,7 +61,7 @@ module.exports = async function (context, req) {
     await slackBotReplyPost(
       debugChannel,
       slackPostTS,
-      `\n\n*Details*\n\`\`\`${redactedOutput}\`\`\``
+      `\n\n*Full Details*\n\`\`\`${redactedOutput}\`\`\``
     );
 
     //Find endpoints that match the requestor
