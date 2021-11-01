@@ -10,7 +10,6 @@ const {
 const endpoints = require("../WordpressSync/endpoints.json");
 
 const debugChannel = "C02G6PETB9B"; //#wordpress-sync-http-trigger
-//const debugChannel = "C01H6RB99E2"; //#carter-dev
 
 const gitHubCommitter = {
   name: process.env["GITHUB_NAME"],
