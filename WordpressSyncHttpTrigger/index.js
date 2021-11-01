@@ -43,8 +43,8 @@ module.exports = async function (context, req) {
 
     let slackPostTS = "";
 
-    const TriggerName = req.body.trigger || "(Trigger)";
-    const SlugName = req.body.slug || "(slug)";
+    const TriggerName = req.body?.trigger || "(Trigger)";
+    const SlugName = req.body?.slug || "(slug)";
     slackPostTS = (
       await (
         await slackBotChatPost(
@@ -53,7 +53,7 @@ module.exports = async function (context, req) {
         )
       ).json()
     ).ts;
-
+    //clean out "code" value display
     const redactedOutput = JSON.stringify(req, null, 2).replace(
       new RegExp(req.query.code, "g"),
       `${req.query?.code?.substring(0, 3)}[...]`
@@ -62,7 +62,7 @@ module.exports = async function (context, req) {
     await slackBotReplyPost(
       debugChannel,
       slackPostTS,
-      `\n\n*Details*\n\`\`\`${redactedOutput}\`\`\``
+      `\n\n*Full Details*\n\`\`\`${redactedOutput}\`\`\``
     );
 
     //Find endpoints that match the requestor
