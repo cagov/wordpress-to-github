@@ -6,7 +6,7 @@ const {
 } = require("../gitTreeCommon");
 const fetchRetry = require("fetch-retry")(require("node-fetch/lib"), {
   retries: 3,
-  retryDelay: 2000,
+  retryDelay: 5000,
   retryOn: [500, 502, 504]
 });
 
