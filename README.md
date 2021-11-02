@@ -46,8 +46,13 @@ Controls how the service will place content in GitHub.
     "PostPath": "wordpress/posts",
     "PagePath": "wordpress/pages",
     "MediaPath": "wordpress/media",
-    "MenuPath": "menu_test/menus",
-    "MenuSlugs": ["header-menu"],
+    "ApiRequests": [
+      {
+        "Destination": "wordpress/menus/header-menu.json",
+        "Source": "/wp-json/menus/v1/menus/header-menu",
+        "ExcludeProperties": ["description"]
+      }
+    ],
     "GeneralFilePath": "wordpress/general/general.json",
     "ExcludeProperties": ["content", "_links"]
   }
@@ -60,8 +65,10 @@ Controls how the service will place content in GitHub.
 |**`PostPath`**|Where should the posts go?|
 |**`PagePath`**|Where should the pages go?|
 |**`MediaPath`**|Where should image media go?|
-|**`MenuPath`**|Where should the menus go?|
-|**`MenuSlugs`**|Which menus should be fetched?|
+|**`ApiRequests`**|A collection of API requests to write to the repo.|
+|**`ApiRequests.Destination`**|The output path (in the repo) for an API request.|
+|**`ApiRequests.Source`**|The WordPress API source. This should be an absolute path against the top-level domain of your WordPress site, likely beginning with "/wp-json/".|
+|**`ApiRequests.ExcludeProperties`**|A collection of property keys to remove from the output.|
 |**`GeneralFilePath`**|The full path and filename for a `general.json` file that contains information about the whole site.|
 |**`ExcludeProperties`**|Which WordPress properties should we suppress in output?|
 
