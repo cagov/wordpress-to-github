@@ -153,7 +153,7 @@ const SyncEndpoint = async (
 
   if (allApiRequests) {
     for (let request of allApiRequests) {
-      const apiRequestCacheKey = `${cacheRoot},type:apiResponse:${request.Source}`;
+      const apiRequestCacheKey = `${cacheRoot},type:apiResponse:${request.Destination}`;
       const apiRequestCacheItem = updateCache.get(apiRequestCacheKey);
       const { Data, ...apiCurrentStatus } = request;
 
@@ -519,6 +519,9 @@ const SyncEndpoint = async (
         folderName,
         false
       );
+
+      const reportLabel = folderName.split("/").slice(-1).join("/") || 'root';
+      const updateCount = `${requestsTree.length} ${requestsTree.length === 1 ? "update" : "updates"}`;
   
       addToReport(
         report,
@@ -526,7 +529,7 @@ const SyncEndpoint = async (
           gitRepo,
           gitHubTarget.Branch,
           requestsTree,
-          `${commitTitleApiRequests} (${folderName})`,
+          `${commitTitleApiRequests} (${updateCount} to ${reportLabel})`,
           gitHubCommitter
         )
       );
