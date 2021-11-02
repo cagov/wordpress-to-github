@@ -6,13 +6,16 @@
     "url": "https://github.com/cagov/wordpress-to-github.git"
   },
   "description": "",
-  "main": "index.js",
-  "scripts": {},
+  "type": "commonjs",
+  "scripts": {
+    "install_normal": "npm install file:wordpress-to-github",
+    "install_without_symlinks": "npm install $(npm pack file:wordpress-to-github | tail -1)"
+  },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@cagov/wordpress-to-github": "^0.0.2"
+    "@cagov/wordpress-to-github": "file:wordpress-to-github"
   },
   "devDependencies": {
     "eslint": "^7.32.0",
