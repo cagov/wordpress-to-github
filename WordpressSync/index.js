@@ -7,7 +7,7 @@ const {
 } = require("@cagov/wordpress-to-github/common");
 const SlackBot = require("../common/slackBot");
 const debugChannel = "C01DBP67MSQ"; // #testingbot
-//const debugChannel = "C01H6RB99E2"; //Carter debug
+//const debugChannel = 'C01H6RB99E2'; //Carter debug
 const endPointsJson = require("./endpoints.json");
 /** @type {SourceEndpointConfigData[]} */
 const endpoints = endPointsJson.data.projects;
