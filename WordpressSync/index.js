@@ -6,8 +6,8 @@ const {
   SourceEndpointConfigData
 } = require("@cagov/wordpress-to-github/common");
 const SlackBot = require("../common/slackBot");
-//const debugChannel = "C01DBP67MSQ"; // #testingbot
-const debugChannel = "C01H6RB99E2"; //Carter debug
+const debugChannel = "C01DBP67MSQ"; // #testingbot
+//const debugChannel = "C01H6RB99E2"; //Carter debug
 const endPointsJson = require("./endpoints.json");
 /** @type {SourceEndpointConfigData[]} */
 const endpoints = endPointsJson.data.projects;
@@ -104,12 +104,13 @@ const doProcessEndpoints = async work => {
 
         const slackBot = new SlackBot(
           slackBotGetToken(),
-          endpoint.ReportingChannel_Slack
+          endpoint.ReportingChannel_Slack,
+          { username: endpoint.name }
         );
 
         const allfileNames = [...new Set(mergeFileNames)];
 
-        await slackBot.Chat(`${endpoint.name} - _${allfileNames.join(", ")}_`);
+        await slackBot.Chat(`_${allfileNames.join(", ")}_`);
 
         for (const commitReport of commitReports) {
           const fileData = commitReport.Files.map(

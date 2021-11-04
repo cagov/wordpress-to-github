@@ -84,6 +84,8 @@ class slackBot {
     this.defaultOptions = defaultOptions;
 
     /** @type {string} */
+    this.ts = "";
+    /** @type {string} */
     this.thread_ts = "";
 
     /**
@@ -135,6 +137,7 @@ class slackBot {
       /** @type {slackChatResult} */
       const json = await getSlackJsonResponse(response);
       this.thread_ts = json.ts;
+      this.ts = json.ts;
       return json;
     };
 
@@ -159,7 +162,8 @@ class slackBot {
 
         /** @type {slackChatResult} */
         const json = await getSlackJsonResponse(response);
-        this.thread_ts = json.ts;
+        this.ts = json.ts;
+        this.thread_ts = json.message.thread_ts;
         return json;
       } else {
         return await this.Chat(text, options);
@@ -195,7 +199,7 @@ class slackBot {
     this.ReactionAdd = async name => {
       const payload = {
         channel: this.channel,
-        timestamp: this.thread_ts,
+        timestamp: this.ts,
         name
       };
       const response = await fetch(
@@ -215,6 +219,7 @@ class slackBot {
         this.defaultOptions
       );
       copied.thread_ts = this.thread_ts;
+      copied.ts = this.ts;
 
       return copied;
     };
