@@ -15,6 +15,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@cagov/slack-connector": "^0.0.1",
     "@cagov/wordpress-to-github": "file:wordpress-to-github"
   },
   "devDependencies": {

@@ -5,7 +5,7 @@ const {
   GitHubCredentials,
   SourceEndpointConfigData
 } = require("@cagov/wordpress-to-github/common");
-const SlackBot = require("../common/slackBot");
+const SlackBot = require("@cagov/slack-connector");
 const debugChannel = "C01DBP67MSQ"; // #testingbot
 //const debugChannel = 'C01H6RB99E2'; //Carter debug
 const endPointsJson = require("./endpoints.json");
