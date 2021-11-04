@@ -5,13 +5,9 @@ const {
   GitHubCredentials,
   SourceEndpointConfigData
 } = require("@cagov/wordpress-to-github/common");
-const {
-  slackBotReportError,
-  slackBotChatPost,
-  slackBotReplyPost
-} = require("../common/slackBot");
-const debugChannel = "C01DBP67MSQ"; // #testingbot
-//const debugChannel = 'C01H6RB99E2'; //Carter debug
+const SlackBot = require("../common/slackBot");
+//const debugChannel = "C01DBP67MSQ"; // #testingbot
+const debugChannel = "C01H6RB99E2"; //Carter debug
 const endPointsJson = require("./endpoints.json");
 /** @type {SourceEndpointConfigData[]} */
 const endpoints = endPointsJson.data.projects;
@@ -23,6 +19,20 @@ const gitHubCommitter = {
 /** @type {GitHubCredentials} **/
 const gitHubCredentials = {
   token: `${process.env["GITHUB_TOKEN"]}`
+};
+
+const slackBotGetToken = () => {
+  const token = process.env["SLACKBOT_TOKEN"];
+
+  if (!token) {
+    //developers that don't set the creds can still use the rest of the code
+    console.error(
+      `You need local.settings.json to contain "SLACKBOT_TOKEN" to use slackbot features.`
+    );
+    return;
+  }
+
+  return token;
 };
 
 /**
@@ -51,13 +61,8 @@ module.exports = async function (context, myTimer, activeEndpoints) {
   try {
     await doProcessEndpoints(work);
   } catch (e) {
-    await slackBotReportError(
-      debugChannel,
-      `Error running ${appName}`,
-      e,
-      context,
-      myTimer
-    );
+    const slackBot = new SlackBot(slackBotGetToken(), debugChannel);
+    await slackBot.Error(e, myTimer);
   }
 };
 
@@ -84,7 +89,7 @@ const doProcessEndpoints = async work => {
       gitHubCommitter
     );
 
-    if (endpoint.ReportingChannel_Slack) {
+    if (endpoint.ReportingChannel_Slack && slackBotGetToken()) {
       //Endpoint reporting channel enabled.  Add a post for each commit report.
       if (commitReports?.length) {
         /** @type {string[]} */
@@ -97,25 +102,21 @@ const doProcessEndpoints = async work => {
           );
         });
 
+        const slackBot = new SlackBot(
+          slackBotGetToken(),
+          endpoint.ReportingChannel_Slack
+        );
+
         const allfileNames = [...new Set(mergeFileNames)];
 
-        const slackPostTS = (
-          await (
-            await slackBotChatPost(
-              endpoint.ReportingChannel_Slack,
-              `${endpoint.name} - _${allfileNames.join(", ")}_`
-            )
-          ).json()
-        ).ts;
+        await slackBot.Chat(`${endpoint.name} - _${allfileNames.join(", ")}_`);
 
         for (const commitReport of commitReports) {
           const fileData = commitReport.Files.map(
             x => `• ${x.status} - _${x.filename.split("/").slice(-1)[0]}_`
           ).join("\n");
 
-          await slackBotReplyPost(
-            endpoint.ReportingChannel_Slack,
-            slackPostTS,
+          await slackBot.Reply(
             `<${commitReport.Commit.html_url}|${commitReport.Commit.message}>\n${fileData}`
           );
         }

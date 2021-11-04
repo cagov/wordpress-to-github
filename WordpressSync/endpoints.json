@@ -10,7 +10,7 @@
         "name": "Covid 19 website",
         "description": "Using data to create test output.",
         "enabled": false,
-        "enabledLocal": false,
+        "enabledLocal": true,
         "ReportingChannel_Slack": "C01H6RB99E2",
         "WordPressSource": {
           "url": "https://as-go-covid19-d-001.azurewebsites.net",
@@ -27,7 +27,7 @@
         "name": "Covid 19 website Staging",
         "description": "(Staging) Using data to create test output.",
         "enabled": false,
-        "enabledLocal": false,
+        "enabledLocal": true,
         "ReportingChannel_Slack": "C01H6RB99E2",
         "WordPressSource": {
           "url": "https://as-go-covid19-d-001.azurewebsites.net",
