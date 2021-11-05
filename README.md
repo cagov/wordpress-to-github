@@ -1,14 +1,6 @@
-# wordpress-to-github
+# wordpress-to-github development project
 
-A service for taking content from Wordpress instances and pushing the HTML content and JSON meta to Github.
-
-## How does it work?
-
-The service scans a list of WordPress projects. Each project's WordPress site is queried through the WordPress API. The service compares the objects from the API to the project's target GitHub branch. Content changes are recorded in GitHub as commits.
-
-### Caching
-
-The service will ask WordPress for object counts and last updated timestamps (and cache them) to determine if it should run. If you are working on the WordPress API output without updating the content itself, changes may not appear until the cache is reset.
+The development project for the wordpress-to-github NPM module [NPM module](https://www.npmjs.com/package/@cagov/wordpress-to-github). The readme for the development project is [here](https://github.com/cagov/wordpress-to-github/tree/main/wordpress-to-github#readme).
 
 ## Components
 
@@ -24,7 +16,7 @@ The the trigger service is set to `"authLevel": "function"`, so Azure FaaS Funct
 
 ### wordpress-to-github
 
-The core features that will eventually be extracted to be an NPM package.
+The development package for the wordpress-to-github [NPM module](https://www.npmjs.com/package/@cagov/wordpress-to-github).
 
 ## Config files
 
@@ -207,4 +199,4 @@ With the list of keys you can...
 - `Renew key value` to invalidate an old key for replacement
 - 🗑️ Delete a key that should no longer be used
 
-Make sure to name the key appropriately, and have a unique key per consuming site.  Using the domain name as the key name is a good idea.
+Make sure to name the key appropriately, and have a unique key per consuming site. Using the domain name as the key name is a good idea.
