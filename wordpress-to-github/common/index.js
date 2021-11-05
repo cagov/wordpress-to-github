@@ -271,20 +271,31 @@ const WpApi_getSomething = async fetchquery =>
  */
 const WpApi_GetApiRequestsData = (wordPressApiUrl, requests) => {
   // Fetch all menus concurrently, shove each into array.
-  return Promise.all(requests.map(async request => {
-    const fetchquery = `${wordPressApiUrl}${request.Source}`;
-    console.log(`querying Wordpress API - ${fetchquery}`);
+  return Promise.all(
+    requests.map(async request => {
+      const fetchquery = `${wordPressApiUrl}${request.Source}`;
+      console.log(`querying Wordpress API - ${fetchquery}`);
 
-    return await WpApi_getSomething(fetchquery)
-      .then(response => response.json())
-      .then(json => removeExcludedProperties(json, request.ExcludeProperties))
-      .then(json => ({ 
-        Source: request.Source,
-        Destination: request.Destination, 
-        Hash: crypto.createHash('md5').update(JSON.stringify(json)).digest("hex"),
-        Data: json
-      }));
-  }));
+      return await WpApi_getSomething(fetchquery)
+        .then(response => {
+          if (response.ok) {
+            return response.json();
+          } else {
+            throw new Error(`${response.status} - ${response.statusText}`);
+          }
+        })
+        .then(json => removeExcludedProperties(json, request.ExcludeProperties))
+        .then(json => ({
+          Source: request.Source,
+          Destination: request.Destination,
+          Hash: crypto
+            .createHash("md5")
+            .update(JSON.stringify(json))
+            .digest("hex"),
+          Data: json
+        }));
+    })
+  );
 };
 
 /**
