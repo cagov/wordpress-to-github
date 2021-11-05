@@ -1,14 +1,6 @@
-# wordpress-to-github
+# wordpress-to-github development project
 
-A service for taking content from Wordpress instances and pushing the HTML content and JSON meta to Github.
-
-## How does it work?
-
-The service scans a list of WordPress projects. Each project's WordPress site is queried through the WordPress API. The service compares the objects from the API to the project's target GitHub branch. Content changes are recorded in GitHub as commits.
-
-### Caching
-
-The service will ask WordPress for object counts and last updated timestamps (and cache them) to determine if it should run. If you are working on the WordPress API output without updating the content itself, changes may not appear until the cache is reset.
+The development project for the wordpress-to-github NPM module [NPM module](https://www.npmjs.com/package/@cagov/wordpress-to-github). The readme for the development project is [here](https://github.com/cagov/wordpress-to-github/tree/main/wordpress-to-github#readme).
 
 ## Components
 
@@ -24,112 +16,7 @@ The the trigger service is set to `"authLevel": "function"`, so Azure FaaS Funct
 
 ### wordpress-to-github
 
-The core features that will eventually be extracted to be an NPM package.
-
-## Config files
-
-There are a few configuration files that need to be used.
-
-### wordpress-to-github.config.json
-
-Controls how the service will place content in GitHub. This file belongs in your target repo (such as [drought.ca.gov](https://github.com/cagov/drought.ca.gov/blob/main/wordpress/wordpress-to-github.config.json)). 
-
-```json
-{
-  "$schema": "https://raw.githubusercontent.com/cagov/wordpress-to-github/main/wordpress-to-github/schemas/wordpress-to-github.config.schema.json",
-  "meta": {
-    "title": "wordpress-to-github endpoints config file",
-    "description": "wordpress-to-github endpoints config file"
-  },
-  "data": {
-    "disabled": false,
-    "PostPath": "wordpress/posts",
-    "PagePath": "wordpress/pages",
-    "MediaPath": "wordpress/media",
-    "GeneralFilePath": "wordpress/general/general.json",
-    "ExcludeProperties": ["content", "_links"]
-  }
-}
-```
-
-`disabled`
-: Set to true to disable processing for this project.
-
-`PostPath`
-: Where should the posts go?
-
-`PagePath`
-: Where should the pages go?
-
-`MediaPath`
-: Where should image media go?
-
-`GeneralFilePath`
-: The full path and filename for a `general.json` file that contains information about the whole site.
-
-`ExcludeProperties`
-: Which WordPress properties should we suppress in output?
-
-### WordpressSync/endpoints.json
-
-Contains the projects to process with the service.
-
-```json
-{
-  "$schema": "./endpoints.schema.json",
-  "meta": {
-    "title": "endpoints config file",
-    "description": "endpoints config file"
-  },
-  "data": {
-    "projects": [
-      {
-        "name": "drought.ca.gov",
-        "description": "Drought production website",
-        "enabled": true,
-        "enabledLocal": false,
-        "ReportingChannel_Slack": "C1234567890",
-        "WordPressSource": {
-          "url": "https://live-drought-ca-gov.pantheonsite.io",
-          "tags_exclude": ["staging", "development"]
-        },
-        "GitHubTarget": {
-          "Owner": "cagov",
-          "Repo": "drought.ca.gov",
-          "Branch": "main",
-          "ConfigPath": "wordpress/wordpress-to-github.config.json"
-        }
-      }
-    ]
-  }
-}
-```
-
-`name` : Friendly name for this job when it runs locally.
-
-`description` : Describe what this is being used for in this endpoint configuration.
-
-`enabled` : Should we process this endpoint?
-
-`enabledLocal` : Should we process this endpoint when running in local development?
-
-`ReportingChannel_Slack` : Slack channel to report activity to.
-
-`WordPressSource` : Describes the Wordpress instance to read from.
-
-`url` : URL of the Wordpress instance to read from.
-
-`tags_exclude` : Ignore Pages/Posts with these tags (Case sensitive!).
-
-`GitHubTarget` : The endpoint target to deploy changes.
-
-`Owner` : GitHub Owner.
-
-`Repo` : GitHub Repo.
-
-`Branch` : GitHub Target Branch.
-
-`ConfigPath` : Path to config.json file for this endpoint.
+The development package for the wordpress-to-github [NPM module](https://www.npmjs.com/package/@cagov/wordpress-to-github).
 
 ## Setting up Local Execution/Debugging
 
@@ -216,4 +103,4 @@ With the list of keys you can...
 - `Renew key value` to invalidate an old key for replacement
 - 🗑️ Delete a key that should no longer be used
 
-Make sure to name the key appropriately, and have a unique key per consuming site.  Using the domain name as the key name is a good idea.
+Make sure to name the key appropriately, and have a unique key per consuming site. Using the domain name as the key name is a good idea.
