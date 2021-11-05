@@ -30,90 +30,33 @@ Controls how the service will place content in GitHub. This file belongs in your
     "PostPath": "wordpress/posts",
     "PagePath": "wordpress/pages",
     "MediaPath": "wordpress/media",
+    "ApiRequests": [
+      {
+        "Destination": "wordpress/menus/header-menu.json",
+        "Source": "/wp-json/menus/v1/menus/header-menu",
+        "ExcludeProperties": ["description"]
+      }
+    ],
     "GeneralFilePath": "wordpress/general/general.json",
     "ExcludeProperties": ["content", "_links"]
   }
 }
 ```
 
-`disabled`
-: Set to true to disable processing for this project.
+|Name|Description|
+|:--:|:----------|
+|**`disabled`**|Set to true to disable processing for this project.|
+|**`PostPath`**|Where should the posts go?|
+|**`PagePath`**|Where should the pages go?|
+|**`MediaPath`**|Where should image media go?|
+|**`ApiRequests`**|A collection of API requests to write to the repo.|
+|**`ApiRequests.Destination`**|The output path (in the repo) for an API request.|
+|**`ApiRequests.Source`**|The WordPress API source. This should be an absolute path against the top-level domain of your WordPress site, likely beginning with "/wp-json/".|
+|**`ApiRequests.ExcludeProperties`**|A collection of property keys to remove from the output.|
+|**`GeneralFilePath`**|The full path and filename for a `general.json` file that contains information about the whole site.|
+|**`ExcludeProperties`**|Which WordPress properties should we suppress in output?|
 
-`PostPath`
-: Where should the posts go?
 
-`PagePath`
-: Where should the pages go?
-
-`MediaPath`
-: Where should image media go?
-
-`GeneralFilePath`
-: The full path and filename for a `general.json` file that contains information about the whole site.
-
-`ExcludeProperties`
-: Which WordPress properties should we suppress in output?
-
-### endpoints.json
-
-Contains the projects to process with the service.
-
-```json
-{
-  "$schema": "./endpoints.schema.json",
-  "meta": {
-    "title": "endpoints config file",
-    "description": "endpoints config file"
-  },
-  "data": {
-    "projects": [
-      {
-        "name": "drought.ca.gov",
-        "description": "Drought production website",
-        "enabled": true,
-        "enabledLocal": false,
-        "ReportingChannel_Slack": "C1234567890",
-        "WordPressSource": {
-          "url": "https://live-drought-ca-gov.pantheonsite.io",
-          "tags_exclude": ["staging", "development"]
-        },
-        "GitHubTarget": {
-          "Owner": "cagov",
-          "Repo": "drought.ca.gov",
-          "Branch": "main",
-          "ConfigPath": "wordpress/wordpress-to-github.config.json"
-        }
-      }
-    ]
-  }
-}
-```
-
-`name` : Friendly name for this job when it runs locally.
-
-`description` : Describe what this is being used for in this endpoint configuration.
-
-`enabled` : Should we process this endpoint?
-
-`enabledLocal` : Should we process this endpoint when running in local development?
-
-`ReportingChannel_Slack` : Slack channel to report activity to.
-
-`WordPressSource` : Describes the Wordpress instance to read from.
-
-`url` : URL of the Wordpress instance to read from.
-
-`tags_exclude` : Ignore Pages/Posts with these tags (Case sensitive!).
-
-`GitHubTarget` : The endpoint target to deploy changes.
-
-`Owner` : GitHub Owner.
-
-`Repo` : GitHub Repo.
-
-`Branch` : GitHub Target Branch.
-
-`ConfigPath` : Path to config.json file for this endpoint.
 
 ## Sample output
 
