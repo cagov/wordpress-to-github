@@ -69,6 +69,7 @@
           "items": {
             "type": "object",
             "additionalProperties": false,
+            "required": ["Source", "Destination"],
             "properties": {
               "Destination": {
                 "type": "string",
