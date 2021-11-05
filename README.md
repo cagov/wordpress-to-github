@@ -32,7 +32,7 @@ There are a few configuration files that need to be used.
 
 ### wordpress-to-github.config.json
 
-Controls how the service will place content in GitHub.
+Controls how the service will place content in GitHub. This file belongs in your target repo (such as [drought.ca.gov](https://github.com/cagov/drought.ca.gov/blob/main/wordpress/wordpress-to-github.config.json)). 
 
 ```json
 {
@@ -70,7 +70,7 @@ Controls how the service will place content in GitHub.
 `ExcludeProperties`
 : Which WordPress properties should we suppress in output?
 
-### endpoints.json
+### WordpressSync/endpoints.json
 
 Contains the projects to process with the service.
 
