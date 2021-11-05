@@ -440,9 +440,9 @@ const syncBinaryFile = async (wordpress_url, gitRepo, mediaTree, endpoint) => {
 /**
  * deletes properties in the list
  *
- * @param {*} json
+ * @param {object} json
  * @param {string[]} [excludeList]
- * @returns {string} 
+ * @returns {object} 
  */
 const removeExcludedProperties = (json, excludeList) => {
   if (excludeList) {
