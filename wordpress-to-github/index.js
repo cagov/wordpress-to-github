@@ -488,7 +488,7 @@ const SyncEndpoint = async (
         pagesTree,
         `${commitTitlePages} (${
           pagesTree.filter(x => x.path.endsWith(".html")).length
-        } updates)`,
+        } updates)`, //TODO: Pull from a name property
         gitHubCommitter
       )
     );
@@ -499,7 +499,7 @@ const SyncEndpoint = async (
     // Group all destination files by their parent folders.
     const apiRequestsByFolder = allApiRequests.reduce((bucket, request) => {
       let folderName = request.Destination.split("/").slice(0, -1).join("/");
-      let fileName = request.Destination.split("/").slice(-1);
+      let fileName = request.Destination.split("/").slice(-1)[0];
 
       if (!(folderName in bucket)) {
         bucket[folderName] = new Map();

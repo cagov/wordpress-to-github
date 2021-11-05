@@ -129,10 +129,8 @@ const createTreeFromFileMap = async (
         typeof value === "string" ? value : JSON.stringify(value, null, 2);
 
       if (!existingFile || existingFile.sha !== gitHubBlobPredictSha(content)) {
-        let path = (outputPath) ? `${outputPath}/${key}` : key[0];
-
         targetTree.push({
-          path,
+          path: `${outputPath}/${key}`,
           content,
           mode,
           type
@@ -144,10 +142,8 @@ const createTreeFromFileMap = async (
   if (cleanoutputPath) {
     //process deletes
     for (const delme of referenceTree.filter(x => !x["found"])) {
-      let path = (outputPath) ? `${outputPath}/${delme.path}` : delme.path;
-      
       targetTree.push({
-        path,
+        path: `${outputPath}/${delme.path}`,
         mode,
         type,
         sha: null //will trigger a delete
