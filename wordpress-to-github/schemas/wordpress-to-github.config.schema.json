@@ -68,6 +68,7 @@
           "description": "What should be fetched from the API?",
           "items": {
             "type": "object",
+            "additionalProperties": false,
             "properties": {
               "Destination": {
                 "type": "string",
