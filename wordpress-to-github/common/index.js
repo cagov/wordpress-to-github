@@ -281,7 +281,7 @@ const WpApi_GetApiRequestsData = (wordPressApiUrl, requests) => {
           if (response.ok) {
             return response.json();
           } else {
-            throw new Error(`${response.status} - ${response.statusText}`);
+            throw new Error(`${response.status} - ${response.statusText} - ${response.url}`);
           }
         })
         .then(json => removeExcludedProperties(json, request.ExcludeProperties))
