@@ -96,20 +96,26 @@ const createTreeFromFileMap = async (
   outputPath,
   cleanoutputPath
 ) => {
-  const pathRootTree = outputPath.split("/").slice(0, -1).join("/"); //gets the parent folder to the output path
+  let treeUrl = "";
+  if (outputPath) {
+    //Path Tree
 
-  /** @type {GithubTreeRow[]} */
-  const rootTree = (await gitRepo.getSha(masterBranch, pathRootTree)).data;
-  const referenceTreeRow = rootTree.find(f => f.path === outputPath);
+    const pathRootTree = outputPath.split("/").slice(0, -1).join("/"); //gets the parent folder to the output path
+    /** @type {GithubTreeRow[]} */
+    const rootTree = (await gitRepo.getSha(masterBranch, pathRootTree)).data;
+    const referenceTreeRow = rootTree.find(f => f.path === outputPath);
 
-  /** @type {GithubTreeRow[]} */
-  const referenceTree = referenceTreeRow
-    ? (
-        await gitRepo.getTree(`${referenceTreeRow.sha}?recursive=true`)
-      ).data.tree.filter(
-        (/** @type { GithubTreeRow } */ x) => x.type === "blob"
-      )
-    : [];
+    if (referenceTreeRow) {
+      treeUrl = `${referenceTreeRow.sha}?recursive=true`;
+    }
+  } else {
+    //Root Tree
+    treeUrl = masterBranch;
+  }
+
+  const referenceTree = /** @type {{data:{tree:GithubTreeRow[]}}}} */ (
+    await gitRepo.getTree(treeUrl)
+  ).data.tree.filter(x => x.type === "blob");
 
   /** @type {GithubTreeRow[]} */
   const targetTree = [];
@@ -129,8 +135,10 @@ const createTreeFromFileMap = async (
         typeof value === "string" ? value : JSON.stringify(value, null, 2);
 
       if (!existingFile || existingFile.sha !== gitHubBlobPredictSha(content)) {
+        let path = outputPath ? `${outputPath}/${key}` : key;
+
         targetTree.push({
-          path: `${outputPath}/${key}`,
+          path,
           content,
           mode,
           type
@@ -142,8 +150,10 @@ const createTreeFromFileMap = async (
   if (cleanoutputPath) {
     //process deletes
     for (const delme of referenceTree.filter(x => !x["found"])) {
+      let path = outputPath ? `${outputPath}/${delme.path}` : delme.path;
+
       targetTree.push({
-        path: `${outputPath}/${delme.path}`,
+        path,
         mode,
         type,
         sha: null //will trigger a delete
