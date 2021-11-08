@@ -8,8 +8,6 @@ yarn-debug.log*
 yarn-error.log*
 lerna-debug.log*
 
-azure-functions-core-tools/.telemetry/20200331222905_2f21fc7f736d45fa9be029b90391935f.trn
-
 # Diagnostic reports (https://nodejs.org/api/report.html)
 report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
 

@@ -2,18 +2,13 @@
   "version": "0.2.0",
   "configurations": [
     {
-      "name": "Attach to Node Functions",
-      "type": "node",
-      "request": "attach",
-      "port": 9229,
-      "preLaunchTask": "func: host start"
-    },
-    {
       "type": "node",
       "request": "launch",
       "name": "Debug DIRECT WordpressSync",
       "program": "debug.js",
-      "args": ["1"],
+      "args": [
+        "1"
+      ],
       "cwd": "${workspaceRoot}/WordpressSync",
       "outputCapture": "std"
     },
@@ -22,7 +17,9 @@
       "request": "launch",
       "name": "Debug 3X DIRECT WordpressSync",
       "program": "debug.js",
-      "args": ["3"],
+      "args": [
+        "3"
+      ],
       "cwd": "${workspaceRoot}/WordpressSync",
       "outputCapture": "std"
     },
