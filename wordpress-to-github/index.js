@@ -12,6 +12,8 @@ const {
   wrapInFileMeta,
   commonMeta,
   WpApi_GetCacheItem_ByObjectType,
+  WpApi_GetApiRequestsData,
+  jsonCacheDiscrepancy,
   apiPath,
   fetchDictionary,
   cleanupContent,
@@ -24,6 +26,7 @@ const {
   EndpointConfigData,
   SourceEndpointConfigData,
   WordpressApiDateCacheItem,
+  WordpressApiHashCacheItem,
   GitHubCommitter,
   GithubOutputJson,
   WordpressMediaRow,
@@ -33,13 +36,14 @@ const {
 const commitTitlePosts = "Wordpress Posts Update";
 const commitTitlePages = "Wordpress Pages Update";
 const commitTitleMedia = "Wordpress Media Update";
+const commitTitleApiRequests = "Wordpress API Requests Update";
 const commitTitleGeneral = "Wordpress General File Update";
 const fieldMetaReference = {
   posts: "https://developer.wordpress.org/rest-api/reference/posts/",
   pages: "https://developer.wordpress.org/rest-api/reference/pages/",
   media: "https://developer.wordpress.org/rest-api/reference/pages/"
 };
-/** @type {Map <string,WordpressApiDateCacheItem>} */
+/** @type {Map <string,WordpressApiDateCacheItem|WordpressApiHashCacheItem>} */
 const updateCache = new Map();
 const cacheObjects = ["media", "posts", "pages"];
 
@@ -124,26 +128,43 @@ const SyncEndpoint = async (
   const endpointConfig = await getRemoteConfig(gitHubTarget, gitHubCredentials);
   const wordPressApiUrl = sourceEndpointConfig.WordPressSource.url + apiPath;
 
+  const allApiRequests = endpointConfig.ApiRequests && endpointConfig.ApiRequests.length
+    ? await WpApi_GetApiRequestsData(sourceEndpointConfig.WordPressSource.url, endpointConfig.ApiRequests)
+    : null;
+
   //Check cache (and set cache for next time)
   let cacheMatch = true;
   const cacheRoot = `Owner:${gitHubTarget.Owner},Repo:${gitHubTarget.Repo},Branch:${gitHubTarget.Branch},wordPressApiUrl:${wordPressApiUrl}`;
+
   for (let type of cacheObjects) {
     const cacheKey = `${cacheRoot},type:${type}`;
-
+    const cacheItem = updateCache.get(cacheKey);
     const currentStatus = await WpApi_GetCacheItem_ByObjectType(
       wordPressApiUrl,
       type
     );
-    const cacheItem = updateCache.get(cacheKey);
+
     updateCache.set(cacheKey, currentStatus);
 
-    if (
-      !cacheItem ||
-      JSON.stringify(cacheItem) !== JSON.stringify(currentStatus)
-    ) {
+    if (jsonCacheDiscrepancy(cacheItem, currentStatus)) {
       cacheMatch = false;
     }
   }
+
+  if (allApiRequests) {
+    for (let request of allApiRequests) {
+      const apiRequestCacheKey = `${cacheRoot},type:apiResponse:${request.Destination}`;
+      const apiRequestCacheItem = updateCache.get(apiRequestCacheKey);
+      const { Data, ...apiCurrentStatus } = request;
+
+      updateCache.set(apiRequestCacheKey, apiCurrentStatus);
+
+      if (jsonCacheDiscrepancy(apiRequestCacheItem, apiCurrentStatus)) {
+        cacheMatch = false;
+      }
+    }
+  }
+
   if (cacheMatch) {
     console.log(`match cache for ${cacheRoot}`);
     return;
@@ -481,10 +502,52 @@ const SyncEndpoint = async (
         pagesTree,
         `${commitTitlePages} (${
           pagesTree.filter(x => x.path.endsWith(".html")).length
-        } updates)`,
+        } updates)`, //TODO: Pull from a name property
         gitHubCommitter
       )
     );
+  }
+
+  // API Requests
+  if (allApiRequests) {
+    // Group all destination files by their parent folders.
+    const apiRequestsByFolder = allApiRequests.reduce((bucket, request) => {
+      let folderName = request.Destination.split("/").slice(0, -1).join("/");
+      let fileName = request.Destination.split("/").slice(-1)[0];
+
+      if (!(folderName in bucket)) {
+        bucket[folderName] = new Map();
+      }
+
+      bucket[folderName].set(fileName, JSON.stringify(request.Data, null, 2))
+
+      return bucket;
+    }, {});
+
+    // Create and commit a git tree for each set of files.
+    for (let [folderName, fileMap] of Object.entries(apiRequestsByFolder)) {
+      const requestsTree = await createTreeFromFileMap(
+        gitRepo,
+        gitHubTarget.Branch,
+        fileMap,
+        folderName,
+        false
+      );
+
+      const reportLabel = folderName.split("/").slice(-1).join("/") || 'root';
+      const updateCount = `${requestsTree.length} ${requestsTree.length === 1 ? "update" : "updates"}`;
+  
+      addToReport(
+        report,
+        await CommitIfChanged(
+          gitRepo,
+          gitHubTarget.Branch,
+          requestsTree,
+          `${commitTitleApiRequests} (${updateCount} to ${reportLabel})`,
+          gitHubCommitter
+        )
+      );
+    }
   }
 
   return report;

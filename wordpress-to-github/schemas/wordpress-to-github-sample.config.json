@@ -9,6 +9,13 @@
     "PostPath": "wordpress/posts",
     "PagePath": "wordpress/pages",
     "MediaPath": "wordpress/media",
+    "ApiRequests": [
+      {
+        "Destination": "wordpress/menus/header-menu.json",
+        "Source": "/wp-json/menus/v1/menus/header-menu",
+        "ExcludeProperties": ["description"]
+      }
+    ],
     "GeneralFilePath": "wordpress/general/general.json",
     "ExcludeProperties": ["content", "_links"]
   }
