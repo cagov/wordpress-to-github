@@ -31,7 +31,6 @@ const slackBotGetToken = () => {
  * @param {{method:string,headers:{"user-agent":string},query?:{code?:string},params:{},body:{slug?:string,trigger?:string}}} req
  */
 module.exports = async function (context, req) {
-  const appName = context.executionContext?.functionName;
   if (req.method !== "POST") {
     context.res = {
       body: `Service is running, but is expecting a POST.`
