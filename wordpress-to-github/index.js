@@ -206,8 +206,7 @@ const SyncEndpoint = async (
       gitRepo,
       gitHubTarget.Branch,
       fileMap,
-      filePath,
-      true
+      filePath
     );
 
     addToReport(
