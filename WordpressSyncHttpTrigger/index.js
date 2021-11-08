@@ -28,7 +28,7 @@ const gitHubCredentials = {
 
 /**
  * @param {{executionContext:{functionName:string},res:Response}} context
- * @param {{method:string,headers:{"user-agent":string},query:{},params:{},body:GitHubTarget}} req
+ * @param {{method:string,headers:{"user-agent":string},query?:{code?:string},params:{},body:{slug?:string,trigger?:string}}} req
  */
 module.exports = async function (context, req) {
   const appName = context.executionContext?.functionName;
@@ -42,8 +42,8 @@ module.exports = async function (context, req) {
 
     let slackPostTS = "";
 
-    const TriggerName = req.body["trigger"] || "(Trigger)";
-    const SlugName = req.body["slug"] || "(slug)";
+    const TriggerName = req.body?.trigger || "(Trigger)";
+    const SlugName = req.body?.slug || "(slug)";
     slackPostTS = (
       await (
         await slackBotChatPost(
@@ -52,10 +52,16 @@ module.exports = async function (context, req) {
         )
       ).json()
     ).ts;
+    //clean out "code" value display
+    const redactedOutput = JSON.stringify(req, null, 2).replace(
+      new RegExp(req.query.code, "g"),
+      `${req.query?.code?.substring(0, 3)}[...]`
+    );
+
     await slackBotReplyPost(
       debugChannel,
       slackPostTS,
-      `\n\n*Full Details*\n\`\`\`${JSON.stringify(req, null, 2)}\`\`\``
+      `\n\n*Full Details*\n\`\`\`${redactedOutput}\`\`\``
     );
 
     //Find endpoints that match the requestor
