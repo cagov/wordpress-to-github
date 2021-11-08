@@ -1,10 +1,5 @@
 // @ts-check
-const {
-  slackBotReportError,
-  slackBotChatPost,
-  slackBotReplyPost,
-  slackBotReactionAdd
-} = require("../common/slackBot");
+const SlackBot = require("@cagov/slack-connector");
 const debugChannel = "C01H6RB99E2"; //#carter-dev
 
 const sample = {
@@ -60,8 +55,23 @@ const sample = {
     '{\r\n  "trigger": "Post saved as a draft"\r\n  ,"home_url": "https://live-drought-ca-gov.pantheonsite.io"\r\n  ,"site_title": "California drought action"\r\n  ,"site_tagline": "Learn more about current conditions, the state\'s response and informational resources available to the public."\r\n  ,"editor": "carter-medlin"\r\n  ,"slug": "__trashed"\r\n  ,"title": "Carter Draft Test"\r\n  ,"tags": ""\r\n  ,"category": "Uncategorized"\r\n}'
 };
 
+const slackBotGetToken = () => {
+  const token = process.env["SLACKBOT_TOKEN"];
+
+  if (!token) {
+    //developers that don't set the creds can still use the rest of the code
+    console.error(
+      `You need local.settings.json to contain "SLACKBOT_TOKEN" to use slackbot features.`
+    );
+    return;
+  }
+
+  return token;
+};
+
 module.exports = async function (context, req) {
-  let slackPostTS = "";
+  const token = process.env["SLACKBOT_TOKEN"];
+  const slackBot = new SlackBot(slackBotGetToken(), debugChannel);
 
   const responseOutput = JSON.stringify(sample, null, 2).replace(
     new RegExp(sample.query.code, "g"),
@@ -74,27 +84,16 @@ module.exports = async function (context, req) {
   };
 
   try {
-    slackPostTS = (
-      await (await slackBotChatPost(debugChannel, "Work recorded")).json()
-    ).ts;
+    await slackBot.Chat("Word recorded");
 
-    await slackBotReplyPost(
-      debugChannel,
-      slackPostTS,
-      `\n\n*Request Info*\n\`\`\`${responseOutput}\`\`\``
-    );
-
-    const yo = require("@cagov/wordpress-to-github");
+    await slackBot.Reply(`\n\n*Request Info*\n\`\`\`${responseOutput}\`\`\``);
 
     context.res = {
       body: `${JSON.stringify(req, null, 2)}`
     };
   } catch (e) {
-    await slackBotReplyPost(
-      debugChannel,
-      slackPostTS,
-      `\n\n*Error Details*\n\`\`\`${e.stack}\`\`\``
-    );
+    await slackBot.Reply(`\n\n*Error Details*\n\`\`\`${e.stack}\`\`\``);
+    await slackBot.Error(e);
 
     context.res = {
       status: 500,
