@@ -1,4 +1,15 @@
 {
   "$schema": "http://json.schemastore.org/proxies",
-  "proxies": {}
+  "proxies": {
+    "RootProxy": {
+      "desc": [
+        "Great examples here - https://gist.github.com/sjkp/890d94b958965898e45e69bf199c88d4#file-proxies-json-L75"
+      ],
+      "matchCondition": {
+        "methods": ["GET", "POST"],
+        "route": "/"
+      },
+      "backendUri": "https://%WEBSITE_HOSTNAME%/WordpressSyncHttpTrigger"
+    }
+  }
 }
