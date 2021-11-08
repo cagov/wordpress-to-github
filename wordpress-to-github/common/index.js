@@ -1,4 +1,5 @@
 // @ts-check
+const crypto = require('crypto');
 const apiPath = "/wp-json/wp/v2/";
 const {
   gitHubBlobPredictShaFromBuffer,
@@ -29,6 +30,14 @@ const fetchRetry = require("fetch-retry")(require("node-fetch/lib"), {
  * @property {string} [PagePath]
  * @property {string} [MediaPath]
  * @property {string} [GeneralFilePath]
+ * @property {EndpointRequestsConfigData[]} [ApiRequests]
+ */
+
+/**
+ * @typedef {object} EndpointRequestsConfigData
+ * @property {string} Destination
+ * @property {string} Source 
+ * @property {string[]} [ExcludeProperties]
  */
 
 /**
@@ -142,6 +151,18 @@ const fetchRetry = require("fetch-retry")(require("node-fetch/lib"), {
  */
 
 /**
+ * @typedef {object} WordpressApiHashCacheItem Hash details for a Wordpress API response
+ * @property {string} Destination
+ * @property {string} Source
+ * @property {string} Hash
+ * 
+ * @typedef {object} WithData
+ * @property {string} Data
+ * 
+ * @typedef {WordpressApiHashCacheItem & WithData} WordpressApiHashDataItem
+ */
+
+/**
  * Get the path from the a media source url after the 'uploads' part
  *
  * @param {string} source_url
@@ -241,6 +262,52 @@ const WpApi_GetPagedData_ByQuery = async fetchquery => {
  */
 const WpApi_getSomething = async fetchquery =>
   await fetchRetry(fetchquery, { method: "Get" });
+
+/**
+ * Fetch API request data from the WordPress API. 
+ * 
+ * @param {string} wordPressApiUrl Full URL to the WordPress Menu API.
+ * @param {EndpointRequestsConfigData[]} requests Array of Wordpress API requests.
+ * @returns {Promise<WordpressApiHashDataItem[]>}
+ */
+const WpApi_GetApiRequestsData = (wordPressApiUrl, requests) => {
+  // Fetch all menus concurrently, shove each into array.
+  return Promise.all(
+    requests.map(async request => {
+      const fetchquery = `${wordPressApiUrl}${request.Source}`;
+      console.log(`querying Wordpress API - ${fetchquery}`);
+
+      return await WpApi_getSomething(fetchquery)
+        .then(response => {
+          if (response.ok) {
+            return response.json();
+          } else {
+            throw new Error(`${response.status} - ${response.statusText} - ${response.url}`);
+          }
+        })
+        .then(json => removeExcludedProperties(json, request.ExcludeProperties))
+        .then(json => ({
+          Source: request.Source,
+          Destination: request.Destination,
+          Hash: crypto
+            .createHash("md5")
+            .update(JSON.stringify(json))
+            .digest("hex"),
+          Data: json
+        }));
+    })
+  );
+};
+
+/**
+ * Compares a cached object to a current object to see if the cache is out of date.
+ * @param {WordpressApiDateCacheItem|WordpressApiHashCacheItem} cacheItem 
+ * @param {WordpressApiDateCacheItem|WordpressApiHashCacheItem} currentItem 
+ * @returns {boolean}
+ */
+const jsonCacheDiscrepancy = (cacheItem, currentItem) => {
+  return !cacheItem || JSON.stringify(cacheItem) !== JSON.stringify(currentItem);
+};
 
 /**
  * Call the paged wordpress api put all the paged data into a single return array
@@ -385,8 +452,9 @@ const syncBinaryFile = async (wordpress_url, gitRepo, mediaTree, endpoint) => {
 /**
  * deletes properties in the list
  *
- * @param {*} json
+ * @param {object} json
  * @param {string[]} [excludeList]
+ * @returns {object} 
  */
 const removeExcludedProperties = (json, excludeList) => {
   if (excludeList) {
@@ -394,6 +462,8 @@ const removeExcludedProperties = (json, excludeList) => {
       delete json[x];
     });
   }
+
+  return json;
 };
 
 /**
@@ -449,6 +519,8 @@ module.exports = {
   wrapInFileMeta,
   commonMeta,
   WpApi_GetCacheItem_ByObjectType,
+  WpApi_GetApiRequestsData,
+  jsonCacheDiscrepancy,
   apiPath,
   fetchDictionary,
   cleanupContent,

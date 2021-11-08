@@ -18,6 +18,61 @@ The the trigger service is set to `"authLevel": "function"`, so Azure FaaS Funct
 
 The development package for the wordpress-to-github [NPM module](https://www.npmjs.com/package/@cagov/wordpress-to-github).
 
+## Config files
+
+There are a few configuration files that need to be used.
+
+### endpoints.json
+
+Contains the projects to process with the service.
+
+```json
+{
+  "$schema": "./endpoints.schema.json",
+  "meta": {
+    "title": "endpoints config file",
+    "description": "endpoints config file"
+  },
+  "data": {
+    "projects": [
+      {
+        "name": "drought.ca.gov",
+        "description": "Drought production website",
+        "enabled": true,
+        "enabledLocal": false,
+        "ReportingChannel_Slack": "C1234567890",
+        "WordPressSource": {
+          "url": "https://live-drought-ca-gov.pantheonsite.io",
+          "tags_exclude": ["staging", "development"]
+        },
+        "GitHubTarget": {
+          "Owner": "cagov",
+          "Repo": "drought.ca.gov",
+          "Branch": "main",
+          "ConfigPath": "wordpress/wordpress-to-github.config.json"
+        }
+      }
+    ]
+  }
+}
+```
+
+|Name|Description|
+|:--:|:----------|
+|**`name`**|Friendly name for this job when it runs locally.|
+|**`description`**|Describe what this is being used for in this endpoint configuration.|
+|**`enabled`**|Should we process this endpoint?|
+|**`enabledLocal`**|Should we process this endpoint when running in local development?|
+|**`ReportingChannel_Slack`**|Slack channel to report activity to.|
+|**`WordPressSource`**|Describes the Wordpress instance to read from.|
+|**`WordPressSource.url`**|URL of the Wordpress instance to read from.|
+|**`WordPressSource.tags_exclude`**|Ignore Pages/Posts with these tags (Case sensitive!).|
+|**`GitHubTarget`**|The endpoint target to deploy changes.|
+|**`GitHubTarget.Owner`**|GitHub Owner.|
+|**`GitHubTarget.Repo`**|GitHub Repo.|
+|**`GitHubTarget.Branch`**|GitHub Target Branch.|
+|**`GitHubTarget.ConfigPath`**|Path to config.json file for this endpoint.|
+
 ## Setting up Local Execution/Debugging
 
 When using Visual Studio Code, you can run the polling service locally. Only projects with `enabledLocal: true` will run. It is recommended that you keep all projects set to `enabledLocal: false` until you are sure you want to run them. The `RUN AND DEBUG` launch menu in VS Code should contain `Debug DIRECT WordpressSync`; use that to run locally with debugging.
@@ -40,13 +95,12 @@ You will need to define a `local.settings.json` file in the project root with th
 }
 ```
 
-`GITHUB_NAME` : The name that will appear on commits.
-
-`GITHUB_EMAIL` : The email that will appear on commits.
-
-`GITHUB_TOKEN` : Your token used to authenticate with GitHub. Get one [here](https://github.com/settings/tokens).
-
-`SLACKBOT_TOKEN` : Your token used to authenticate with your Slack app. Make one [here](https://api.slack.com/apps/).
+|Name|Description|
+|:--:|:----------|
+|**`GITHUB_NAME`**|The name that will appear on commits.|
+|**`GITHUB_EMAIL`**|The email that will appear on commits.|
+|**`GITHUB_TOKEN`**|Your token used to authenticate with GitHub. Get one [here](https://github.com/settings/tokens).|
+|**`SLACKBOT_TOKEN`**|Your token used to authenticate with your Slack app. Make one [here](https://api.slack.com/apps/).|
 
 ### Local running with select projects
 
