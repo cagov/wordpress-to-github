@@ -1,23 +1,23 @@
 // @ts-check
-const { GitHubTarget } = require("@cagov/wordpress-to-github/common");
 const { sleep } = require("@cagov/wordpress-to-github/gitTreeCommon");
-const {
-  slackBotReportError,
-  slackBotChatPost,
-  slackBotReplyPost,
-  slackBotReactionAdd
-} = require("../common/slackBot");
+const SlackBot = require("@cagov/slack-connector");
 const endpoints = require("../WordpressSync/endpoints.json");
 
 //const debugChannel = "C02G6PETB9B"; //#wordpress-sync-http-trigger
 const debugChannel = "C01H6RB99E2"; //#carter-dev
 
-const gitHubCommitter = {
-  name: process.env["GITHUB_NAME"],
-  email: process.env["GITHUB_EMAIL"]
-};
-const gitHubCredentials = {
-  token: process.env["GITHUB_TOKEN"]
+const slackBotGetToken = () => {
+  const token = process.env["SLACKBOT_TOKEN"];
+
+  if (!token) {
+    //developers that don't set the creds can still use the rest of the code
+    console.error(
+      `You need local.settings.json to contain "SLACKBOT_TOKEN" to use slackbot features.`
+    );
+    return;
+  }
+
+  return token;
 };
 
 /**
@@ -32,38 +32,26 @@ const gitHubCredentials = {
  * @param {{method:string,headers:{"user-agent":string},query?:{code?:string},params:{},body:{slug?:string,trigger?:string}}} req
  */
 module.exports = async function (context, req) {
-  const appName = context.executionContext?.functionName;
+  if (req.method !== "POST") {
+    context.res = {
+      body: `Service is running, but is expecting a POST.`
+    };
+    return;
+  }
+  const slackBot = new SlackBot(slackBotGetToken(), debugChannel);
+
   try {
-    if (req.method !== "POST") {
-      context.res = {
-        body: `Service is running, but is expecting a POST.`
-      };
-      return;
-    }
-
-    let slackPostTS = "";
-
     const TriggerName = req.body?.trigger || "(Trigger)";
     const SlugName = req.body?.slug || "(slug)";
-    slackPostTS = (
-      await (
-        await slackBotChatPost(
-          debugChannel,
-          `Notification received - ${SlugName} - ${TriggerName}`
-        )
-      ).json()
-    ).ts;
+    await slackBot.Chat(`Notification received - ${SlugName} - ${TriggerName}`);
+
     //clean out "code" value display
     const redactedOutput = JSON.stringify(req, null, 2).replace(
       new RegExp(req.query.code, "g"),
       `${req.query?.code?.substring(0, 3)}[...]`
     );
 
-    await slackBotReplyPost(
-      debugChannel,
-      slackPostTS,
-      `\n\n*Full Details*\n\`\`\`${redactedOutput}\`\`\``
-    );
+    await slackBot.Reply(`\n\n*Full Details*\n\`\`\`${redactedOutput}\`\`\``);
 
     //Find endpoints that match the requestor
     const postAgent = req.headers["user-agent"];
@@ -76,9 +64,7 @@ module.exports = async function (context, req) {
 
     //if you find matches...congrats...report for now
     if (activeEndpoints.length) {
-      await slackBotReplyPost(
-        debugChannel,
-        slackPostTS,
+      await slackBot.Reply(
         `${
           activeEndpoints.length
         } matching endpoint(s) found ...${activeEndpoints
@@ -99,27 +85,17 @@ module.exports = async function (context, req) {
         null,
         activeEndpoints.map(x => x.name)
       );
-      await slackBotReplyPost(debugChannel, slackPostTS, `Done.`);
+      await slackBot.Reply(`Done.`);
     } else {
-      await slackBotReplyPost(
-        debugChannel,
-        slackPostTS,
-        `No endpoints found for...${postAgent}`
-      );
-      await slackBotReactionAdd(debugChannel, slackPostTS, "no_entry");
+      await slackBot.Reply(`No endpoints found for...${postAgent}`);
+      await slackBot.ReactionAdd("no_entry");
     }
 
     context.res = {
       status: 204 //OK - No content
     };
   } catch (e) {
-    await slackBotReportError(
-      debugChannel,
-      `Error running ${appName}`,
-      e,
-      context,
-      null
-    );
+    await slackBot.Error(e, req);
 
     context.res = {
       status: 500,
