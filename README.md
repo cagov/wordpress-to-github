@@ -57,21 +57,21 @@ Contains the projects to process with the service.
 }
 ```
 
-|Name|Description|
-|:--:|:----------|
-|**`name`**|Friendly name for this job when it runs locally.|
-|**`description`**|Describe what this is being used for in this endpoint configuration.|
-|**`enabled`**|Should we process this endpoint?|
-|**`enabledLocal`**|Should we process this endpoint when running in local development?|
-|**`ReportingChannel_Slack`**|Slack channel to report activity to.|
-|**`WordPressSource`**|Describes the Wordpress instance to read from.|
-|**`WordPressSource.url`**|URL of the Wordpress instance to read from.|
-|**`WordPressSource.tags_exclude`**|Ignore Pages/Posts with these tags (Case sensitive!).|
-|**`GitHubTarget`**|The endpoint target to deploy changes.|
-|**`GitHubTarget.Owner`**|GitHub Owner.|
-|**`GitHubTarget.Repo`**|GitHub Repo.|
-|**`GitHubTarget.Branch`**|GitHub Target Branch.|
-|**`GitHubTarget.ConfigPath`**|Path to config.json file for this endpoint.|
+| Name                               | Description                                                          |
+| :--------------------------------- | :------------------------------------------------------------------- |
+| **`name`**                         | Friendly name for this job when it runs locally.                     |
+| **`description`**                  | Describe what this is being used for in this endpoint configuration. |
+| **`enabled`**                      | Should we process this endpoint?                                     |
+| **`enabledLocal`**                 | Should we process this endpoint when running in local development?   |
+| **`ReportingChannel_Slack`**       | Slack channel to report activity to.                                 |
+| **`WordPressSource`**              | Describes the Wordpress instance to read from.                       |
+| **`WordPressSource.url`**          | URL of the Wordpress instance to read from.                          |
+| **`WordPressSource.tags_exclude`** | Ignore Pages/Posts with these tags (Case sensitive!).                |
+| **`GitHubTarget`**                 | The endpoint target to deploy changes.                               |
+| **`GitHubTarget.Owner`**           | GitHub Owner.                                                        |
+| **`GitHubTarget.Repo`**            | GitHub Repo.                                                         |
+| **`GitHubTarget.Branch`**          | GitHub Target Branch.                                                |
+| **`GitHubTarget.ConfigPath`**      | Path to config.json file for this endpoint.                          |
 
 ## Setting up Local Execution/Debugging
 
@@ -95,12 +95,12 @@ You will need to define a `local.settings.json` file in the project root with th
 }
 ```
 
-|Name|Description|
-|:--:|:----------|
-|**`GITHUB_NAME`**|The name that will appear on commits.|
-|**`GITHUB_EMAIL`**|The email that will appear on commits.|
-|**`GITHUB_TOKEN`**|Your token used to authenticate with GitHub. Get one [here](https://github.com/settings/tokens).|
-|**`SLACKBOT_TOKEN`**|Your token used to authenticate with your Slack app. Make one [here](https://api.slack.com/apps/).|
+| Name                 | Description                                                                                        |
+| :------------------- | :------------------------------------------------------------------------------------------------- |
+| **`GITHUB_NAME`**    | The name that will appear on commits.                                                              |
+| **`GITHUB_EMAIL`**   | The email that will appear on commits.                                                             |
+| **`GITHUB_TOKEN`**   | Your token used to authenticate with GitHub. Get one [here](https://github.com/settings/tokens).   |
+| **`SLACKBOT_TOKEN`** | Your token used to authenticate with your Slack app. Make one [here](https://api.slack.com/apps/). |
 
 ### Local running with select projects
 
