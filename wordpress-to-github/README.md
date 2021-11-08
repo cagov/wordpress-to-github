@@ -43,20 +43,18 @@ Controls how the service will place content in GitHub. This file belongs in your
 }
 ```
 
-|Name|Description|
-|:--:|:----------|
-|**`disabled`**|Set to true to disable processing for this project.|
-|**`PostPath`**|Where should the posts go?|
-|**`PagePath`**|Where should the pages go?|
-|**`MediaPath`**|Where should image media go?|
-|**`ApiRequests`**|A collection of API requests to write to the repo.|
-|**`ApiRequests.Destination`**|The output path (in the repo) for an API request.|
-|**`ApiRequests.Source`**|The WordPress API source. This should be an absolute path against the top-level domain of your WordPress site, likely beginning with "/wp-json/".|
-|**`ApiRequests.ExcludeProperties`**|A collection of property keys to remove from the output.|
-|**`GeneralFilePath`**|The full path and filename for a `general.json` file that contains information about the whole site.|
-|**`ExcludeProperties`**|Which WordPress properties should we suppress in output?|
-
-
+| Name                                | Description                                                                                                                                       |
+| :---------------------------------- | :------------------------------------------------------------------------------------------------------------------------------------------------ |
+| **`disabled`**                      | Set to true to disable processing for this project.                                                                                               |
+| **`PostPath`**                      | Where should the posts go?                                                                                                                        |
+| **`PagePath`**                      | Where should the pages go?                                                                                                                        |
+| **`MediaPath`**                     | Where should image media go?                                                                                                                      |
+| **`ApiRequests`**                   | A collection of API requests to write to the repo.                                                                                                |
+| **`ApiRequests.Destination`**       | The output path (in the repo) for an API request.                                                                                                 |
+| **`ApiRequests.Source`**            | The WordPress API source. This should be an absolute path against the top-level domain of your WordPress site, likely beginning with "/wp-json/". |
+| **`ApiRequests.ExcludeProperties`** | A collection of property keys to remove from the output.                                                                                          |
+| **`GeneralFilePath`**               | The full path and filename for a `general.json` file that contains information about the whole site.                                              |
+| **`ExcludeProperties`**             | Which WordPress properties should we suppress in output?                                                                                          |
 
 ## Sample output
 
@@ -84,11 +82,7 @@ This file will contain global information for the WordPress istance
     "home": "https://as-go-covid19-d-001.azurewebsites.net",
     "gmt_offset": "0",
     "timezone_string": "",
-    "namespaces": [
-      "oembed/1.0",
-      "wp/v2",
-      "wp-site-health/v1"
-    ]
+    "namespaces": ["oembed/1.0", "wp/v2", "wp-site-health/v1"]
   }
 }
 ```
@@ -134,13 +128,8 @@ All posts .son files will appear next to their .html content files.
     "template": "",
     "format": "standard",
     "meta": [],
-    "categories": [
-      "error page"
-    ],
-    "tags": [
-      "do-not-crawl",
-      "machine-translated"
-    ],
+    "categories": ["error page"],
+    "tags": ["do-not-crawl", "machine-translated"],
     "wordpress_url": "https://as-go-covid19-d-001.azurewebsites.net/2020/04/13/404/"
   }
 }

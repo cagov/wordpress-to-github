@@ -38,12 +38,12 @@ module.exports = async function (context, req) {
     };
     return;
   }
-  const slackBot = new SlackBot(slackBotGetToken(), debugChannel);
+  const slack = new SlackBot(slackBotGetToken(), debugChannel);
 
   try {
     const TriggerName = req.body?.trigger || "(Trigger)";
     const SlugName = req.body?.slug || "(slug)";
-    await slackBot.Chat(`Notification received - ${SlugName} - ${TriggerName}`);
+    await slack.Chat(`Notification received - ${SlugName} - ${TriggerName}`);
 
     //clean out "code" value display
     const redactedOutput = JSON.stringify(req, null, 2).replace(
@@ -51,7 +51,7 @@ module.exports = async function (context, req) {
       `${req.query?.code?.substring(0, 3)}[...]`
     );
 
-    await slackBot.Reply(`\n\n*Full Details*\n\`\`\`${redactedOutput}\`\`\``);
+    await slack.Reply(`\n\n*Full Details*\n\`\`\`${redactedOutput}\`\`\``);
 
     //Find endpoints that match the requestor
     const postAgent = req.headers["user-agent"];
@@ -64,7 +64,7 @@ module.exports = async function (context, req) {
 
     //if you find matches...congrats...report for now
     if (activeEndpoints.length) {
-      await slackBot.Reply(
+      await slack.Reply(
         `${
           activeEndpoints.length
         } matching endpoint(s) found ...${activeEndpoints
@@ -85,17 +85,17 @@ module.exports = async function (context, req) {
         null,
         activeEndpoints.map(x => x.name)
       );
-      await slackBot.Reply(`Done.`);
+      await slack.Reply(`Done.`);
     } else {
-      await slackBot.Reply(`No endpoints found for...${postAgent}`);
-      await slackBot.ReactionAdd("no_entry");
+      await slack.Reply(`No endpoints found for...${postAgent}`);
+      await slack.ReactionAdd("no_entry");
     }
 
     context.res = {
       status: 204 //OK - No content
     };
   } catch (e) {
-    await slackBot.Error(e, req);
+    await slack.Error(e, req);
 
     context.res = {
       status: 500,
