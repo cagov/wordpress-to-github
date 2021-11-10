@@ -15,7 +15,8 @@
   "bugs": "https://github.com/cagov/wordpress-to-github/issues",
   "description": "Used to create services that can sync WordPress to GitHub.",
   "scripts": {
-    "publish to NPM": "npm publish"
+    "beta to NPM": "npm publish --tag beta --access public",
+    "publish to NPM": "npm publish --access public"
   },
   "keywords": [
     "wordpress",
