@@ -128,13 +128,9 @@ const SyncEndpoint = async (
   const endpointConfig = await getRemoteConfig(gitHubTarget, gitHubCredentials);
   const wordPressApiUrl = sourceEndpointConfig.WordPressSource.url + apiPath;
 
-  const allApiRequests =
-    endpointConfig.ApiRequests && endpointConfig.ApiRequests.length
-      ? await WpApi_GetApiRequestsData(
-          sourceEndpointConfig.WordPressSource.url,
-          endpointConfig.ApiRequests
-        )
-      : null;
+  const allApiRequests = endpointConfig.ApiRequests && endpointConfig.ApiRequests.length
+    ? await WpApi_GetApiRequestsData(sourceEndpointConfig.WordPressSource.url, endpointConfig.ApiRequests)
+    : null;
 
   //Check cache (and set cache for next time)
   let cacheMatch = true;
@@ -184,9 +180,7 @@ const SyncEndpoint = async (
   //List of WP categories
   const categorylist = await fetchDictionary(wordPressApiUrl, "categories");
   const taglist = await fetchDictionary(wordPressApiUrl, "tags");
-  const userlist = endpointConfig.HideAuthorName
-    ? null
-    : await fetchDictionary(wordPressApiUrl, "users");
+  const userlist = endpointConfig.HideAuthorName ? null : await fetchDictionary(wordPressApiUrl, "users");
 
   /** @type {WordpressMediaRow[] | null} */
   const allMedia = endpointConfig.MediaPath
