@@ -265,7 +265,7 @@ const WpApi_getSomething = async fetchquery =>
   await fetchRetry(fetchquery, { method: "Get" });
 
 /**
- * Fetch API request data from the WordPress API.
+ * Fetch API request data from the WordPress API. 
  * 
  * @param {string} wordPressApiUrl Full URL to the WordPress Menu API.
  * @param {EndpointRequestsConfigData[]} requests Array of Wordpress API requests.
@@ -455,7 +455,7 @@ const syncBinaryFile = async (wordpress_url, gitRepo, mediaTree, endpoint) => {
  *
  * @param {object} json
  * @param {string[]} [excludeList]
- * @returns {object}
+ * @returns {object} 
  */
 const removeExcludedProperties = (json, excludeList) => {
   if (excludeList) {
@@ -530,3 +530,4 @@ module.exports = {
   pathFromMediaSourceUrl,
   addMediaSection
 };
+
