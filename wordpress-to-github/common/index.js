@@ -1,5 +1,5 @@
 // @ts-check
-const crypto = require('crypto');
+const crypto = require("crypto");
 const apiPath = "/wp-json/wp/v2/";
 const {
   gitHubBlobPredictShaFromBuffer,
@@ -30,13 +30,14 @@ const fetchRetry = require("fetch-retry")(require("node-fetch/lib"), {
  * @property {string} [PagePath]
  * @property {string} [MediaPath]
  * @property {string} [GeneralFilePath]
+ * @property {boolean} [HideAuthorName] True to hide author information.
  * @property {EndpointRequestsConfigData[]} [ApiRequests]
  */
 
 /**
  * @typedef {object} EndpointRequestsConfigData
  * @property {string} Destination
- * @property {string} Source 
+ * @property {string} Source
  * @property {string[]} [ExcludeProperties]
  */
 
@@ -155,10 +156,10 @@ const fetchRetry = require("fetch-retry")(require("node-fetch/lib"), {
  * @property {string} Destination
  * @property {string} Source
  * @property {string} Hash
- * 
+ *
  * @typedef {object} WithData
  * @property {string} Data
- * 
+ *
  * @typedef {WordpressApiHashCacheItem & WithData} WordpressApiHashDataItem
  */
 
@@ -264,8 +265,8 @@ const WpApi_getSomething = async fetchquery =>
   await fetchRetry(fetchquery, { method: "Get" });
 
 /**
- * Fetch API request data from the WordPress API. 
- * 
+ * Fetch API request data from the WordPress API.
+ *
  * @param {string} wordPressApiUrl Full URL to the WordPress Menu API.
  * @param {EndpointRequestsConfigData[]} requests Array of Wordpress API requests.
  * @returns {Promise<WordpressApiHashDataItem[]>}
@@ -282,7 +283,9 @@ const WpApi_GetApiRequestsData = (wordPressApiUrl, requests) => {
           if (response.ok) {
             return response.json();
           } else {
-            throw new Error(`${response.status} - ${response.statusText} - ${response.url}`);
+            throw new Error(
+              `${response.status} - ${response.statusText} - ${response.url}`
+            );
           }
         })
         .then(json => removeExcludedProperties(json, request.ExcludeProperties))
@@ -301,12 +304,14 @@ const WpApi_GetApiRequestsData = (wordPressApiUrl, requests) => {
 
 /**
  * Compares a cached object to a current object to see if the cache is out of date.
- * @param {WordpressApiDateCacheItem|WordpressApiHashCacheItem} cacheItem 
- * @param {WordpressApiDateCacheItem|WordpressApiHashCacheItem} currentItem 
+ * @param {WordpressApiDateCacheItem|WordpressApiHashCacheItem} cacheItem
+ * @param {WordpressApiDateCacheItem|WordpressApiHashCacheItem} currentItem
  * @returns {boolean}
  */
 const jsonCacheDiscrepancy = (cacheItem, currentItem) => {
-  return !cacheItem || JSON.stringify(cacheItem) !== JSON.stringify(currentItem);
+  return (
+    !cacheItem || JSON.stringify(cacheItem) !== JSON.stringify(currentItem)
+  );
 };
 
 /**
@@ -454,7 +459,7 @@ const syncBinaryFile = async (wordpress_url, gitRepo, mediaTree, endpoint) => {
  *
  * @param {object} json
  * @param {string[]} [excludeList]
- * @returns {object} 
+ * @returns {object}
  */
 const removeExcludedProperties = (json, excludeList) => {
   if (excludeList) {
