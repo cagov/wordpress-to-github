@@ -1,5 +1,14 @@
 {
     "$schema": "https://json.schemastore.org/eslintrc",
+    "parserOptions": {
+        "ecmaVersion": 12,
+        "sourceType": "script",
+        "ecmaFeatures": {
+            "jsx": true,
+            "modules": false,
+            "experimentalObjectRestSpread": true
+        }
+    },
     "env": {
         "browser": false,
         "commonjs": true,
@@ -11,10 +20,10 @@
         "plugin:jsdoc/recommended",
         "plugin:prettier/recommended"
     ],
-    "parserOptions": {
-        "ecmaVersion": 12,
-        "sourceType": "module"
-    },
+    "plugins": [
+        "prettier",
+        "jsdoc"
+    ],
     "rules": {
         "arrow-parens": [
             "warn",
@@ -27,7 +36,10 @@
             2
         ],
         "no-extra-bind": "warn",
-        "no-extra-parens": "warn",
+        "no-extra-parens": [
+            "warn",
+            "functions"
+        ],
         "no-lonely-if": "warn",
         "no-multiple-empty-lines": "warn",
         "no-shadow": "warn",
@@ -48,6 +60,8 @@
         "jsdoc/require-returns-type": "off",
         "jsdoc/require-property-description": "off",
         "jsdoc/require-param-description": "off",
-        "jsdoc/require-returns-description": "off"
+        "jsdoc/require-returns-description": "off",
+        "prettier/prettier": "error",
+        "arrow-body-style": "off"
     }
 }

@@ -155,11 +155,14 @@ const fetchRetry = require("fetch-retry")(require("node-fetch/lib"), {
  * @property {string} Destination
  * @property {string} Source
  * @property {string} Hash
- *
- * @typedef {object} WithData
+ */
+
+/**
+ * @typedef {object} WordpressApiHashDataItem Hash details for a Wordpress API response (With Data)
+ * @property {string} Destination
+ * @property {string} Source
+ * @property {string} Hash
  * @property {string} Data
- *
- * @typedef {WordpressApiHashCacheItem & WithData} WordpressApiHashDataItem
  */
 
 /**
@@ -303,6 +306,7 @@ const WpApi_GetApiRequestsData = (wordPressApiUrl, requests) => {
 
 /**
  * Compares a cached object to a current object to see if the cache is out of date.
+ *
  * @param {WordpressApiDateCacheItem|WordpressApiHashCacheItem} cacheItem
  * @param {WordpressApiDateCacheItem|WordpressApiHashCacheItem} currentItem
  * @returns {boolean}

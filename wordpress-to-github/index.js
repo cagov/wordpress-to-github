@@ -92,6 +92,7 @@ const anythingInArrayMatch = (array1, array2) =>
 
 /**
  * Addts a CommitResult to the Report if it exists
+ *
  * @param {CommitReport[]} Report
  * @param {CommitReport} [CommitResult]
  */
@@ -159,6 +160,7 @@ const SyncEndpoint = async (
     for (let request of allApiRequests) {
       const apiRequestCacheKey = `${cacheRoot},type:apiResponse:${request.Destination}`;
       const apiRequestCacheItem = updateCache.get(apiRequestCacheKey);
+      // eslint-disable-next-line no-unused-vars
       const { Data, ...apiCurrentStatus } = request;
 
       updateCache.set(apiRequestCacheKey, apiCurrentStatus);
