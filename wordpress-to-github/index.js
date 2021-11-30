@@ -521,7 +521,7 @@ const SyncEndpoint = async (
 
       const reportLabel = folderName.split("/").slice(-1).join("/") || 'root';
       const updateCount = `${requestsTree.length} ${requestsTree.length === 1 ? "update" : "updates"}`;
-
+  
       addToReport(
         report,
         await CommitIfChanged(
