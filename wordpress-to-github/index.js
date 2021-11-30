@@ -128,9 +128,13 @@ const SyncEndpoint = async (
   const endpointConfig = await getRemoteConfig(gitHubTarget, gitHubCredentials);
   const wordPressApiUrl = sourceEndpointConfig.WordPressSource.url + apiPath;
 
-  const allApiRequests = endpointConfig.ApiRequests && endpointConfig.ApiRequests.length
-    ? await WpApi_GetApiRequestsData(sourceEndpointConfig.WordPressSource.url, endpointConfig.ApiRequests)
-    : null;
+  const allApiRequests =
+    endpointConfig.ApiRequests && endpointConfig.ApiRequests.length
+      ? await WpApi_GetApiRequestsData(
+          sourceEndpointConfig.WordPressSource.url,
+          endpointConfig.ApiRequests
+        )
+      : null;
 
   //Check cache (and set cache for next time)
   let cacheMatch = true;
@@ -504,7 +508,7 @@ const SyncEndpoint = async (
         bucket[folderName] = new Map();
       }
 
-      bucket[folderName].set(fileName, JSON.stringify(request.Data, null, 2))
+      bucket[folderName].set(fileName, JSON.stringify(request.Data, null, 2));
 
       return bucket;
     }, {});
@@ -519,9 +523,11 @@ const SyncEndpoint = async (
         false
       );
 
-      const reportLabel = folderName.split("/").slice(-1).join("/") || 'root';
-      const updateCount = `${requestsTree.length} ${requestsTree.length === 1 ? "update" : "updates"}`;
-  
+      const reportLabel = folderName.split("/").slice(-1).join("/") || "root";
+      const updateCount = `${requestsTree.length} ${
+        requestsTree.length === 1 ? "update" : "updates"
+      }`;
+
       addToReport(
         report,
         await CommitIfChanged(
