@@ -504,7 +504,7 @@ const SyncEndpoint = async (
         bucket[folderName] = new Map();
       }
 
-      bucket[folderName].set(fileName, JSON.stringify(request.Data, null, 2));
+      bucket[folderName].set(fileName, JSON.stringify(request.Data, null, 2))
 
       return bucket;
     }, {});
@@ -519,10 +519,8 @@ const SyncEndpoint = async (
         false
       );
 
-      const reportLabel = folderName.split("/").slice(-1).join("/") || "root";
-      const updateCount = `${requestsTree.length} ${
-        requestsTree.length === 1 ? "update" : "updates"
-      }`;
+      const reportLabel = folderName.split("/").slice(-1).join("/") || 'root';
+      const updateCount = `${requestsTree.length} ${requestsTree.length === 1 ? "update" : "updates"}`;
 
       addToReport(
         report,
