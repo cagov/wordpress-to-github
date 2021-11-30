@@ -530,4 +530,3 @@ module.exports = {
   pathFromMediaSourceUrl,
   addMediaSection
 };
-
