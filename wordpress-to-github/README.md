@@ -60,6 +60,8 @@ Controls how the service will place content in GitHub. This file belongs in your
 
 ## Sample output
 
+These are examples of the types of files that will be written to the target GitHub repo by this service.
+
 ### `general / general.json`
 
 This file will contain global information for the WordPress istance
