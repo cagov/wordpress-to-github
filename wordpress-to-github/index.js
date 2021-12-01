@@ -328,28 +328,37 @@ const SyncEndpoint = async (
     if (mediaChanges.length) {
       console.log(`Checking ${mediaTree.length} media items`);
 
+      /** @type {Promise<void>[]} */
+      const binarySyncs = [];
+
       //Pull in binaries for any media meta changes
       for (const mediaTreeItem of mediaChanges) {
         if (mediaTreeItem.sizes) {
           //Sized images
           for (const sizeJson of mediaTreeItem.sizes) {
-            await syncBinaryFile(
-              sizeJson.wordpress_url,
-              gitRepo,
-              mediaTree,
-              endpointConfig
+            binarySyncs.push(
+              syncBinaryFile(
+                sizeJson.wordpress_url,
+                gitRepo,
+                mediaTree,
+                endpointConfig
+              )
             );
           }
         }
 
         //not sized media (PDF or non-image)
-        await syncBinaryFile(
-          mediaTreeItem.wordpress_url,
-          gitRepo,
-          mediaTree,
-          endpointConfig
+        binarySyncs.push(
+          syncBinaryFile(
+            mediaTreeItem.wordpress_url,
+            gitRepo,
+            mediaTree,
+            endpointConfig
+          )
         );
       }
+
+      await Promise.all(binarySyncs);
     }
 
     //Remove any leftover binary placeholders...
