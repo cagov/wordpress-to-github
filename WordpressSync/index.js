@@ -46,7 +46,6 @@ module.exports = async function (context, myTimer, activeEndpoints) {
     x => !activeEndpoints?.length || activeEndpoints.includes(x.name)
   );
 
-  const appName = context.executionContext.functionName;
   const debugMode = process.env.debug?.toLowerCase() === "true";
 
   const work = endpointsFiltered.filter(
@@ -98,8 +97,8 @@ const doProcessEndpoints = async work => {
           mergeFileNames.push(
             ...x.Files.map(
               //Remove file extension, and remove resolution postfix
-              x =>
-                x.filename
+              f =>
+                f.filename
                   .split("/")
                   .slice(-1)[0]
                   .split(".")[0]

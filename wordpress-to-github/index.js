@@ -186,7 +186,9 @@ const SyncEndpoint = async (
   //List of WP categories
   const categorylist = await fetchDictionary(wordPressApiUrl, "categories");
   const taglist = await fetchDictionary(wordPressApiUrl, "tags");
-  const userlist = endpointConfig.HideAuthorName ? null : await fetchDictionary(wordPressApiUrl, "users");
+  const userlist = endpointConfig.HideAuthorName
+    ? null
+    : await fetchDictionary(wordPressApiUrl, "users");
 
   /** @type {WordpressMediaRow[] | null} */
   const allMedia = endpointConfig.MediaPath
