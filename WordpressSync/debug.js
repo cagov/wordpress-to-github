@@ -9,11 +9,7 @@ const repeatCount = parseInt(process.argv.slice(2));
 const indexCode = require("./index");
 (async () => {
   for (let step = 0; step < repeatCount; step++) {
-    console.log(`****** Iteration ${step+1} ******`)
-    await indexCode(
-      { executionContext: { functionName: "debug" } },
-      null,
-      []
-    );
-  } 
+    console.log(`****** Iteration ${step + 1} ******`);
+    await indexCode({ executionContext: { functionName: "debug" } }, null, []);
+  }
 })();

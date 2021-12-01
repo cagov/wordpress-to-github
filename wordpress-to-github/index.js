@@ -92,6 +92,7 @@ const anythingInArrayMatch = (array1, array2) =>
 
 /**
  * Addts a CommitResult to the Report if it exists
+ *
  * @param {CommitReport[]} Report
  * @param {CommitReport} [CommitResult]
  */
@@ -128,9 +129,13 @@ const SyncEndpoint = async (
   const endpointConfig = await getRemoteConfig(gitHubTarget, gitHubCredentials);
   const wordPressApiUrl = sourceEndpointConfig.WordPressSource.url + apiPath;
 
-  const allApiRequests = endpointConfig.ApiRequests && endpointConfig.ApiRequests.length
-    ? await WpApi_GetApiRequestsData(sourceEndpointConfig.WordPressSource.url, endpointConfig.ApiRequests)
-    : null;
+  const allApiRequests =
+    endpointConfig.ApiRequests && endpointConfig.ApiRequests.length
+      ? await WpApi_GetApiRequestsData(
+          sourceEndpointConfig.WordPressSource.url,
+          endpointConfig.ApiRequests
+        )
+      : null;
 
   //Check cache (and set cache for next time)
   let cacheMatch = true;
@@ -155,6 +160,7 @@ const SyncEndpoint = async (
     for (let request of allApiRequests) {
       const apiRequestCacheKey = `${cacheRoot},type:apiResponse:${request.Destination}`;
       const apiRequestCacheItem = updateCache.get(apiRequestCacheKey);
+      // eslint-disable-next-line no-unused-vars
       const { Data, ...apiCurrentStatus } = request;
 
       updateCache.set(apiRequestCacheKey, apiCurrentStatus);
@@ -180,7 +186,9 @@ const SyncEndpoint = async (
   //List of WP categories
   const categorylist = await fetchDictionary(wordPressApiUrl, "categories");
   const taglist = await fetchDictionary(wordPressApiUrl, "tags");
-  const userlist = endpointConfig.HideAuthorName ? null : await fetchDictionary(wordPressApiUrl, "users");
+  const userlist = endpointConfig.HideAuthorName
+    ? null
+    : await fetchDictionary(wordPressApiUrl, "users");
 
   /** @type {WordpressMediaRow[] | null} */
   const allMedia = endpointConfig.MediaPath
@@ -519,7 +527,7 @@ const SyncEndpoint = async (
         bucket[folderName] = new Map();
       }
 
-      bucket[folderName].set(fileName, JSON.stringify(request.Data, null, 2))
+      bucket[folderName].set(fileName, JSON.stringify(request.Data, null, 2));
 
       return bucket;
     }, {});
@@ -534,9 +542,11 @@ const SyncEndpoint = async (
         false
       );
 
-      const reportLabel = folderName.split("/").slice(-1).join("/") || 'root';
-      const updateCount = `${requestsTree.length} ${requestsTree.length === 1 ? "update" : "updates"}`;
-  
+      const reportLabel = folderName.split("/").slice(-1).join("/") || "root";
+      const updateCount = `${requestsTree.length} ${
+        requestsTree.length === 1 ? "update" : "updates"
+      }`;
+
       addToReport(
         report,
         await CommitIfChanged(
