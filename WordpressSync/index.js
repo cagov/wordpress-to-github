@@ -91,9 +91,13 @@ const doProcessEndpoints = async work => {
     if (endpoint.ReportingChannel_Slack && slackBotGetToken()) {
       //Endpoint reporting channel enabled.  Add a post for each commit report.
       if (commitReports?.length) {
+        let opCount = 0;
+
         /** @type {string[]} */
         let mergeFileNames = [];
-        commitReports.map(x => {
+        commitReports.forEach(x => {
+          opCount += x.Files.length;
+
           mergeFileNames.push(
             ...x.Files.map(
               //Remove file extension, and remove resolution postfix
@@ -113,9 +117,11 @@ const doProcessEndpoints = async work => {
           { username: endpoint.name }
         );
 
-        const allfileNames = [...new Set(mergeFileNames)];
+        const slugList = ` : _${[...new Set(mergeFileNames)].join(", ")}_`;
 
-        await slackBot.Chat(`_${allfileNames.join(", ")}_`);
+        await slackBot.Chat(
+          `${opCount} changes${slugList.length < 300 ? slugList : "."}`
+        );
 
         for (const commitReport of commitReports) {
           const fileData = commitReport.Files.map(
@@ -123,7 +129,13 @@ const doProcessEndpoints = async work => {
           ).join("\n");
 
           await slackBot.Reply(
-            `<${commitReport.Commit.html_url}|${commitReport.Commit.message}>\n${fileData}`
+            `<${commitReport.Commit.html_url}|${
+              commitReport.Commit.message
+            }>\n${
+              commitReport.Files.length > 1
+                ? `${commitReport.Files.length} changes\n`
+                : ""
+            }${fileData}`
           );
         }
       }
