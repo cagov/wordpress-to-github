@@ -30,6 +30,7 @@ const fetchRetry = require("fetch-retry")(require("node-fetch/lib"), {
  * @property {string} [PagePath]
  * @property {string} [MediaPath]
  * @property {string} [GeneralFilePath]
+ * @property {boolean} [HideAuthorName] True to hide author information.
  * @property {EndpointRequestsConfigData[]} [ApiRequests]
  */
 

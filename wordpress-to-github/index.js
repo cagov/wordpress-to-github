@@ -180,7 +180,7 @@ const SyncEndpoint = async (
   //List of WP categories
   const categorylist = await fetchDictionary(wordPressApiUrl, "categories");
   const taglist = await fetchDictionary(wordPressApiUrl, "tags");
-  const userlist = await fetchDictionary(wordPressApiUrl, "users");
+  const userlist = endpointConfig.HideAuthorName ? null : await fetchDictionary(wordPressApiUrl, "users");
 
   /** @type {WordpressMediaRow[] | null} */
   const allMedia = endpointConfig.MediaPath
@@ -257,7 +257,7 @@ const SyncEndpoint = async (
       /** @type {GithubOutputJson} */
       const jsonData = {
         ...x,
-        author: userlist[x.author.toString()],
+        author: userlist ? userlist[x.author] : x.author,
         wordpress_url: ensureStringStartsWith(
           sourceEndpointConfig.WordPressSource.url,
           x.source_url
@@ -376,7 +376,7 @@ const SyncEndpoint = async (
   const wordPressRowToGitHubOutput = wpRow => {
     const jsonData = {
       ...wpRow,
-      author: userlist[wpRow.author],
+      author: userlist ? userlist[wpRow.author] : wpRow.author,
       wordpress_url: wpRow.link,
       categories: mapLookup(wpRow, "categories", categorylist),
       tags: mapLookup(wpRow, "tags", taglist)
