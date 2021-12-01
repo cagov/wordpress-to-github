@@ -117,10 +117,10 @@ const doProcessEndpoints = async work => {
           { username: endpoint.name }
         );
 
-        const slugList = ` _${[...new Set(mergeFileNames)].join(", ")}_`;
+        const slugList = ` : _${[...new Set(mergeFileNames)].join(", ")}_`;
 
         await slackBot.Chat(
-          `${opCount} changes.${slugList.length < 300 ? slugList : ""}`
+          `${opCount} changes${slugList.length < 300 ? slugList : "."}`
         );
 
         for (const commitReport of commitReports) {
