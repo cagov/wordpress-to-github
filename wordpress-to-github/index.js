@@ -1,14 +1,8 @@
 // @ts-check
-const GitHub = require("github-api");
-const {
-  createTreeFromFileMap,
-  CommitIfChanged,
-  CommitReport
-} = require("./gitTreeCommon");
+const { GitHubTreePush, GithubCompare } = require("@cagov/github-tree-push");
 const {
   ensureStringStartsWith,
   removeExcludedProperties,
-  syncBinaryFile,
   wrapInFileMeta,
   commonMeta,
   WpApi_GetCacheItem_ByObjectType,
@@ -48,33 +42,6 @@ const updateCache = new Map();
 const cacheObjects = ["media", "posts", "pages"];
 
 /**
- * process a Wordpress endpoint and place the data in GitHub
- *
- * @param {GitHubTarget} gitHubTarget
- * @param {GitHubCredentials} gitHubCredentials
- */
-const getRemoteConfig = async (gitHubTarget, gitHubCredentials) => {
-  const gitModule = new GitHub(gitHubCredentials);
-
-  // @ts-ignore
-  const gitRepo = await gitModule.getRepo(
-    gitHubTarget.Owner,
-    gitHubTarget.Repo
-  );
-
-  /** @type {EndpointConfigData} */
-  const endpointConfig = (
-    await gitRepo.getContents(
-      gitHubTarget.Branch,
-      gitHubTarget.ConfigPath,
-      true
-    )
-  ).data.data;
-
-  return endpointConfig;
-};
-
-/**
  * returns true if there are any items that match in both arrays
  *
  * @param {any[]} [array1]
@@ -93,12 +60,12 @@ const anythingInArrayMatch = (array1, array2) =>
 /**
  * Addts a CommitResult to the Report if it exists
  *
- * @param {CommitReport[]} Report
- * @param {CommitReport} [CommitResult]
+ * @param {GithubCompare[]} Report
+ * @param {GitHubTreePush} Tree
  */
-const addToReport = (Report, CommitResult) => {
-  if (CommitResult) {
-    Report.push(CommitResult);
+const addToReport = (Report, Tree) => {
+  if (Tree.lastCompare) {
+    Report.push(Tree.lastCompare);
   }
 };
 
@@ -116,17 +83,30 @@ const SyncEndpoint = async (
   gitHubCredentials,
   gitHubCommitter
 ) => {
-  /** @type {CommitReport[]} */
+  /** @type {GithubCompare[]} */
   const report = [];
-  const gitModule = new GitHub(gitHubCredentials);
 
-  // @ts-ignore
-  const gitRepo = await gitModule.getRepo(
-    gitHubTarget.Owner,
-    gitHubTarget.Repo
+  const configTreeConfig = {
+    owner: gitHubTarget.Owner,
+    base: gitHubTarget.Branch,
+    repo: gitHubTarget.Repo
+  };
+
+  const configTree = new GitHubTreePush(
+    gitHubCredentials.token,
+    configTreeConfig
   );
 
-  const endpointConfig = await getRemoteConfig(gitHubTarget, gitHubCredentials);
+  //https://docs.github.com/en/rest/reference/repos#contents
+  const endpointConfigResponse = await configTree.__fetchResponse(
+    `/contents/${gitHubTarget.ConfigPath}?ref=${configTreeConfig.base}`,
+    configTree.__gitDefaultOptions({
+      headers: { Accept: "application/vnd.github.v3.raw" }
+    })
+  );
+
+  /** @type {EndpointConfigData} */
+  const endpointConfig = (await endpointConfigResponse.json()).data;
   const wordPressApiUrl = sourceEndpointConfig.WordPressSource.url + apiPath;
 
   const allApiRequests =
@@ -176,8 +156,11 @@ const SyncEndpoint = async (
     return;
   }
 
-  const repoDetails = await gitRepo.getDetails();
-  if (!repoDetails.data.permissions.push) {
+  //https://docs.github.com/en/rest/reference/repos#get-a-repository
+
+  const repoDetails = await configTree.__getSomeJson("");
+
+  if (!repoDetails.permissions.push) {
     throw new Error(
       `App user has no write permissions for ${gitHubTarget.Repo}`
     );
@@ -232,25 +215,16 @@ const SyncEndpoint = async (
       .join("/");
     const fileName = endpointConfig.GeneralFilePath.split("/").slice(-1)[0];
 
-    const fileMap = new Map();
-    fileMap.set(fileName, jsonData);
-    const newTree = await createTreeFromFileMap(
-      gitRepo,
-      gitHubTarget.Branch,
-      fileMap,
-      filePath
-    );
+    const generalTree = new GitHubTreePush(gitHubCredentials.token, {
+      ...configTreeConfig,
+      path: filePath,
+      commit_message: commitTitleGeneral
+    });
 
-    addToReport(
-      report,
-      await CommitIfChanged(
-        gitRepo,
-        gitHubTarget.Branch,
-        newTree,
-        commitTitleGeneral,
-        gitHubCommitter
-      )
-    );
+    generalTree.syncFile(fileName, JSON.stringify(jsonData, null, 2));
+    await generalTree.treePush();
+
+    addToReport(report, generalTree);
   }
 
   /** @type {Map <string,any> | null} */

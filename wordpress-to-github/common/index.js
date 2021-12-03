@@ -1,10 +1,6 @@
 // @ts-check
 const crypto = require("crypto");
 const apiPath = "/wp-json/wp/v2/";
-const {
-  gitHubBlobPredictShaFromBuffer,
-  GithubTreeRow
-} = require("../gitTreeCommon");
 const fetchRetry = require("fetch-retry")(require("node-fetch/lib"), {
   retries: 3,
   retryDelay: 5000,
@@ -393,76 +389,6 @@ const wrapInFileMeta = (
 });
 
 /**
- * A custom Github function to check for file exists
- *
- * @param {{ _request: function( string, *, *) : Promise<*> }} myRepo
- * @param {string} path
- * @param {undefined} [data]
- * @param {function(any, boolean, any) : void} [cb]
- */
-function githubDoesFileExist(myRepo, path, data, cb) {
-  return myRepo._request("HEAD", path, data).then(
-    (/** @type {any} */ response) => {
-      if (cb) {
-        cb(null, true, response);
-      }
-      return true;
-    },
-    (/** @type {{ response: { status: number } }} */ response) => {
-      if (response.response.status === 404) {
-        if (cb) {
-          cb(null, false, response);
-        }
-        return false;
-      }
-
-      if (cb) {
-        // @ts-ignore
-        cb(response);
-      }
-      throw response;
-    }
-  );
-}
-
-/**
- * Syncs a binary file with Github, by adding the blob if its not already there and then updating the sha in the tree
- *
- * @param {string} wordpress_url
- * @param {*} gitRepo
- * @param {GithubTreeRow[]} mediaTree
- * @param {EndpointConfigData} endpoint
- */
-const syncBinaryFile = async (wordpress_url, gitRepo, mediaTree, endpoint) => {
-  console.log(`Downloading...${wordpress_url}`);
-  const fetchResponse = await fetchRetry(wordpress_url, { method: "Get" });
-  const blob = await fetchResponse.arrayBuffer();
-  const buffer = Buffer.from(blob);
-
-  let sha = gitHubBlobPredictShaFromBuffer(buffer);
-
-  const exists = await githubDoesFileExist(
-    gitRepo,
-    `/repos/${gitRepo.__fullname}/git/blobs/${sha}`
-  );
-  if (!exists) {
-    const blobResult = await gitRepo.createBlob(buffer);
-    sha = blobResult.data.sha; //should be the same, but just in case
-  }
-
-  //swap in the new blob sha here.  If the sha matches something already there it will be determined on server.
-  const treeNode = mediaTree.find(
-    x =>
-      x.path ===
-      `${endpoint.MediaPath}/${pathFromMediaSourceUrl(wordpress_url)}`
-  );
-  if (treeNode) {
-    delete treeNode.content;
-    treeNode.sha = sha;
-  }
-};
-
-/**
  * deletes properties in the list
  *
  * @param {object} json
@@ -528,7 +454,6 @@ const addMediaSection = (endpoint, mediaMap, jsonData, HTML) => {
 module.exports = {
   ensureStringStartsWith,
   removeExcludedProperties,
-  syncBinaryFile,
   wrapInFileMeta,
   commonMeta,
   WpApi_GetCacheItem_ByObjectType,
