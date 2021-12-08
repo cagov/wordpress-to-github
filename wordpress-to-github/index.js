@@ -235,9 +235,13 @@ const SyncEndpoint = async (
   const mediaMap = endpointConfig.MediaPath ? new Map() : null;
 
   // MEDIA
-  const mediaContentPlaceholder =
-    "TBD : Binary file to be updated in a later step";
   if (endpointConfig.MediaPath && mediaMap && allMedia) {
+    const mediaTree2 = new GitHubTreePush(gitHubCredentials.token, {
+      ...configTreeConfig,
+      path: endpointConfig.MediaPath,
+      commit_message: commitTitleMedia
+    });
+
     allMedia.forEach(x => {
       /** @type {GithubOutputJson} */
       const jsonData = {
@@ -268,38 +272,39 @@ const SyncEndpoint = async (
 
         //put binary placeholders so they aren't deleted.  Will search for these if an update happens.
         for (const s of jsonData.sizes) {
-          mediaMap.set(s.path, mediaContentPlaceholder);
+          mediaTree2.doNotRemoveFile(s.path);
         }
       }
       //PDF
       jsonData.path = pathFromMediaSourceUrl(x.source_url);
-      mediaMap.set(jsonData.path, mediaContentPlaceholder);
-      mediaMap.set(
-        pathFromMediaSourceUrl(x.source_url).replace(/\.([^.]+)$/, ".json"),
-        wrapInFileMeta(
-          sourceEndpointConfig.WordPressSource.url,
-          gitHubTarget,
-          fieldMetaReference.media,
-          jsonData,
-          object_url
-        )
+      mediaTree2.doNotRemoveFile(jsonData.path);
+
+      const mediaJson = wrapInFileMeta(
+        sourceEndpointConfig.WordPressSource.url,
+        gitHubTarget,
+        fieldMetaReference.media,
+        jsonData,
+        object_url
       );
+
+      const mediaPath = pathFromMediaSourceUrl(x.source_url).replace(
+        /\.([^.]+)$/,
+        ".json"
+      );
+
+      mediaTree2.syncFile(mediaPath, mediaJson);
+
+      mediaMap.set(mediaPath, mediaJson);
     });
 
-    let mediaTree = await createTreeFromFileMap(
-      gitRepo,
-      gitHubTarget.Branch,
-      mediaMap,
-      endpointConfig.MediaPath,
-      true
+    //TODO: Need to figure out which meta files changed...
+
+    const mediaChanges = (await mediaTree2.treePushDryRun()).map(p =>
+      mediaMap.get(p)
     );
 
-    const mediaChanges = mediaTree
-      .filter(x => x.content && x.content !== mediaContentPlaceholder)
-      .map(mt => JSON.parse(mt.content).data);
-
     if (mediaChanges.length) {
-      console.log(`Checking ${mediaTree.length} media items`);
+      console.log(`Checking ${mediaChanges.length} media items`);
 
       /** @type {Promise<void>[]} */
       const binarySyncs = [];
@@ -309,6 +314,8 @@ const SyncEndpoint = async (
         if (mediaTreeItem.sizes) {
           //Sized images
           for (const sizeJson of mediaTreeItem.sizes) {
+            mediaTree2.syncFile(mediaPath, mediaJson);
+
             binarySyncs.push(
               syncBinaryFile(
                 sizeJson.wordpress_url,
