@@ -138,6 +138,7 @@ const fetchRetry = require("fetch-retry")(require("node-fetch/lib"), {
  * @property {number} [featured_media]
  * @property {{}[]} [media]
  * @property {WordpressMediaSize[]} [sizes]
+ * @property {{self:{href:string}[]}} [_links]
  */
 
 /**

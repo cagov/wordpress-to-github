@@ -249,8 +249,7 @@ const SyncEndpoint = async (
         )
       };
 
-      /** @type {string} */
-      const object_url = jsonData["_links"]?.self[0].href;
+      const object_url = jsonData._links?.self[0].href;
 
       removeExcludedProperties(jsonData, endpointConfig.ExcludeProperties);
 
@@ -399,8 +398,7 @@ const SyncEndpoint = async (
 
       addMediaSection(endpointConfig, mediaMap, jsonData, HTML);
 
-      /** @type {string} */
-      const object_url = jsonData["_links"]?.self[0].href;
+      const object_url = jsonData._links?.self[0].href;
 
       removeExcludedProperties(jsonData, endpointConfig.ExcludeProperties);
 
@@ -453,8 +451,7 @@ const SyncEndpoint = async (
 
       addMediaSection(endpointConfig, mediaMap, jsonData, HTML);
 
-      /** @type {string} */
-      const object_url = jsonData["_links"]?.self[0].href;
+      const object_url = jsonData._links?.self[0].href;
 
       removeExcludedProperties(jsonData, endpointConfig.ExcludeProperties);
 
