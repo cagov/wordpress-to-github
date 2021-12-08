@@ -311,7 +311,7 @@ const SyncEndpoint = async (
       console.log(`Checking ${mediaChanges.length} media items`);
 
       /** @type {Promise<void>[]} */
-      const binarySyncs = [];
+      const binarySyncs = []; //TODO get download syncs working again.
 
       //Pull in binaries for any media meta changes
       for (const mediaTreeItem of mediaChanges) {
