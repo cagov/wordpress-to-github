@@ -40,6 +40,10 @@ const fieldMetaReference = {
 /** @type {Map <string,WordpressApiDateCacheItem|WordpressApiHashCacheItem>} */
 const updateCache = new Map();
 const cacheObjects = ["media", "posts", "pages"];
+const fetch = require("fetch-retry")(require("node-fetch/lib"), {
+  retries: 3,
+  retryDelay: 2000
+});
 
 /**
  * returns true if there are any items that match in both arrays
@@ -314,6 +318,13 @@ const SyncEndpoint = async (
         if (mediaTreeItem.sizes) {
           //Sized images
           for (const sizeJson of mediaTreeItem.sizes) {
+            const wordpress_url = sizeJson.wordpress_url;
+
+            console.log(`Downloading...${wordpress_url}`);
+            const fetchResponse = await fetch(wordpress_url);
+            const blob = await fetchResponse.arrayBuffer();
+            const buffer = Buffer.from(blob);
+
             mediaTree2.syncFile(mediaPath, mediaJson);
 
             binarySyncs.push(
