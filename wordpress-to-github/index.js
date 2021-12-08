@@ -221,7 +221,7 @@ const SyncEndpoint = async (
       commit_message: commitTitleGeneral
     });
 
-    generalTree.syncFile(fileName, JSON.stringify(jsonData, null, 2));
+    generalTree.syncFile(fileName, jsonData);
     await generalTree.treePush();
 
     addToReport(report, generalTree);
