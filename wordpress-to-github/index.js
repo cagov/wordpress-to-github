@@ -240,7 +240,7 @@ const SyncEndpoint = async (
 
   // MEDIA
   if (endpointConfig.MediaPath && mediaMap && allMedia) {
-    const mediaTree2 = new GitHubTreePush(gitHubCredentials.token, {
+    const mediaTree = new GitHubTreePush(gitHubCredentials.token, {
       ...configTreeConfig,
       path: endpointConfig.MediaPath,
       commit_message: commitTitleMedia
@@ -276,12 +276,12 @@ const SyncEndpoint = async (
 
         //put binary placeholders so they aren't deleted.  Will search for these if an update happens.
         for (const s of jsonData.sizes) {
-          mediaTree2.doNotRemoveFile(s.path);
+          mediaTree.doNotRemoveFile(s.path);
         }
       }
       //PDF
       jsonData.path = pathFromMediaSourceUrl(x.source_url);
-      mediaTree2.doNotRemoveFile(jsonData.path);
+      mediaTree.doNotRemoveFile(jsonData.path);
 
       const mediaJson = wrapInFileMeta(
         sourceEndpointConfig.WordPressSource.url,
@@ -296,15 +296,15 @@ const SyncEndpoint = async (
         ".json"
       );
 
-      mediaTree2.syncFile(mediaPath, mediaJson);
+      mediaTree.syncFile(mediaPath, mediaJson);
 
       mediaMap.set(mediaPath, mediaJson);
     });
 
     //TODO: Need to figure out which meta files changed...
 
-    const mediaChanges = (await mediaTree2.treePushDryRun()).map(p =>
-      mediaMap.get(p)
+    const mediaChanges = (await mediaTree.treePushDryRun()).map(
+      p => mediaMap.get(p.replace(`${endpointConfig.MediaPath}/`, "")).data
     );
 
     if (mediaChanges.length) {
@@ -325,45 +325,30 @@ const SyncEndpoint = async (
             const blob = await fetchResponse.arrayBuffer();
             const buffer = Buffer.from(blob);
 
-            mediaTree2.syncFile(mediaPath, mediaJson);
+            const path = pathFromMediaSourceUrl(wordpress_url);
 
-            binarySyncs.push(
-              syncBinaryFile(
-                sizeJson.wordpress_url,
-                gitRepo,
-                mediaTree,
-                endpointConfig
-              )
-            );
+            mediaTree.syncFile(path, buffer);
           }
         }
 
         //not sized media (PDF or non-image)
-        binarySyncs.push(
-          syncBinaryFile(
-            mediaTreeItem.wordpress_url,
-            gitRepo,
-            mediaTree,
-            endpointConfig
-          )
-        );
+        const wordpress_url = mediaTreeItem.wordpress_url;
+
+        console.log(`Downloading...${wordpress_url}`);
+        const fetchResponse = await fetch(wordpress_url);
+        const blob = await fetchResponse.arrayBuffer();
+        const buffer = Buffer.from(blob);
+
+        const path = pathFromMediaSourceUrl(wordpress_url);
+
+        mediaTree.syncFile(path, buffer);
       }
 
       await Promise.all(binarySyncs);
     }
 
-    //Remove any leftover binary placeholders...
-    mediaTree = mediaTree.filter(x => x.content !== mediaContentPlaceholder);
-    addToReport(
-      report,
-      await CommitIfChanged(
-        gitRepo,
-        gitHubTarget.Branch,
-        mediaTree,
-        `${commitTitleMedia} (${mediaTree.length} updates)`,
-        gitHubCommitter
-      )
-    );
+    await mediaTree.treePush();
+    addToReport(report, mediaTree);
   }
 
   /**
