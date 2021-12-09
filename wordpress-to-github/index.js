@@ -34,7 +34,7 @@ const commitTitleGeneral = "Wordpress General File Update";
 const fieldMetaReference = {
   posts: "https://developer.wordpress.org/rest-api/reference/posts/",
   pages: "https://developer.wordpress.org/rest-api/reference/pages/",
-  media: "https://developer.wordpress.org/rest-api/reference/pages/"
+  media: "https://developer.wordpress.org/rest-api/reference/media/"
 };
 /** @type {Map <string,WordpressApiDateCacheItem|WordpressApiHashCacheItem>} */
 const updateCache = new Map();
@@ -295,8 +295,7 @@ const SyncEndpoint = async (
       mediaMap.set(mediaPath, mediaJson);
     });
 
-    //TODO: Need to figure out which meta files changed...
-
+    //Figure out which meta files changed...
     const mediaChanges = (await mediaTree.treePushDryRun()).map(
       p => mediaMap.get(p.replace(`${endpointConfig.MediaPath}/`, "")).data
     );
@@ -386,101 +385,86 @@ const SyncEndpoint = async (
     return jsonData;
   };
 
+  /**
+   * Common Tree sync operations for Pages or Posts
+   *
+   * @param {string} path
+   * @param {*[]} WordPressRows
+   * @param {string} commit_message
+   * @param {string} fieldMetaRefUrl
+   */
+  const treeWorkForPagesOrPosts = async (
+    path,
+    WordPressRows,
+    commit_message,
+    fieldMetaRefUrl
+  ) => {
+    if (path && WordPressRows?.length) {
+      const objectTree = new GitHubTreePush(gitHubCredentials.token, {
+        ...configTreeConfig,
+        path,
+        commit_message,
+        removeOtherFiles: true
+      });
+
+      WordPressRows.forEach(wordPressRow => {
+        const jsonData = wordPressRowToGitHubOutput(wordPressRow);
+        const slug = wordPressRow.slug;
+        const fileNameJson = `${slug}.json`;
+        const fileNameHtml = `${slug}.html`;
+
+        if (
+          anythingInArrayMatch(
+            jsonData.tags,
+            sourceEndpointConfig.WordPressSource.tags_exclude
+          )
+        ) {
+          //ignoring this file from tags_exclude
+
+          objectTree.doNotRemoveFile(fileNameJson);
+          objectTree.doNotRemoveFile(fileNameHtml);
+        } else {
+          const HTML = cleanupContent(wordPressRow.content);
+          const object_url = jsonData._links?.self[0].href;
+
+          addMediaSection(endpointConfig, mediaMap, jsonData, HTML);
+
+          removeExcludedProperties(jsonData, endpointConfig.ExcludeProperties);
+
+          objectTree.syncFile(
+            fileNameJson,
+            wrapInFileMeta(
+              sourceEndpointConfig.WordPressSource.url,
+              gitHubTarget,
+              fieldMetaRefUrl,
+              jsonData,
+              object_url
+            )
+          );
+          objectTree.syncFile(fileNameHtml, HTML);
+        }
+      });
+
+      await objectTree.treePush();
+      addToReport(report, objectTree);
+    }
+  };
+
   // POSTS
-  if (endpointConfig.PostPath && allPosts) {
-    const postTree = new GitHubTreePush(gitHubCredentials.token, {
-      ...configTreeConfig,
-      path: endpointConfig.PostPath,
-      commit_message: commitTitlePosts,
-      removeOtherFiles: true
-    });
+  await treeWorkForPagesOrPosts(
+    endpointConfig.PostPath,
+    allPosts,
+    commitTitlePosts,
+    fieldMetaReference.posts
+  );
 
-    allPosts.forEach(wordPressRow => {
-      const jsonData = wordPressRowToGitHubOutput(wordPressRow);
-
-      if (
-        anythingInArrayMatch(
-          jsonData.tags,
-          sourceEndpointConfig.WordPressSource.tags_exclude
-        )
-      ) {
-        //ignoring this file from tags_exclude
-
-        postTree.doNotRemoveFile(`${wordPressRow.slug}.json`);
-        postTree.doNotRemoveFile(`${wordPressRow.slug}.html`);
-      } else {
-        const HTML = cleanupContent(wordPressRow.content);
-
-        addMediaSection(endpointConfig, mediaMap, jsonData, HTML);
-
-        const object_url = jsonData._links?.self[0].href;
-
-        removeExcludedProperties(jsonData, endpointConfig.ExcludeProperties);
-
-        postTree.syncFile(
-          `${wordPressRow.slug}.json`,
-          wrapInFileMeta(
-            sourceEndpointConfig.WordPressSource.url,
-            gitHubTarget,
-            fieldMetaReference.posts,
-            jsonData,
-            object_url
-          )
-        );
-        postTree.syncFile(`${wordPressRow.slug}.html`, HTML);
-      }
-    });
-
-    await postTree.treePush();
-    addToReport(report, postTree);
-  }
   // PAGES
-  if (endpointConfig.PagePath && allPages) {
-    const pagesTree = new GitHubTreePush(gitHubCredentials.token, {
-      ...configTreeConfig,
-      path: endpointConfig.PagePath,
-      commit_message: commitTitlePages,
-      removeOtherFiles: true
-    });
-
-    allPages.forEach(wordPressRow => {
-      const jsonData = wordPressRowToGitHubOutput(wordPressRow);
-      if (
-        anythingInArrayMatch(
-          jsonData.tags,
-          sourceEndpointConfig.WordPressSource.tags_exclude
-        )
-      ) {
-        //ignoring this file from tags_exclude
-
-        pagesTree.doNotRemoveFile(`${wordPressRow.slug}.json`);
-        pagesTree.doNotRemoveFile(`${wordPressRow.slug}.html`);
-      } else {
-        const HTML = cleanupContent(wordPressRow.content);
-
-        addMediaSection(endpointConfig, mediaMap, jsonData, HTML);
-
-        const object_url = jsonData._links?.self[0].href;
-
-        removeExcludedProperties(jsonData, endpointConfig.ExcludeProperties);
-
-        pagesTree.syncFile(
-          `${wordPressRow.slug}.json`,
-          wrapInFileMeta(
-            sourceEndpointConfig.WordPressSource.url,
-            gitHubTarget,
-            fieldMetaReference.pages,
-            jsonData,
-            object_url
-          )
-        );
-        pagesTree.syncFile(`${wordPressRow.slug}.html`, HTML);
-      }
-    });
-
-    await pagesTree.treePush();
-    addToReport(report, pagesTree);
-  }
+  await treeWorkForPagesOrPosts(
+    endpointConfig.PagePath,
+    allPages,
+    commitTitlePages,
+    fieldMetaReference.pages
+  );
 
   // API Requests
   if (allApiRequests) {
