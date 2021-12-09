@@ -80,37 +80,39 @@ const doProcessEndpoints = async work => {
       endpoint,
       gitHubCredentials
     );
+    if (commitReports?.length) {
+      //Commits happened
 
-    if (endpoint.ReportingChannel_Slack && slackBotGetToken()) {
-      //Endpoint reporting channel enabled.  Add a post for each commit report.
-      if (commitReports?.length) {
-        let opCount = 0;
+      let opCount = 0;
 
-        /** @type {string[]} */
-        let mergeFileNames = [];
-        commitReports.forEach(compare => {
-          opCount += compare.files.length;
+      /** @type {string[]} */
+      let mergeFileNames = [];
+      commitReports.forEach(compare => {
+        opCount += compare.files.length;
 
-          mergeFileNames.push(
-            ...compare.files.map(
-              //Remove file extension, and remove resolution postfix
-              f =>
-                f.filename
-                  .split("/")
-                  .slice(-1)[0]
-                  .split(".")[0]
-                  .replace(/-\d{1,4}x\d{1,4}$/, "")
-            )
-          );
-        });
+        mergeFileNames.push(
+          ...compare.files.map(
+            //Remove file extension, and remove resolution postfix
+            f =>
+              f.filename
+                .split("/")
+                .slice(-1)[0]
+                .split(".")[0]
+                .replace(/-\d{1,4}x\d{1,4}$/, "")
+          )
+        );
+      });
+
+      const slugList = ` : _${[...new Set(mergeFileNames)].join(", ")}_`;
+
+      if (endpoint.ReportingChannel_Slack && slackBotGetToken()) {
+        //Endpoint reporting channel enabled.  Add a post for each commit report.
 
         const slackBot = new SlackBot(
           slackBotGetToken(),
           endpoint.ReportingChannel_Slack,
           { username: endpoint.name }
         );
-
-        const slugList = ` : _${[...new Set(mergeFileNames)].join(", ")}_`;
 
         await slackBot.Chat(
           `${opCount} changes${slugList.length < 300 ? slugList : "."}`
