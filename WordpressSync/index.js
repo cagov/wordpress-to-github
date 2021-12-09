@@ -1,7 +1,6 @@
 // @ts-check
 const { SyncEndpoint } = require("@cagov/wordpress-to-github");
 const {
-  GitHubCommitter,
   GitHubCredentials,
   SourceEndpointConfigData
 } = require("@cagov/wordpress-to-github/common");
@@ -11,11 +10,6 @@ const debugChannel = "C01DBP67MSQ"; // #testingbot
 const endPointsJson = require("./endpoints.json");
 /** @type {SourceEndpointConfigData[]} */
 const endpoints = endPointsJson.data.projects;
-/** @type {GitHubCommitter} **/
-const gitHubCommitter = {
-  name: `${process.env["GITHUB_NAME"]}`,
-  email: `${process.env["GITHUB_EMAIL"]}`
-};
 /** @type {GitHubCredentials} **/
 const gitHubCredentials = {
   token: `${process.env["GITHUB_TOKEN"]}`
@@ -84,8 +78,7 @@ const doProcessEndpoints = async work => {
     const commitReports = await SyncEndpoint(
       endpoint.GitHubTarget,
       endpoint,
-      gitHubCredentials,
-      gitHubCommitter
+      gitHubCredentials
     );
 
     if (endpoint.ReportingChannel_Slack && slackBotGetToken()) {
@@ -95,11 +88,11 @@ const doProcessEndpoints = async work => {
 
         /** @type {string[]} */
         let mergeFileNames = [];
-        commitReports.forEach(x => {
-          opCount += x.Files.length;
+        commitReports.forEach(compare => {
+          opCount += compare.files.length;
 
           mergeFileNames.push(
-            ...x.Files.map(
+            ...compare.files.map(
               //Remove file extension, and remove resolution postfix
               f =>
                 f.filename
@@ -124,16 +117,16 @@ const doProcessEndpoints = async work => {
         );
 
         for (const commitReport of commitReports) {
-          const fileData = commitReport.Files.map(
-            x => `• ${x.status} - _${x.filename.split("/").slice(-1)[0]}_`
-          ).join("\n");
+          const fileData = commitReport.files
+            .map(x => `• ${x.status} - _${x.filename.split("/").slice(-1)[0]}_`)
+            .join("\n");
 
           await slackBot.Reply(
-            `<${commitReport.Commit.html_url}|${
-              commitReport.Commit.message
+            `<${commitReport.commit.html_url}|${
+              commitReport.commit.message
             }>\n${
-              commitReport.Files.length > 1
-                ? `${commitReport.Files.length} changes\n`
+              commitReport.files.length > 1
+                ? `${commitReport.files.length} changes\n`
                 : ""
             }${fileData}`
           );

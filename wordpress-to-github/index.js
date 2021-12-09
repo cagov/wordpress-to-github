@@ -21,7 +21,6 @@ const {
   SourceEndpointConfigData,
   WordpressApiDateCacheItem,
   WordpressApiHashCacheItem,
-  GitHubCommitter,
   GithubOutputJson,
   WordpressMediaRow,
   WordpressPageRow,
@@ -79,13 +78,11 @@ const addToReport = (Report, Tree) => {
  * @param {GitHubTarget} gitHubTarget
  * @param {SourceEndpointConfigData} sourceEndpointConfig
  * @param {GitHubCredentials} gitHubCredentials
- * @param {GitHubCommitter} gitHubCommitter
  */
 const SyncEndpoint = async (
   gitHubTarget,
   sourceEndpointConfig,
-  gitHubCredentials,
-  gitHubCommitter
+  gitHubCredentials
 ) => {
   /** @type {GithubCompare[]} */
   const report = [];
@@ -506,7 +503,7 @@ const SyncEndpoint = async (
       const requestsTree = new GitHubTreePush(gitHubCredentials.token, {
         ...configTreeConfig,
         path: folderName,
-        commit_message: commitTitlePages,
+        commit_message: commitTitleApiRequests,
         removeOtherFiles: false
       });
 

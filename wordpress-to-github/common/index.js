@@ -39,7 +39,6 @@ const fetchRetry = require("fetch-retry")(require("node-fetch/lib"), {
 
 /**
  * @typedef {{Owner:string, Repo:string, Branch:string, ConfigPath:string}} GitHubTarget
- * @typedef {{name:string, email:string}} GitHubCommitter
  * @typedef {{token:string}} GitHubCredentials
  * @typedef {{url:string,tags_exclude:string[]}} WordpressSource
  * @typedef {{width:number,path:string}} WordpressMediaSize
