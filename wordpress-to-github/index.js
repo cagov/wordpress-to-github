@@ -232,8 +232,6 @@ const SyncEndpoint = async (
   }
 
   /** @type {Map <string,any> | null} */
-  const pagesMap = endpointConfig.PagePath ? new Map() : null;
-  /** @type {Map <string,any> | null} */
   const mediaMap = endpointConfig.MediaPath ? new Map() : null;
 
   // MEDIA
@@ -440,57 +438,51 @@ const SyncEndpoint = async (
     addToReport(report, postTree);
   }
   // PAGES
-  if (endpointConfig.PagePath && pagesMap && allPages) {
-    allPages.forEach(x => {
-      const jsonData = wordPressRowToGitHubOutput(x);
-
-      const HTML = cleanupContent(x.content);
-
-      addMediaSection(endpointConfig, mediaMap, jsonData, HTML);
-
-      const object_url = jsonData._links?.self[0].href;
-
-      removeExcludedProperties(jsonData, endpointConfig.ExcludeProperties);
-
-      const ignoreThisOne = anythingInArrayMatch(
-        jsonData.tags,
-        sourceEndpointConfig.WordPressSource.tags_exclude
-      );
-
-      pagesMap.set(
-        `${x.slug}.json`,
-        ignoreThisOne
-          ? null
-          : wrapInFileMeta(
-              sourceEndpointConfig.WordPressSource.url,
-              gitHubTarget,
-              fieldMetaReference.media,
-              jsonData,
-              object_url
-            )
-      );
-      pagesMap.set(`${x.slug}.html`, ignoreThisOne ? null : HTML);
+  if (endpointConfig.PagePath && allPages) {
+    const pagesTree = new GitHubTreePush(gitHubCredentials.token, {
+      ...configTreeConfig,
+      path: endpointConfig.PagePath,
+      commit_message: commitTitlePages,
+      removeOtherFiles: true
     });
 
-    const pagesTree = await createTreeFromFileMap(
-      gitRepo,
-      gitHubTarget.Branch,
-      pagesMap,
-      endpointConfig.PagePath,
-      true
-    );
-    addToReport(
-      report,
-      await CommitIfChanged(
-        gitRepo,
-        gitHubTarget.Branch,
-        pagesTree,
-        `${commitTitlePages} (${
-          pagesTree.filter(x => x.path.endsWith(".html")).length
-        } updates)`, //TODO: Pull from a name property
-        gitHubCommitter
-      )
-    );
+    allPages.forEach(wordPressRow => {
+      const jsonData = wordPressRowToGitHubOutput(wordPressRow);
+      if (
+        anythingInArrayMatch(
+          jsonData.tags,
+          sourceEndpointConfig.WordPressSource.tags_exclude
+        )
+      ) {
+        //ignoring this file from tags_exclude
+
+        pagesTree.doNotRemoveFile(`${wordPressRow.slug}.json`);
+        pagesTree.doNotRemoveFile(`${wordPressRow.slug}.html`);
+      } else {
+        const HTML = cleanupContent(wordPressRow.content);
+
+        addMediaSection(endpointConfig, mediaMap, jsonData, HTML);
+
+        const object_url = jsonData._links?.self[0].href;
+
+        removeExcludedProperties(jsonData, endpointConfig.ExcludeProperties);
+
+        pagesTree.syncFile(
+          `${wordPressRow.slug}.json`,
+          wrapInFileMeta(
+            sourceEndpointConfig.WordPressSource.url,
+            gitHubTarget,
+            fieldMetaReference.pages,
+            jsonData,
+            object_url
+          )
+        );
+        pagesTree.syncFile(`${wordPressRow.slug}.html`, HTML);
+      }
+    });
+
+    await pagesTree.treePush();
+    addToReport(report, pagesTree);
   }
 
   // API Requests
