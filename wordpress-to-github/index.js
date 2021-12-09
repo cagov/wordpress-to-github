@@ -39,10 +39,6 @@ const fieldMetaReference = {
 /** @type {Map <string,WordpressApiDateCacheItem|WordpressApiHashCacheItem>} */
 const updateCache = new Map();
 const cacheObjects = ["media", "posts", "pages"];
-const fetch = require("fetch-retry")(require("node-fetch/lib"), {
-  retries: 3,
-  retryDelay: 2000
-});
 
 /**
  * returns true if there are any items that match in both arrays
@@ -303,9 +299,6 @@ const SyncEndpoint = async (
     if (mediaChanges.length) {
       console.log(`Checking ${mediaChanges.length} media items`);
 
-      /** @type {Promise<void>[]} */
-      const binarySyncs = []; //TODO get download syncs working again.
-
       //Pull in binaries for any media meta changes
       for (const mediaTreeItem of mediaChanges) {
         if (mediaTreeItem.sizes) {
@@ -313,31 +306,19 @@ const SyncEndpoint = async (
           for (const sizeJson of mediaTreeItem.sizes) {
             const wordpress_url = sizeJson.wordpress_url;
 
-            console.log(`Downloading...${wordpress_url}`);
-            const fetchResponse = await fetch(wordpress_url);
-            const blob = await fetchResponse.arrayBuffer();
-            const buffer = Buffer.from(blob);
-
             const path = pathFromMediaSourceUrl(wordpress_url);
 
-            mediaTree.syncFile(path, buffer);
+            mediaTree.syncDownload(path, wordpress_url);
           }
         }
 
         //not sized media (PDF or non-image)
         const wordpress_url = mediaTreeItem.wordpress_url;
 
-        console.log(`Downloading...${wordpress_url}`);
-        const fetchResponse = await fetch(wordpress_url);
-        const blob = await fetchResponse.arrayBuffer();
-        const buffer = Buffer.from(blob);
-
         const path = pathFromMediaSourceUrl(wordpress_url);
 
-        mediaTree.syncFile(path, buffer);
+        mediaTree.syncDownload(path, wordpress_url);
       }
-
-      await Promise.all(binarySyncs);
     }
 
     await mediaTree.treePush();
