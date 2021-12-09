@@ -503,29 +503,29 @@ const SyncEndpoint = async (
 
     // Create and commit a git tree for each set of files.
     for (let [folderName, fileMap] of Object.entries(apiRequestsByFolder)) {
-      const requestsTree = await createTreeFromFileMap(
-        gitRepo,
-        gitHubTarget.Branch,
-        fileMap,
-        folderName,
-        false
-      );
+      const requestsTree = new GitHubTreePush(gitHubCredentials.token, {
+        ...configTreeConfig,
+        path: folderName,
+        commit_message: commitTitlePages,
+        removeOtherFiles: false
+      });
 
+      /** @type {Map<string,*>} */
+      const mapList = fileMap;
+      mapList.forEach((value, path) => {
+        requestsTree.syncFile(path, value);
+      });
+
+      await requestsTree.treePush();
+
+      /*
       const reportLabel = folderName.split("/").slice(-1).join("/") || "root";
       const updateCount = `${requestsTree.length} ${
         requestsTree.length === 1 ? "update" : "updates"
       }`;
+      */
 
-      addToReport(
-        report,
-        await CommitIfChanged(
-          gitRepo,
-          gitHubTarget.Branch,
-          requestsTree,
-          `${commitTitleApiRequests} (${updateCount} to ${reportLabel})`,
-          gitHubCommitter
-        )
-      );
+      addToReport(report, requestsTree);
     }
   }
 
