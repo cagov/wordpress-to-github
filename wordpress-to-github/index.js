@@ -160,7 +160,7 @@ const SyncEndpoint = async (
 
   if (!repoDetails.permissions.push) {
     throw new Error(
-      `App user has no write permissions for ${gitHubTarget.Repo}`
+      `App user has no push permissions for ${gitHubTarget.Repo}`
     );
   }
 
