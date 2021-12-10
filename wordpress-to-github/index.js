@@ -492,6 +492,12 @@ const SyncEndpoint = async (
     }
   }
 
+  //Legacy fields to maintain backwards compat
+  report.forEach(r => {
+    r["Files"] = r.files;
+    r["Commit"] = r.commit;
+  });
+
   return report;
 };
 
