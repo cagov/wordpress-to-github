@@ -88,6 +88,11 @@ const SyncEndpoint = async (
     repo: gitHubTarget.Repo
   };
 
+  if (gitHubToken["token"]) {
+    //Maintains backwards compat in case an object with `token` in it was specified
+    gitHubToken = gitHubToken["token"];
+  }
+
   const configTree = new GitHubTreePush(gitHubToken, configTreeConfig);
 
   //https://docs.github.com/en/rest/reference/repos#contents
@@ -155,7 +160,7 @@ const SyncEndpoint = async (
 
   if (!repoDetails.permissions.push) {
     throw new Error(
-      `App user has no write permissions for ${gitHubTarget.Repo}`
+      `App user has no push permissions for ${gitHubTarget.Repo}`
     );
   }
 
@@ -486,6 +491,12 @@ const SyncEndpoint = async (
       addToReport(report, requestsTree);
     }
   }
+
+  //Legacy fields to maintain backwards compat
+  report.forEach(r => {
+    r["Files"] = r.files;
+    r["Commit"] = r.commit;
+  });
 
   return report;
 };
