@@ -16,7 +16,6 @@ const {
   pathFromMediaSourceUrl,
   addMediaSection,
   GitHubTarget,
-  GitHubCredentials,
   EndpointConfigData,
   SourceEndpointConfigData,
   WordpressApiDateCacheItem,
@@ -73,12 +72,12 @@ const addToReport = (Report, Tree) => {
  *
  * @param {GitHubTarget} gitHubTarget
  * @param {SourceEndpointConfigData} sourceEndpointConfig
- * @param {GitHubCredentials} gitHubCredentials
+ * @param {string} gitHubToken
  */
 const SyncEndpoint = async (
   gitHubTarget,
   sourceEndpointConfig,
-  gitHubCredentials
+  gitHubToken
 ) => {
   /** @type {GithubCompare[]} */
   const report = [];
@@ -89,10 +88,7 @@ const SyncEndpoint = async (
     repo: gitHubTarget.Repo
   };
 
-  const configTree = new GitHubTreePush(
-    gitHubCredentials.token,
-    configTreeConfig
-  );
+  const configTree = new GitHubTreePush(gitHubToken, configTreeConfig);
 
   //https://docs.github.com/en/rest/reference/repos#contents
   const endpointConfigResponse = await configTree.__fetchResponse(
@@ -212,7 +208,7 @@ const SyncEndpoint = async (
       .join("/");
     const fileName = endpointConfig.GeneralFilePath.split("/").slice(-1)[0];
 
-    const generalTree = new GitHubTreePush(gitHubCredentials.token, {
+    const generalTree = new GitHubTreePush(gitHubToken, {
       ...configTreeConfig,
       path: filePath,
       commit_message: commitTitleGeneral
@@ -229,7 +225,7 @@ const SyncEndpoint = async (
 
   // MEDIA
   if (endpointConfig.MediaPath && mediaMap && allMedia) {
-    const mediaTree = new GitHubTreePush(gitHubCredentials.token, {
+    const mediaTree = new GitHubTreePush(gitHubToken, {
       ...configTreeConfig,
       path: endpointConfig.MediaPath,
       commit_message: commitTitleMedia,
@@ -381,7 +377,7 @@ const SyncEndpoint = async (
     fieldMetaRefUrl
   ) => {
     if (path && WordPressRows?.length) {
-      const objectTree = new GitHubTreePush(gitHubCredentials.token, {
+      const objectTree = new GitHubTreePush(gitHubToken, {
         ...configTreeConfig,
         path,
         commit_message,
@@ -465,7 +461,7 @@ const SyncEndpoint = async (
 
     // Create and commit a git tree for each set of files.
     for (let [folderName, fileMap] of Object.entries(apiRequestsByFolder)) {
-      const requestsTree = new GitHubTreePush(gitHubCredentials.token, {
+      const requestsTree = new GitHubTreePush(gitHubToken, {
         ...configTreeConfig,
         path: folderName,
         commit_message: commitTitleApiRequests,

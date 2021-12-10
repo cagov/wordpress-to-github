@@ -1,7 +1,6 @@
 // @ts-check
 const { SyncEndpoint } = require("@cagov/wordpress-to-github");
 const {
-  GitHubCredentials,
   SourceEndpointConfigData
 } = require("@cagov/wordpress-to-github/common");
 const SlackBot = require("@cagov/slack-connector");
@@ -10,10 +9,8 @@ const debugChannel = "C01DBP67MSQ"; // #testingbot
 const endPointsJson = require("./endpoints.json");
 /** @type {SourceEndpointConfigData[]} */
 const endpoints = endPointsJson.data.projects;
-/** @type {GitHubCredentials} **/
-const gitHubCredentials = {
-  token: `${process.env["GITHUB_TOKEN"]}`
-};
+
+const gitHubToken = `${process.env["GITHUB_TOKEN"]}`;
 
 const slackBotGetToken = () => {
   const token = process.env["SLACKBOT_TOKEN"];
@@ -78,7 +75,7 @@ const doProcessEndpoints = async work => {
     const commitReports = await SyncEndpoint(
       endpoint.GitHubTarget,
       endpoint,
-      gitHubCredentials
+      gitHubToken
     );
     if (commitReports?.length) {
       //Commits happened
