@@ -10,7 +10,7 @@ const endPointsJson = require("./endpoints.json");
 /** @type {SourceEndpointConfigData[]} */
 const endpoints = endPointsJson.data.projects;
 
-const gitHubToken = `${process.env["GITHUB_TOKEN"]}`;
+const gitHubToken = process.env["GITHUB_TOKEN"];
 
 const slackBotGetToken = () => {
   const token = process.env["SLACKBOT_TOKEN"];
