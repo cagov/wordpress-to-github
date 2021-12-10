@@ -88,6 +88,11 @@ const SyncEndpoint = async (
     repo: gitHubTarget.Repo
   };
 
+  if (gitHubToken["token"]) {
+    //Maintains backwards compat in case an object with `token` in it was specified
+    gitHubToken = gitHubToken["token"];
+  }
+
   const configTree = new GitHubTreePush(gitHubToken, configTreeConfig);
 
   //https://docs.github.com/en/rest/reference/repos#contents
