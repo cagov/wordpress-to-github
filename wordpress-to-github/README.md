@@ -38,7 +38,8 @@ Controls how the service will place content in GitHub. This file belongs in your
       }
     ],
     "GeneralFilePath": "wordpress/general/general.json",
-    "ExcludeProperties": ["content", "_links"]
+    "ExcludeProperties": ["content", "_links"],
+    "HideAuthorName": false
   }
 }
 ```
@@ -55,8 +56,11 @@ Controls how the service will place content in GitHub. This file belongs in your
 | **`ApiRequests.ExcludeProperties`** | A collection of property keys to remove from the output.                                                                                          |
 | **`GeneralFilePath`**               | The full path and filename for a `general.json` file that contains information about the whole site.                                              |
 | **`ExcludeProperties`**             | Which WordPress properties should we suppress in output?                                                                                          |
+| **`HideAuthorName`**                | `true` to show user number for Author output instead of Name                                                                                      |
 
 ## Sample output
+
+These are examples of the types of files that will be written to the target GitHub repo by this service.
 
 ### `general / general.json`
 

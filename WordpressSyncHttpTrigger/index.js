@@ -1,10 +1,9 @@
 // @ts-check
-const { sleep } = require("@cagov/wordpress-to-github/gitTreeCommon");
+
 const SlackBot = require("@cagov/slack-connector");
 const endpoints = require("../WordpressSync/endpoints.json");
 
-//const debugChannel = "C02G6PETB9B"; //#wordpress-sync-http-trigger
-const debugChannel = "C01H6RB99E2"; //#carter-dev
+const debugChannel = "C02G6PETB9B"; //#wordpress-sync-http-trigger
 
 const slackBotGetToken = () => {
   const token = process.env["SLACKBOT_TOKEN"];
@@ -19,6 +18,13 @@ const slackBotGetToken = () => {
 
   return token;
 };
+
+/**
+ * Halts processing for a set time
+ *
+ * @param {number} ms milliseconds to sleep (1000 = 1s)
+ */
+const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
 
 /**
  * @typedef {object} Response

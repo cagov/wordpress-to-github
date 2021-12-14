@@ -1,10 +1,6 @@
 // @ts-check
-const crypto = require('crypto');
+const crypto = require("crypto");
 const apiPath = "/wp-json/wp/v2/";
-const {
-  gitHubBlobPredictShaFromBuffer,
-  GithubTreeRow
-} = require("../gitTreeCommon");
 const fetchRetry = require("fetch-retry")(require("node-fetch/lib"), {
   retries: 3,
   retryDelay: 5000,
@@ -30,20 +26,19 @@ const fetchRetry = require("fetch-retry")(require("node-fetch/lib"), {
  * @property {string} [PagePath]
  * @property {string} [MediaPath]
  * @property {string} [GeneralFilePath]
+ * @property {boolean} [HideAuthorName] True to hide author information.
  * @property {EndpointRequestsConfigData[]} [ApiRequests]
  */
 
 /**
  * @typedef {object} EndpointRequestsConfigData
  * @property {string} Destination
- * @property {string} Source 
+ * @property {string} Source
  * @property {string[]} [ExcludeProperties]
  */
 
 /**
  * @typedef {{Owner:string, Repo:string, Branch:string, ConfigPath:string}} GitHubTarget
- * @typedef {{name:string, email:string}} GitHubCommitter
- * @typedef {{token:string}} GitHubCredentials
  * @typedef {{url:string,tags_exclude:string[]}} WordpressSource
  * @typedef {{width:number,path:string}} WordpressMediaSize
  */
@@ -141,6 +136,7 @@ const fetchRetry = require("fetch-retry")(require("node-fetch/lib"), {
  * @property {number} [featured_media]
  * @property {{}[]} [media]
  * @property {WordpressMediaSize[]} [sizes]
+ * @property {{self:{href:string}[]}} [_links]
  */
 
 /**
@@ -155,11 +151,14 @@ const fetchRetry = require("fetch-retry")(require("node-fetch/lib"), {
  * @property {string} Destination
  * @property {string} Source
  * @property {string} Hash
- * 
- * @typedef {object} WithData
+ */
+
+/**
+ * @typedef {object} WordpressApiHashDataItem Hash details for a Wordpress API response (With Data)
+ * @property {string} Destination
+ * @property {string} Source
+ * @property {string} Hash
  * @property {string} Data
- * 
- * @typedef {WordpressApiHashCacheItem & WithData} WordpressApiHashDataItem
  */
 
 /**
@@ -266,8 +265,8 @@ const WpApi_getSomething = async fetchquery =>
   await fetchRetry(fetchquery, { method: "Get" });
 
 /**
- * Fetch API request data from the WordPress API. 
- * 
+ * Fetch API request data from the WordPress API.
+ *
  * @param {string} wordPressApiUrl Full URL to the WordPress Menu API.
  * @param {EndpointRequestsConfigData[]} requests Array of Wordpress API requests.
  * @returns {Promise<WordpressApiHashDataItem[]>}
@@ -284,7 +283,9 @@ const WpApi_GetApiRequestsData = (wordPressApiUrl, requests) => {
           if (response.ok) {
             return response.json();
           } else {
-            throw new Error(`${response.status} - ${response.statusText} - ${response.url}`);
+            throw new Error(
+              `${response.status} - ${response.statusText} - ${response.url}`
+            );
           }
         })
         .then(json => removeExcludedProperties(json, request.ExcludeProperties))
@@ -303,12 +304,15 @@ const WpApi_GetApiRequestsData = (wordPressApiUrl, requests) => {
 
 /**
  * Compares a cached object to a current object to see if the cache is out of date.
- * @param {WordpressApiDateCacheItem|WordpressApiHashCacheItem} cacheItem 
- * @param {WordpressApiDateCacheItem|WordpressApiHashCacheItem} currentItem 
+ *
+ * @param {WordpressApiDateCacheItem|WordpressApiHashCacheItem} cacheItem
+ * @param {WordpressApiDateCacheItem|WordpressApiHashCacheItem} currentItem
  * @returns {boolean}
  */
 const jsonCacheDiscrepancy = (cacheItem, currentItem) => {
-  return !cacheItem || JSON.stringify(cacheItem) !== JSON.stringify(currentItem);
+  return (
+    !cacheItem || JSON.stringify(cacheItem) !== JSON.stringify(currentItem)
+  );
 };
 
 /**
@@ -384,81 +388,11 @@ const wrapInFileMeta = (
 });
 
 /**
- * A custom Github function to check for file exists
- *
- * @param {{ _request: function( string, *, *) : Promise<*> }} myRepo
- * @param {string} path
- * @param {undefined} [data]
- * @param {function(any, boolean, any) : void} [cb]
- */
-function githubDoesFileExist(myRepo, path, data, cb) {
-  return myRepo._request("HEAD", path, data).then(
-    (/** @type {any} */ response) => {
-      if (cb) {
-        cb(null, true, response);
-      }
-      return true;
-    },
-    (/** @type {{ response: { status: number } }} */ response) => {
-      if (response.response.status === 404) {
-        if (cb) {
-          cb(null, false, response);
-        }
-        return false;
-      }
-
-      if (cb) {
-        // @ts-ignore
-        cb(response);
-      }
-      throw response;
-    }
-  );
-}
-
-/**
- * Syncs a binary file with Github, by adding the blob if its not already there and then updating the sha in the tree
- *
- * @param {string} wordpress_url
- * @param {*} gitRepo
- * @param {GithubTreeRow[]} mediaTree
- * @param {EndpointConfigData} endpoint
- */
-const syncBinaryFile = async (wordpress_url, gitRepo, mediaTree, endpoint) => {
-  console.log(`Downloading...${wordpress_url}`);
-  const fetchResponse = await fetchRetry(wordpress_url, { method: "Get" });
-  const blob = await fetchResponse.arrayBuffer();
-  const buffer = Buffer.from(blob);
-
-  let sha = gitHubBlobPredictShaFromBuffer(buffer);
-
-  const exists = await githubDoesFileExist(
-    gitRepo,
-    `/repos/${gitRepo.__fullname}/git/blobs/${sha}`
-  );
-  if (!exists) {
-    const blobResult = await gitRepo.createBlob(buffer);
-    sha = blobResult.data.sha; //should be the same, but just in case
-  }
-
-  //swap in the new blob sha here.  If the sha matches something already there it will be determined on server.
-  const treeNode = mediaTree.find(
-    x =>
-      x.path ===
-      `${endpoint.MediaPath}/${pathFromMediaSourceUrl(wordpress_url)}`
-  );
-  if (treeNode) {
-    delete treeNode.content;
-    treeNode.sha = sha;
-  }
-};
-
-/**
  * deletes properties in the list
  *
  * @param {object} json
  * @param {string[]} [excludeList]
- * @returns {object} 
+ * @returns {object}
  */
 const removeExcludedProperties = (json, excludeList) => {
   if (excludeList) {
@@ -519,7 +453,6 @@ const addMediaSection = (endpoint, mediaMap, jsonData, HTML) => {
 module.exports = {
   ensureStringStartsWith,
   removeExcludedProperties,
-  syncBinaryFile,
   wrapInFileMeta,
   commonMeta,
   WpApi_GetCacheItem_ByObjectType,

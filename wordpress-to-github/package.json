@@ -1,6 +1,6 @@
 {
   "name": "@cagov/wordpress-to-github",
-  "version": "0.0.2",
+  "version": "0.3.0",
   "license": "MIT",
   "publishConfig": {
     "access": "public"
@@ -15,7 +15,8 @@
   "bugs": "https://github.com/cagov/wordpress-to-github/issues",
   "description": "Used to create services that can sync WordPress to GitHub.",
   "scripts": {
-    "publish to NPM": "npm publish"
+    "beta to NPM": "npm publish --tag beta --access public",
+    "publish to NPM": "npm publish --access public"
   },
   "keywords": [
     "wordpress",
@@ -28,8 +29,7 @@
   },
   "dependencies": {
     "fetch-retry": "^4.1.1",
-    "github-api": "^3.4.0",
     "node-fetch": "^2.6.1",
-    "sha1": "^1.1.1"
+    "@cagov/github-tree-push": "^0.1.1"
   }
 }
