@@ -293,8 +293,18 @@ const SyncEndpoint = async (
     });
 
     //Figure out which meta files changed...
-    const mediaChanges = (await mediaTree.treePushDryRun()).map(
-      p => mediaMap.get(p.replace(`${endpointConfig.MediaPath}/`, "")).data
+    const mediaChanges = (await mediaTree.treePushDryRun()).reduce(
+      (bucket, p) => {
+        const mediaMapKey = p.replace(`${endpointConfig.MediaPath}/`, "");
+        const mediaMapEntry = mediaMap.get(mediaMapKey);
+        const mediaMapEntryData = mediaMapEntry?.data;
+
+        if (mediaMapEntryData) {
+          bucket.push(mediaMapEntryData);
+        }
+        return bucket;
+      },
+      []
     );
 
     if (mediaChanges.length) {
