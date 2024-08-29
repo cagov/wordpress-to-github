@@ -199,6 +199,10 @@ const wpRenderRenderFields = json => {
     if (json[key] && (json[key]["rendered"] === "" || json[key]["rendered"])) {
       json[key] = json[key]["rendered"];
     }
+    // remove unexpected keys (class_list introduced in wordpress 6.1.1)
+    if (key === 'class_list') {
+      delete json[key];
+    }
   }
 };
 
